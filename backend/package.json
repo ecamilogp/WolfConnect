@@ -9,8 +9,9 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
-    "check": "tsc --noEmit"
+    "format:check": "prettier --check ."
   },
   "keywords": [
     "wolfconnect",
@@ -21,6 +22,7 @@
   "author": "Edward Camilo",
   "license": "MIT",
   "dependencies": {
+    "dotenv": "^17.4.2",
     "express": "^5.2.1"
   },
   "devDependencies": {
