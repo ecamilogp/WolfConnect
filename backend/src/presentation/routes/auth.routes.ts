@@ -4,16 +4,20 @@ import { AuthController } from '../controllers/auth.controller.js';
 import { RegisterUserUseCase } from '../../application/use-cases/auth/register-user.use-case.js';
 import { PrismaUserRepository } from '../../infrastructure/repositories/prisma-user.repository.js';
 import { validate } from '../middlewares/validation.middleware.js';
-import { registerUserSchema } from '../../application/validators/auth/register-user.schema.js';
+import { registerUserSchema } from '../validators/auth/register-user.schema.js';
+import { LoginUserUseCase } from '../../application/use-cases/auth/login-user.use-case.js';
+import { loginUserSchema } from '../validators/auth/login-user.schema.js';
 
 const router = Router();
 
 // Dependencias
 const userRepository = new PrismaUserRepository();
 const registerUserUseCase = new RegisterUserUseCase(userRepository);
-const authController = new AuthController(registerUserUseCase);
+const loginUserUseCase = new LoginUserUseCase(userRepository);
+const authController = new AuthController(registerUserUseCase, loginUserUseCase);
 
 // Rutas
 router.post('/register', validate(registerUserSchema), authController.register);
+router.post('/login', validate(loginUserSchema), authController.login);
 
 export default router;
