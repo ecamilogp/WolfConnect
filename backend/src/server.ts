@@ -1,6 +1,6 @@
 import app from './app.js';
 import { env } from './config/env.js';
-import { prisma } from './infrastructure/database/prisma.js';
+import { prisma } from './infrastructure/database/prisma.service.js';
 
 await prisma.connect();
 
