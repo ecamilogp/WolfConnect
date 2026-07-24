@@ -3,6 +3,7 @@ import { UserRepository } from '../../domain/repositories/user.repository.js';
 import { prisma } from '../database/prisma.service.js';
 import { UserMapper } from '../mappers/user.mapper.js';
 import { CreateUserDTO } from '../../domain/dto/create-user.dto.js';
+import { UpdateUserDTO } from '../../domain/dto/update-user.dto.js';
 
 export class PrismaUserRepository implements UserRepository {
   async create(user: CreateUserDTO): Promise<User> {
@@ -51,6 +52,30 @@ export class PrismaUserRepository implements UserRepository {
     if (!user) {
       return null;
     }
+
+    return UserMapper.toDomain(user);
+  }
+
+  async update(id: string, data: UpdateUserDTO): Promise<User> {
+    const user = await prisma.user.update({
+      where: {
+        id,
+      },
+      data,
+    });
+
+    return UserMapper.toDomain(user);
+  }
+
+  async updatePassword(id: string, password: string): Promise<User> {
+    const user = await prisma.user.update({
+      where: {
+        id,
+      },
+      data: {
+        password,
+      },
+    });
 
     return UserMapper.toDomain(user);
   }

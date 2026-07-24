@@ -1,6 +1,7 @@
 import express from 'express';
 
 import authRoutes from './presentation/routes/auth.routes.js';
+import userRoutes from './presentation/routes/user.routes.js';
 import { errorHandler } from './presentation/middlewares/error-handler.middleware.js';
 
 const app = express();
@@ -18,6 +19,7 @@ app.get('/health', (_req, res) => {
 
 //Routes
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/users', userRoutes);
 
 //Error handler
 app.use(errorHandler);
