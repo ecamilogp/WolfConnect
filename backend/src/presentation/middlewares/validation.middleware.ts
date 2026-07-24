@@ -1,9 +1,9 @@
 import type { NextFunction, Request, Response } from 'express';
-import type { ZodSchema } from 'zod';
+import type { ZodType } from 'zod';
 
 import { ValidationError } from '../../shared/errors/validation-error.js';
 
-export function validate(schema: ZodSchema) {
+export function validate(schema: ZodType) {
   return (req: Request, _res: Response, next: NextFunction): void => {
     const result = schema.safeParse(req.body);
 
