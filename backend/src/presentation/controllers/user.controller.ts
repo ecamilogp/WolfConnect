@@ -1,27 +1,28 @@
 import { NextFunction, Request, Response } from 'express';
 
 import { GetCurrentUserUseCase } from '../../application/use-cases/users/get-current-user.use-case.js';
-import { UserResponseMapper } from '../mappers/user-response.mapper.js';
 import { UpdateCurrentUserUseCase } from '../../application/use-cases/users/update-current-user.use-case.js';
+import { ChangePasswordUseCase } from '../../application/use-cases/users/change-password.use-case.js';
 import { PrismaUserRepository } from '../../infrastructure/repositories/prisma-user.repository.js';
+import { UserResponseMapper } from '../mappers/user-response.mapper.js';
 
 export class UserController {
-  constructor(private readonly getCurrentUserUseCase: GetCurrentUserUseCase) {}
+  private readonly userRepository = new PrismaUserRepository();
 
-  private readonly updateCurrentUserUseCase = new UpdateCurrentUserUseCase(
-    new PrismaUserRepository(),
-  );
+  private readonly updateCurrentUserUseCase = new UpdateCurrentUserUseCase(this.userRepository);
+
+  private readonly changePasswordUseCase = new ChangePasswordUseCase(this.userRepository);
+
+  constructor(private readonly getCurrentUserUseCase: GetCurrentUserUseCase) {}
 
   me = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const user = this.getCurrentUserUseCase.execute(req.user);
 
-      const response = UserResponseMapper.toResponse(user);
-
       res.status(200).json({
         success: true,
         message: 'Current user retrieved successfully.',
-        data: response,
+        data: UserResponseMapper.toResponse(user),
       });
     } catch (error) {
       next(error);
@@ -36,6 +37,19 @@ export class UserController {
         success: true,
         message: 'User updated successfully.',
         data: UserResponseMapper.toResponse(updatedUser),
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  changePassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      await this.changePasswordUseCase.execute(req.user, req.body);
+
+      res.status(200).json({
+        success: true,
+        message: 'Password updated successfully.',
       });
     } catch (error) {
       next(error);

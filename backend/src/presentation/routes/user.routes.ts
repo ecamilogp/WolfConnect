@@ -6,6 +6,7 @@ import { UserController } from '../controllers/user.controller.js';
 import { updateUserSchema } from '../validators/users/update-user.validator.js';
 
 import { GetCurrentUserUseCase } from '../../application/use-cases/users/get-current-user.use-case.js';
+import { changePasswordSchema } from '../validators/users/change-password.validator.js';
 
 const router = Router();
 
@@ -16,5 +17,12 @@ const userController = new UserController(getCurrentUserUseCase);
 router.get('/me', authenticate, userController.me);
 
 router.patch('/me', authenticate, validate(updateUserSchema), userController.update);
+
+router.patch(
+  '/me/password',
+  authenticate,
+  validate(changePasswordSchema),
+  userController.changePassword,
+);
 
 export default router;
