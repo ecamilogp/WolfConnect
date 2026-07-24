@@ -1,9 +1,11 @@
 import bcrypt from 'bcrypt';
+
 import { generateAccessToken } from '../../../shared/utils/jwt.js';
 import { UnauthorizedError } from '../../../shared/errors/unauthorized-error.js';
+
 import type { LoginUserDTO } from '../../../domain/dto/login-user.dto.js';
 import type { UserRepository } from '../../../domain/repositories/user.repository.js';
-import type { User } from '../../../domain/entities/user.entity.js';
+import { UserStatus, type User } from '../../../domain/entities/user.entity.js';
 
 export class LoginUserUseCase {
   constructor(private readonly userRepository: UserRepository) {}
@@ -16,6 +18,14 @@ export class LoginUserUseCase {
 
     if (!user) {
       throw new UnauthorizedError();
+    }
+
+    if (user.status === UserStatus.INACTIVE) {
+      throw new UnauthorizedError('Your account has been deactivated.');
+    }
+
+    if (user.status === UserStatus.BLOCKED) {
+      throw new UnauthorizedError('Your account has been blocked.');
     }
 
     const passwordMatches = await bcrypt.compare(dto.password, user.password);
