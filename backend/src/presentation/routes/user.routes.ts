@@ -25,4 +25,6 @@ router.patch(
   userController.changePassword,
 );
 
+router.patch('/me/deactivate', authenticate, userController.deactivateAccount);
+
 export default router;

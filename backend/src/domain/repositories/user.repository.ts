@@ -14,4 +14,6 @@ export interface UserRepository {
   update(id: string, data: UpdateUserDTO): Promise<User>;
 
   updatePassword(id: string, password: string): Promise<User>;
+
+  deactivate(id: string): Promise<User>;
 }
