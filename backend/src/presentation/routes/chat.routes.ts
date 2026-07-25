@@ -4,6 +4,7 @@ import { authenticate } from '../middlewares/authenticate.middleware.js';
 import { validate } from '../middlewares/validation.middleware.js';
 import { ChatController } from '../controllers/chat.controller.js';
 import { createPrivateChatSchema } from '../validators/chat/create-private-chat.schema.js';
+import { createGroupChatSchema } from '../validators/chat/create-group-chat.schema.js';
 
 const router = Router();
 
@@ -14,6 +15,13 @@ router.post(
   authenticate,
   validate(createPrivateChatSchema),
   chatController.createPrivateChat,
+);
+
+router.post(
+  '/groups',
+  authenticate,
+  validate(createGroupChatSchema),
+  chatController.createGroupChat,
 );
 
 export default router;
