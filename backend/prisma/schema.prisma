@@ -13,6 +13,35 @@ enum UserStatus {
   BLOCKED
 }
 
+enum ChatType {
+  PRIVATE
+  GROUP
+}
+
+enum ParticipantRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum MessageType {
+  TEXT
+  SYSTEM
+}
+
+enum AttachmentType {
+  IMAGE
+  VIDEO
+  AUDIO
+  DOCUMENT
+}
+
 model User {
   id           String     @id @default(uuid())
   firstName    String
@@ -23,9 +52,135 @@ model User {
   profileImage String?
   status       UserStatus @default(ACTIVE)
 
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  deletedAt    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  participants        ChatParticipant[]
+  sentMessages        Message[]         @relation("MessageSender")
+  sentInvitations     Invitation[]      @relation("InvitationSender")
+  receivedInvitations Invitation[]      @relation("InvitationReceiver")
 
   @@map("users")
+}
+
+model Chat {
+  id String @id @default(uuid())
+
+  type ChatType
+
+  name        String?
+  description String?
+  imageUrl    String?
+
+  lastMessageAt DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  participants ChatParticipant[]
+  invitations  Invitation[]
+  messages     Message[]
+
+  @@index([type])
+  @@index([lastMessageAt])
+  @@map("chats")
+}
+
+model ChatParticipant {
+  id String @id @default(uuid())
+
+  chatId String
+  userId String
+
+  role ParticipantRole @default(MEMBER)
+
+  joinedAt DateTime  @default(now())
+  leftAt   DateTime?
+
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([chatId, userId])
+  @@index([chatId])
+  @@index([userId])
+  @@map("chat_participants")
+}
+
+model Invitation {
+  id String @id @default(uuid())
+
+  chatId String
+
+  invitedUserId String
+
+  invitedByUserId String
+
+  status InvitationStatus @default(PENDING)
+
+  createdAt   DateTime  @default(now())
+  respondedAt DateTime?
+
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  invitedUser User @relation("InvitationReceiver", fields: [invitedUserId], references: [id], onDelete: Cascade)
+
+  invitedBy User @relation("InvitationSender", fields: [invitedByUserId], references: [id], onDelete: Cascade)
+
+  @@index([chatId])
+  @@index([status])
+  @@map("invitations")
+}
+
+model Message {
+  id String @id @default(uuid())
+
+  chatId String
+
+  senderId String
+
+  content String?
+
+  type MessageType @default(TEXT)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  editedAt  DateTime?
+  deletedAt DateTime?
+
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  sender User @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  attachments Attachment[]
+
+  @@index([chatId])
+  @@index([senderId])
+  @@index([createdAt])
+  @@map("messages")
+}
+
+model Attachment {
+  id String @id @default(uuid())
+
+  messageId String
+
+  fileName String
+
+  fileUrl String
+
+  mimeType String
+
+  attachmentType AttachmentType
+
+  size Int
+
+  createdAt DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+  @@map("attachments")
 }
