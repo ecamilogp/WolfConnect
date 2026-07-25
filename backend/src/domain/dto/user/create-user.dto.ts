@@ -1,4 +1,4 @@
-import { UserStatus } from '../entities/user.entity.js';
+import { UserStatus } from '../../entities/user.entity.js';
 
 export interface CreateUserDTO {
   firstName: string;
