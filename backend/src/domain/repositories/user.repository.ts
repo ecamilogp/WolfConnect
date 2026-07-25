@@ -1,5 +1,5 @@
 import { User } from '../entities/user.entity.js';
-import { CreateUserDTO } from '../dto/create-user.dto.js';
+import { CreateUserDTO } from '../dto/user/create-user.dto.js';
 import { UpdateUserDTO } from '../dto/user/update-user.dto.js';
 
 export interface UserRepository {

@@ -9,6 +9,7 @@ export class ChatMapper {
       prismaChat.name,
       prismaChat.description,
       prismaChat.imageUrl,
+      prismaChat.joinPolicy,
       prismaChat.lastMessageAt,
       prismaChat.createdAt,
       prismaChat.updatedAt,

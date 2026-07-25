@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 
 import { User } from '../../../domain/entities/user.entity.js';
-import { ChangePasswordDTO } from '../../../domain/dto/change-password.dto.js';
+import { ChangePasswordDTO } from '../../../domain/dto/user/change-password.dto.js';
 import { UserRepository } from '../../../domain/repositories/user.repository.js';
 
 import { BadRequestError } from '../../../shared/errors/bad-request-error.js';

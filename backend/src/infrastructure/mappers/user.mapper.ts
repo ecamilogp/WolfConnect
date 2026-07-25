@@ -1,6 +1,6 @@
 import { User as PrismaUser, UserStatus as PrismaUserStatus } from '@prisma/client';
 import { User, UserStatus } from '../../domain/entities/user.entity.js';
-import { CreateUserDTO } from '../../domain/dto/create-user.dto.js';
+import { CreateUserDTO } from '../../domain/dto/user/create-user.dto.js';
 
 export class UserMapper {
   static toDomain(user: PrismaUser): User {

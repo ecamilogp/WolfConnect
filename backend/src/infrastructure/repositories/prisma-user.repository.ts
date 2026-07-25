@@ -2,7 +2,7 @@ import { User, UserStatus } from '../../domain/entities/user.entity.js';
 import { UserRepository } from '../../domain/repositories/user.repository.js';
 import { prisma } from '../database/prisma.service.js';
 import { UserMapper } from '../mappers/user.mapper.js';
-import { CreateUserDTO } from '../../domain/dto/create-user.dto.js';
+import { CreateUserDTO } from '../../domain/dto/user/create-user.dto.js';
 import { UpdateUserDTO } from '../../domain/dto/user/update-user.dto.js';
 
 export class PrismaUserRepository implements UserRepository {

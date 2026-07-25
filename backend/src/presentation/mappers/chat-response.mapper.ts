@@ -9,6 +9,7 @@ export class ChatResponseMapper {
       name: chat.name,
       description: chat.description,
       imageUrl: chat.imageUrl,
+      joinPolicy: chat.joinPolicy,
       lastMessageAt: chat.lastMessageAt,
       createdAt: chat.createdAt,
       updatedAt: chat.updatedAt,

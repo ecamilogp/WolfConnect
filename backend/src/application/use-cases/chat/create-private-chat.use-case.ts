@@ -1,5 +1,5 @@
 import { Chat } from '../../../domain/entities/chat.entity.js';
-import { CreatePrivateChatDto } from '../../../domain/dto/CreatePrivateChatDto.js';
+import { CreatePrivateChatDto } from '../../../domain/dto/chat/create-private-chat.dto.js';
 import { ChatRepository } from '../../../domain/repositories/chat.repository.js';
 import { BadRequestError } from '../../../shared/errors/bad-request-error.js';
 

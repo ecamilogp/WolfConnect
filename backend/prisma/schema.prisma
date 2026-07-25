@@ -18,6 +18,11 @@ enum ChatType {
   GROUP
 }
 
+enum GroupJoinPolicy {
+  AUTO_ADD
+  INVITATION_REQUIRED
+}
+
 enum ParticipantRole {
   OWNER
   ADMIN
@@ -28,6 +33,13 @@ enum InvitationStatus {
   PENDING
   ACCEPTED
   REJECTED
+}
+
+enum PlatformInvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  CANCELLED
 }
 
 enum MessageType {
@@ -56,10 +68,13 @@ model User {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  participants        ChatParticipant[]
-  sentMessages        Message[]         @relation("MessageSender")
-  sentInvitations     Invitation[]      @relation("InvitationSender")
-  receivedInvitations Invitation[]      @relation("InvitationReceiver")
+  participants ChatParticipant[]
+  sentMessages Message[]         @relation("MessageSender")
+
+  sentGroupInvitations     GroupInvitation[] @relation("GroupInvitationSender")
+  receivedGroupInvitations GroupInvitation[] @relation("GroupInvitationReceiver")
+
+  sentPlatformInvitations PlatformInvitation[] @relation("PlatformInvitationSender")
 
   @@map("users")
 }
@@ -73,15 +88,17 @@ model Chat {
   description String?
   imageUrl    String?
 
+  joinPolicy GroupJoinPolicy?
+
   lastMessageAt DateTime?
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  participants ChatParticipant[]
-  invitations  Invitation[]
-  messages     Message[]
+  participants     ChatParticipant[]
+  groupInvitations GroupInvitation[]
+  messages         Message[]
 
   @@index([type])
   @@index([lastMessageAt])
@@ -108,7 +125,7 @@ model ChatParticipant {
   @@map("chat_participants")
 }
 
-model Invitation {
+model GroupInvitation {
   id String @id @default(uuid())
 
   chatId String
@@ -124,13 +141,38 @@ model Invitation {
 
   chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
 
-  invitedUser User @relation("InvitationReceiver", fields: [invitedUserId], references: [id], onDelete: Cascade)
+  invitedUser User @relation("GroupInvitationReceiver", fields: [invitedUserId], references: [id], onDelete: Cascade)
 
-  invitedBy User @relation("InvitationSender", fields: [invitedByUserId], references: [id], onDelete: Cascade)
+  invitedBy User @relation("GroupInvitationSender", fields: [invitedByUserId], references: [id], onDelete: Cascade)
 
+  @@unique([chatId, invitedUserId])
   @@index([chatId])
   @@index([status])
-  @@map("invitations")
+  @@map("group_invitations")
+}
+
+model PlatformInvitation {
+  id String @id @default(uuid())
+
+  email String
+
+  token String @unique
+
+  status PlatformInvitationStatus @default(PENDING)
+
+  invitedByUserId String
+
+  invitedBy User @relation("PlatformInvitationSender", fields: [invitedByUserId], references: [id], onDelete: Cascade)
+
+  expiresAt DateTime
+
+  acceptedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([status])
+  @@map("platform_invitations")
 }
 
 model Message {

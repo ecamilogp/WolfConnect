@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt';
 
 import { UserStatus } from '../../../domain/entities/user.entity.js';
 import { UserRepository } from '../../../domain/repositories/user.repository.js';
-import { CreateUserDTO } from '../../../domain/dto/create-user.dto.js';
+import { CreateUserDTO } from '../../../domain/dto/user/create-user.dto.js';
 import { ConflictError } from '../../../shared/errors/conflict-error.js';
 
 export interface RegisterUserInput {
