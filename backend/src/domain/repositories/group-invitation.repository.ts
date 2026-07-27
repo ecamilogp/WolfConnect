@@ -5,4 +5,6 @@ export interface GroupInvitationRepository {
   findPendingInvitation(chatId: string, invitedUserId: string): Promise<GroupInvitation | null>;
 
   create(dto: CreateGroupInvitationDto): Promise<GroupInvitation>;
+
+  findById(id: string): Promise<GroupInvitation | null>;
 }

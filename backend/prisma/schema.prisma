@@ -33,6 +33,7 @@ enum InvitationStatus {
   PENDING
   ACCEPTED
   REJECTED
+  CANCELLED
 }
 
 enum PlatformInvitationStatus {

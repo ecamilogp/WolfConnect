@@ -32,4 +32,10 @@ router.post(
   chatController.inviteUserToGroup,
 );
 
+router.patch(
+  '/groups/invitations/:invitationId/accept',
+  authenticate,
+  chatController.acceptGroupInvitation,
+);
+
 export default router;

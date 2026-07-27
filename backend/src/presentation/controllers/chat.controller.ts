@@ -7,6 +7,7 @@ import { CreateGroupChatUseCase } from '../../application/use-cases/chat/create-
 import { InviteUserToGroupUseCase } from '../../application/use-cases/chat/invite-user-to-group.use-case.js';
 import { PrismaUserRepository } from '../../infrastructure/repositories/prisma-user.repository.js';
 import { PrismaGroupInvitationRepository } from '../../infrastructure/repositories/prisma-group-invitation.repository.js';
+import { AcceptGroupInvitationUseCase } from '../../application/use-cases/chat/accept-group-invitation.use-case.js';
 
 export class ChatController {
   private readonly chatRepository = new PrismaChatRepository();
@@ -22,6 +23,11 @@ export class ChatController {
   private readonly inviteUserToGroupUseCase = new InviteUserToGroupUseCase(
     this.chatRepository,
     this.userRepository,
+    this.groupInvitationRepository,
+  );
+
+  private readonly acceptGroupInvitationUseCase = new AcceptGroupInvitationUseCase(
+    this.chatRepository,
     this.groupInvitationRepository,
   );
 
@@ -74,9 +80,29 @@ export class ChatController {
         invitedUserId: req.body.invitedUserId,
       });
 
-      res.status(201).json({
+      res.status(200).json({
         success: true,
         message: 'User invited successfully.',
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  acceptGroupInvitation = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const result = await this.acceptGroupInvitationUseCase.execute(
+        String(req.params.invitationId),
+        req.user.id,
+      );
+
+      res.status(200).json({
+        success: true,
+        ...result,
       });
     } catch (error) {
       next(error);
