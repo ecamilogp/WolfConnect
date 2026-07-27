@@ -5,6 +5,7 @@ import { validate } from '../middlewares/validation.middleware.js';
 import { ChatController } from '../controllers/chat.controller.js';
 import { createPrivateChatSchema } from '../validators/chat/create-private-chat.schema.js';
 import { createGroupChatSchema } from '../validators/chat/create-group-chat.schema.js';
+import { inviteUserToGroupSchema } from '../validators/chat/invite-user-to-group.schema.js';
 
 const router = Router();
 
@@ -22,6 +23,13 @@ router.post(
   authenticate,
   validate(createGroupChatSchema),
   chatController.createGroupChat,
+);
+
+router.post(
+  '/groups/:chatId/invitations',
+  authenticate,
+  validate(inviteUserToGroupSchema),
+  chatController.inviteUserToGroup,
 );
 
 export default router;

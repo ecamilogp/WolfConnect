@@ -3,6 +3,7 @@ import { Chat } from '../../domain/entities/chat.entity.js';
 import { prisma } from '../database/prisma.service.js';
 import { ChatMapper } from '../mappers/chat.mapper.js';
 import { CreateGroupChatDto } from '../../domain/dto/chat/create-group-chat.dto.js';
+import { ChatParticipant } from '../../domain/entities/chat-participant.entity.js';
 
 export class PrismaChatRepository implements ChatRepository {
   async findPrivateChatBetweenUsers(
@@ -91,5 +92,52 @@ export class PrismaChatRepository implements ChatRepository {
     });
 
     return ChatMapper.toDomain(prismaChat);
+  }
+
+  async findById(chatId: string): Promise<Chat | null> {
+    const chat = await prisma.chat.findUnique({
+      where: {
+        id: chatId,
+      },
+    });
+
+    if (!chat) {
+      return null;
+    }
+
+    return ChatMapper.toDomain(chat);
+  }
+
+  async findParticipantByUser(chatId: string, userId: string): Promise<ChatParticipant | null> {
+    const participant = await prisma.chatParticipant.findFirst({
+      where: {
+        chatId,
+        userId,
+        leftAt: null,
+      },
+    });
+
+    if (!participant) {
+      return null;
+    }
+
+    return {
+      id: participant.id,
+      chatId: participant.chatId,
+      userId: participant.userId,
+      role: participant.role,
+      joinedAt: participant.joinedAt,
+      leftAt: participant.leftAt,
+    };
+  }
+
+  async addParticipant(chatId: string, userId: string): Promise<void> {
+    await prisma.chatParticipant.create({
+      data: {
+        chatId,
+        userId,
+        role: 'MEMBER',
+      },
+    });
   }
 }
