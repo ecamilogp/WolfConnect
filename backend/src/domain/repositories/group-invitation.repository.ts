@@ -7,4 +7,6 @@ export interface GroupInvitationRepository {
   create(dto: CreateGroupInvitationDto): Promise<GroupInvitation>;
 
   findById(id: string): Promise<GroupInvitation | null>;
+
+  updateStatus(id: string, status: 'ACCEPTED' | 'REJECTED' | 'CANCELLED'): Promise<GroupInvitation>;
 }

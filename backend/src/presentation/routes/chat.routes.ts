@@ -38,4 +38,9 @@ router.patch(
   chatController.acceptGroupInvitation,
 );
 
+router.patch(
+  '/groups/invitations/:invitationId/reject',
+  authenticate,
+  chatController.rejectGroupInvitation,
+);
 export default router;

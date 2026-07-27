@@ -8,6 +8,7 @@ import { InviteUserToGroupUseCase } from '../../application/use-cases/chat/invit
 import { PrismaUserRepository } from '../../infrastructure/repositories/prisma-user.repository.js';
 import { PrismaGroupInvitationRepository } from '../../infrastructure/repositories/prisma-group-invitation.repository.js';
 import { AcceptGroupInvitationUseCase } from '../../application/use-cases/chat/accept-group-invitation.use-case.js';
+import { RejectGroupInvitationUseCase } from '../../application/use-cases/chat/reject-group-invitation.use-case.js';
 
 export class ChatController {
   private readonly chatRepository = new PrismaChatRepository();
@@ -28,6 +29,10 @@ export class ChatController {
 
   private readonly acceptGroupInvitationUseCase = new AcceptGroupInvitationUseCase(
     this.chatRepository,
+    this.groupInvitationRepository,
+  );
+
+  private readonly rejectGroupInvitationUseCase = new RejectGroupInvitationUseCase(
     this.groupInvitationRepository,
   );
 
@@ -96,6 +101,26 @@ export class ChatController {
   ): Promise<void> => {
     try {
       const result = await this.acceptGroupInvitationUseCase.execute(
+        String(req.params.invitationId),
+        req.user.id,
+      );
+
+      res.status(200).json({
+        success: true,
+        ...result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  rejectGroupInvitation = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const result = await this.rejectGroupInvitationUseCase.execute(
         String(req.params.invitationId),
         req.user.id,
       );
