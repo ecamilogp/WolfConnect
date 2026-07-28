@@ -5,6 +5,8 @@ import { ChatMapper } from '../mappers/chat.mapper.js';
 import { CreateGroupChatDto } from '../../domain/dto/chat/create-group-chat.dto.js';
 import { ChatParticipant } from '../../domain/entities/chat-participant.entity.js';
 import { AcceptGroupInvitationDto } from '../../domain/dto/group-invitations/accept-group-invitation.dto.js';
+import { ChatSummaryDto } from '../../domain/dto/chat/chat-summary.dto.js';
+import { ChatSummaryMapper } from '../mappers/chat-summary.mapper.js';
 
 export class PrismaChatRepository implements ChatRepository {
   async findPrivateChatBetweenUsers(
@@ -208,5 +210,43 @@ export class PrismaChatRepository implements ChatRepository {
         },
       });
     });
+  }
+
+  async findAllByUser(userId: string): Promise<ChatSummaryDto[]> {
+    const chats = await prisma.chat.findMany({
+      where: {
+        deletedAt: null,
+        participants: {
+          some: {
+            userId,
+            leftAt: null,
+          },
+        },
+      },
+
+      include: {
+        participants: {
+          where: {
+            leftAt: null,
+          },
+
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                profileImage: true,
+              },
+            },
+          },
+        },
+      },
+
+      orderBy: {
+        lastMessageAt: 'desc',
+      },
+    });
+    return chats.map((chat) => ChatSummaryMapper.toDto(chat, userId));
   }
 }

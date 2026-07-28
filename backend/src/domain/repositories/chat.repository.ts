@@ -1,3 +1,4 @@
+import { ChatSummaryDto } from '../dto/chat/chat-summary.dto.js';
 import { CreateGroupChatDto } from '../dto/chat/create-group-chat.dto.js';
 import { AcceptGroupInvitationDto } from '../dto/group-invitations/accept-group-invitation.dto.js';
 import { ChatParticipant } from '../entities/chat-participant.entity.js';
@@ -21,4 +22,6 @@ export interface ChatRepository {
   leaveGroup(chatId: string, userId: string): Promise<void>;
 
   deleteGroup(chatId: string): Promise<void>;
+
+  findAllByUser(userId: string): Promise<ChatSummaryDto[]>;
 }

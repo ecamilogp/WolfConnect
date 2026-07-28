@@ -11,6 +11,8 @@ const router = Router();
 
 const chatController = new ChatController();
 
+router.get('/', authenticate, chatController.getChats);
+
 router.post(
   '/private',
   authenticate,

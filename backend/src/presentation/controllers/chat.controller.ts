@@ -1,16 +1,17 @@
 import { NextFunction, Request, Response } from 'express';
 
-import { CreatePrivateChatUseCase } from '../../application/use-cases/chat/create-private-chat.use-case.js';
 import { PrismaChatRepository } from '../../infrastructure/repositories/prisma-chat.repository.js';
-import { ChatResponseMapper } from '../mappers/chat-response.mapper.js';
-import { CreateGroupChatUseCase } from '../../application/use-cases/chat/create-group-chat.use-case.js';
-import { InviteUserToGroupUseCase } from '../../application/use-cases/chat/invite-user-to-group.use-case.js';
 import { PrismaUserRepository } from '../../infrastructure/repositories/prisma-user.repository.js';
 import { PrismaGroupInvitationRepository } from '../../infrastructure/repositories/prisma-group-invitation.repository.js';
+import { ChatResponseMapper } from '../mappers/chat-response.mapper.js';
+import { CreatePrivateChatUseCase } from '../../application/use-cases/chat/create-private-chat.use-case.js';
+import { CreateGroupChatUseCase } from '../../application/use-cases/chat/create-group-chat.use-case.js';
+import { InviteUserToGroupUseCase } from '../../application/use-cases/chat/invite-user-to-group.use-case.js';
 import { AcceptGroupInvitationUseCase } from '../../application/use-cases/chat/accept-group-invitation.use-case.js';
 import { RejectGroupInvitationUseCase } from '../../application/use-cases/chat/reject-group-invitation.use-case.js';
 import { LeaveGroupUseCase } from '../../application/use-cases/chat/leave-group.use-case.js';
 import { DeleteGroupUseCase } from '../../application/use-cases/chat/delete-group.use-case.js';
+import { GetChatsUseCase } from '../../application/use-cases/chat/get-chats.use-case.js';
 
 export class ChatController {
   private readonly chatRepository = new PrismaChatRepository();
@@ -41,6 +42,8 @@ export class ChatController {
   private readonly leaveGroupUseCase = new LeaveGroupUseCase(this.chatRepository);
 
   private readonly deleteGroupUseCase = new DeleteGroupUseCase(this.chatRepository);
+
+  private readonly getChatsUseCase = new GetChatsUseCase(this.chatRepository);
 
   createPrivateChat = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -160,6 +163,19 @@ export class ChatController {
       res.status(200).json({
         success: true,
         ...result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getChats = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const chats = await this.getChatsUseCase.execute(req.user.id);
+
+      res.status(200).json({
+        success: true,
+        data: chats,
       });
     } catch (error) {
       next(error);
