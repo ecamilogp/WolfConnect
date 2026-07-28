@@ -114,7 +114,6 @@ export class PrismaChatRepository implements ChatRepository {
       where: {
         chatId,
         userId,
-        leftAt: null,
       },
     });
 
@@ -161,6 +160,20 @@ export class PrismaChatRepository implements ChatRepository {
           respondedAt: new Date(),
         },
       });
+    });
+  }
+
+  async leaveGroup(chatId: string, userId: string): Promise<void> {
+    await prisma.chatParticipant.update({
+      where: {
+        chatId_userId: {
+          chatId,
+          userId,
+        },
+      },
+      data: {
+        leftAt: new Date(),
+      },
     });
   }
 }

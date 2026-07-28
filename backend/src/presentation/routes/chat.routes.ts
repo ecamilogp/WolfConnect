@@ -43,4 +43,7 @@ router.patch(
   authenticate,
   chatController.rejectGroupInvitation,
 );
+
+router.patch('/groups/:chatId/leave', authenticate, chatController.leaveGroup);
+
 export default router;
