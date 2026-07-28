@@ -19,4 +19,6 @@ export interface ChatRepository {
   acceptGroupInvitation(dto: AcceptGroupInvitationDto): Promise<void>;
 
   leaveGroup(chatId: string, userId: string): Promise<void>;
+
+  deleteGroup(chatId: string): Promise<void>;
 }

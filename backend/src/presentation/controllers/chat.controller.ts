@@ -10,6 +10,7 @@ import { PrismaGroupInvitationRepository } from '../../infrastructure/repositori
 import { AcceptGroupInvitationUseCase } from '../../application/use-cases/chat/accept-group-invitation.use-case.js';
 import { RejectGroupInvitationUseCase } from '../../application/use-cases/chat/reject-group-invitation.use-case.js';
 import { LeaveGroupUseCase } from '../../application/use-cases/chat/leave-group.use-case.js';
+import { DeleteGroupUseCase } from '../../application/use-cases/chat/delete-group.use-case.js';
 
 export class ChatController {
   private readonly chatRepository = new PrismaChatRepository();
@@ -38,6 +39,8 @@ export class ChatController {
   );
 
   private readonly leaveGroupUseCase = new LeaveGroupUseCase(this.chatRepository);
+
+  private readonly deleteGroupUseCase = new DeleteGroupUseCase(this.chatRepository);
 
   createPrivateChat = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -140,6 +143,19 @@ export class ChatController {
   leaveGroup = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const result = await this.leaveGroupUseCase.execute(String(req.params.chatId), req.user.id);
+
+      res.status(200).json({
+        success: true,
+        ...result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  deleteGroup = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const result = await this.deleteGroupUseCase.execute(String(req.params.chatId), req.user.id);
 
       res.status(200).json({
         success: true,

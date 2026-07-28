@@ -46,4 +46,6 @@ router.patch(
 
 router.patch('/groups/:chatId/leave', authenticate, chatController.leaveGroup);
 
+router.delete('/groups/:chatId', authenticate, chatController.deleteGroup);
+
 export default router;

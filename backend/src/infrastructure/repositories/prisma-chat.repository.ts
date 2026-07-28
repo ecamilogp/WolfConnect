@@ -176,4 +176,37 @@ export class PrismaChatRepository implements ChatRepository {
       },
     });
   }
+
+  async deleteGroup(chatId: string): Promise<void> {
+    await prisma.$transaction(async (tx) => {
+      await tx.chat.update({
+        where: {
+          id: chatId,
+        },
+        data: {
+          deletedAt: new Date(),
+        },
+      });
+
+      await tx.chatParticipant.updateMany({
+        where: {
+          chatId,
+          leftAt: null,
+        },
+        data: {
+          leftAt: new Date(),
+        },
+      });
+
+      await tx.groupInvitation.updateMany({
+        where: {
+          chatId,
+          status: 'PENDING',
+        },
+        data: {
+          status: 'CANCELLED',
+        },
+      });
+    });
+  }
 }
