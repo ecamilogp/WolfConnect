@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import { generateAccessToken } from '../../../shared/utils/jwt.js';
 import { UnauthorizedError } from '../../../shared/errors/unauthorized-error.js';
 
-import type { LoginUserDTO } from '../../../domain/dto/login-user.dto.js';
+import type { LoginUserDTO } from '../../../domain/dto/auth/login-user.dto.js';
 import type { UserRepository } from '../../../domain/repositories/user.repository.js';
 import { UserStatus, type User } from '../../../domain/entities/user.entity.js';
 

@@ -1,5 +1,5 @@
 import { User } from '../../../domain/entities/user.entity.js';
-import { UpdateUserDTO } from '../../../domain/dto/update-user.dto.js';
+import { UpdateUserDTO } from '../../../domain/dto/user/update-user.dto.js';
 import { UserRepository } from '../../../domain/repositories/user.repository.js';
 import { BadRequestError } from '../../../shared/errors/bad-request-error.js';
 import { ConflictError } from '../../../shared/errors/conflict-error.js';
