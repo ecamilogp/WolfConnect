@@ -71,6 +71,7 @@ model User {
 
   participants ChatParticipant[]
   sentMessages Message[]         @relation("MessageSender")
+  readMessages MessageRead[]
 
   sentGroupInvitations     GroupInvitation[] @relation("GroupInvitationSender")
   receivedGroupInvitations GroupInvitation[] @relation("GroupInvitationReceiver")
@@ -197,6 +198,7 @@ model Message {
 
   sender User @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
 
+  reads       MessageRead[]
   attachments Attachment[]
 
   @@index([chatId])
@@ -226,4 +228,21 @@ model Attachment {
 
   @@index([messageId])
   @@map("attachments")
+}
+
+model MessageRead {
+  id String @id @default(uuid())
+
+  messageId String
+  userId    String
+
+  readAt DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@index([messageId])
+  @@index([userId])
+  @@map("message_reads")
 }

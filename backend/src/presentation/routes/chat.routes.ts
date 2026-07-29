@@ -72,4 +72,6 @@ router.patch(
 
 router.delete('/messages/:messageId', authenticate, messageController.deleteMessage);
 
+router.patch('/:chatId/read', authenticate, messageController.markMessagesAsRead);
+
 export default router;
