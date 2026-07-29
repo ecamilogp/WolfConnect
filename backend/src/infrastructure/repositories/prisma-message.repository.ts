@@ -7,6 +7,7 @@ import { prisma } from '../database/prisma.service.js';
 import { MessageListItemDto } from '../../domain/dto/message/message-list-item.dto.js';
 import { UpdateMessageResponseDto } from '../../domain/dto/message/update-message-response.dto.js';
 import { UpdateMessageDto } from '../../domain/dto/message/update-message.dto.js';
+import { DeleteMessageDto } from '../../domain/dto/message/delete-message.dto.js';
 
 export class PrismaMessageRepository implements MessageRepository {
   async create(data: CreateMessageDto): Promise<MessageResponseDto> {
@@ -107,5 +108,16 @@ export class PrismaMessageRepository implements MessageRepository {
       createdAt: message.createdAt,
       editedAt: message.editedAt,
     };
+  }
+
+  async delete(dto: DeleteMessageDto): Promise<void> {
+    await prisma.message.update({
+      where: {
+        id: dto.messageId,
+      },
+      data: {
+        deletedAt: new Date(),
+      },
+    });
   }
 }

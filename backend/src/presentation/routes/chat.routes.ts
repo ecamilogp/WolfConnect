@@ -70,4 +70,6 @@ router.patch(
   messageController.editMessage,
 );
 
+router.delete('/messages/:messageId', authenticate, messageController.deleteMessage);
+
 export default router;

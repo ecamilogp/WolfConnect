@@ -5,6 +5,7 @@ import { PrismaMessageRepository } from '../../infrastructure/repositories/prism
 import { SendMessageUseCase } from '../../application/use-cases/message/send-message.use-case.js';
 import { GetMessagesUseCase } from '../../application/use-cases/message/get-messages.use-case.js';
 import { EditMessageUseCase } from '../../application/use-cases/message/edit-message.use-case.js';
+import { DeleteMessageUseCase } from '../../application/use-cases/message/delete-message.use-case.js';
 
 export class MessageController {
   private readonly chatRepository = new PrismaChatRepository();
@@ -22,6 +23,8 @@ export class MessageController {
   );
 
   private readonly editMessageUseCase = new EditMessageUseCase(this.messageRepository);
+
+  private readonly deleteMessageUseCase = new DeleteMessageUseCase(this.messageRepository);
 
   sendMessage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -69,6 +72,22 @@ export class MessageController {
         success: true,
         message: 'Message updated successfully.',
         data: message,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  deleteMessage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      await this.deleteMessageUseCase.execute({
+        messageId: String(req.params.messageId),
+        userId: req.user.id,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: 'Message deleted successfully.',
       });
     } catch (error) {
       next(error);
