@@ -1,5 +1,3 @@
-import { Prisma } from '@prisma/client';
-
 import { CreateMessageDto } from '../../domain/dto/message/create-message.dto.js';
 import { MessageResponseDto } from '../../domain/dto/message/message-response.dto.js';
 import { MessageRepository } from '../../domain/repositories/message.repository.js';
@@ -8,6 +6,7 @@ import { MessageListItemDto } from '../../domain/dto/message/message-list-item.d
 import { UpdateMessageResponseDto } from '../../domain/dto/message/update-message-response.dto.js';
 import { UpdateMessageDto } from '../../domain/dto/message/update-message.dto.js';
 import { DeleteMessageDto } from '../../domain/dto/message/delete-message.dto.js';
+import { MarkMessagesAsReadDto } from '../../domain/dto/message/mark-messages-as-read.dto.js';
 
 export class PrismaMessageRepository implements MessageRepository {
   async create(data: CreateMessageDto): Promise<MessageResponseDto> {
@@ -118,6 +117,37 @@ export class PrismaMessageRepository implements MessageRepository {
       data: {
         deletedAt: new Date(),
       },
+    });
+  }
+
+  async markAsRead(dto: MarkMessagesAsReadDto): Promise<void> {
+    const unreadMessages = await prisma.message.findMany({
+      where: {
+        chatId: dto.chatId,
+        senderId: {
+          not: dto.userId,
+        },
+        deletedAt: null,
+        reads: {
+          none: {
+            userId: dto.userId,
+          },
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (unreadMessages.length === 0) {
+      return;
+    }
+
+    await prisma.messageRead.createMany({
+      data: unreadMessages.map((message) => ({
+        messageId: message.id,
+        userId: dto.userId,
+      })),
     });
   }
 }

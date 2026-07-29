@@ -6,6 +6,7 @@ import { SendMessageUseCase } from '../../application/use-cases/message/send-mes
 import { GetMessagesUseCase } from '../../application/use-cases/message/get-messages.use-case.js';
 import { EditMessageUseCase } from '../../application/use-cases/message/edit-message.use-case.js';
 import { DeleteMessageUseCase } from '../../application/use-cases/message/delete-message.use-case.js';
+import { MarkMessagesAsReadUseCase } from '../../application/use-cases/message/mark-messages-as-read.use-case.js';
 
 export class MessageController {
   private readonly chatRepository = new PrismaChatRepository();
@@ -25,6 +26,11 @@ export class MessageController {
   private readonly editMessageUseCase = new EditMessageUseCase(this.messageRepository);
 
   private readonly deleteMessageUseCase = new DeleteMessageUseCase(this.messageRepository);
+
+  private readonly markMessagesAsReadUseCase = new MarkMessagesAsReadUseCase(
+    this.chatRepository,
+    this.messageRepository,
+  );
 
   sendMessage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -88,6 +94,22 @@ export class MessageController {
       res.status(200).json({
         success: true,
         message: 'Message deleted successfully.',
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  markMessagesAsRead = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      await this.markMessagesAsReadUseCase.execute({
+        chatId: String(req.params.chatId),
+        userId: req.user.id,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: 'Messages marked as read.',
       });
     } catch (error) {
       next(error);
