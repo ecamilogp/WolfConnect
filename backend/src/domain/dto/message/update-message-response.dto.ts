@@ -1,6 +1,6 @@
 import { MessageType } from '@prisma/client';
 
-export interface MessageResponseDto {
+export interface UpdateMessageResponseDto {
   id: string;
   chatId: string;
   senderId: string;
@@ -8,5 +8,4 @@ export interface MessageResponseDto {
   type: MessageType;
   createdAt: Date;
   editedAt: Date | null;
-  deletedAt: Date | null;
 }

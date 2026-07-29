@@ -8,6 +8,7 @@ import { createPrivateChatSchema } from '../validators/chat/create-private-chat.
 import { createGroupChatSchema } from '../validators/chat/create-group-chat.schema.js';
 import { inviteUserToGroupSchema } from '../validators/chat/invite-user-to-group.schema.js';
 import { sendMessageSchema } from '../validators/message/send-message.schema.js';
+import { editMessageSchema } from '../validators/message/edit-message.schema.js';
 
 const router = Router();
 
@@ -61,5 +62,12 @@ router.post(
 );
 
 router.get('/:chatId/messages', authenticate, messageController.getMessages);
+
+router.patch(
+  '/messages/:messageId',
+  authenticate,
+  validate(editMessageSchema),
+  messageController.editMessage,
+);
 
 export default router;
