@@ -1,7 +1,7 @@
 import { prisma } from '../database/prisma.service.js';
 import { GroupInvitationRepository } from '../../domain/repositories/group-invitation.repository.js';
 import { GroupInvitation } from '../../domain/entities/group-invitation.entity.js';
-import { CreateGroupInvitationDto } from '../../domain/dto/group-invitations/create-group-invitation.dto.js';
+import { CreateGroupInvitationDto } from '../../domain/dto/chat-group-invitations/create-group-invitation.dto.js';
 
 export class PrismaGroupInvitationRepository implements GroupInvitationRepository {
   async findPendingInvitation(

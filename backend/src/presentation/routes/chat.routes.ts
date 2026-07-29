@@ -3,13 +3,17 @@ import { Router } from 'express';
 import { authenticate } from '../middlewares/authenticate.middleware.js';
 import { validate } from '../middlewares/validation.middleware.js';
 import { ChatController } from '../controllers/chat.controller.js';
+import { MessageController } from '../controllers/message.controller.js';
 import { createPrivateChatSchema } from '../validators/chat/create-private-chat.schema.js';
 import { createGroupChatSchema } from '../validators/chat/create-group-chat.schema.js';
 import { inviteUserToGroupSchema } from '../validators/chat/invite-user-to-group.schema.js';
+import { sendMessageSchema } from '../validators/message/send-message.schema.js';
+import { editMessageSchema } from '../validators/message/edit-message.schema.js';
 
 const router = Router();
 
 const chatController = new ChatController();
+const messageController = new MessageController();
 
 router.get('/', authenticate, chatController.getChats);
 
@@ -49,5 +53,23 @@ router.patch(
 router.patch('/groups/:chatId/leave', authenticate, chatController.leaveGroup);
 
 router.delete('/groups/:chatId', authenticate, chatController.deleteGroup);
+
+router.post(
+  '/:chatId/messages',
+  authenticate,
+  validate(sendMessageSchema),
+  messageController.sendMessage,
+);
+
+router.get('/:chatId/messages', authenticate, messageController.getMessages);
+
+router.patch(
+  '/messages/:messageId',
+  authenticate,
+  validate(editMessageSchema),
+  messageController.editMessage,
+);
+
+router.delete('/messages/:messageId', authenticate, messageController.deleteMessage);
 
 export default router;

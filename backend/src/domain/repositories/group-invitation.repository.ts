@@ -1,4 +1,4 @@
-import { CreateGroupInvitationDto } from '../dto/group-invitations/create-group-invitation.dto.js';
+import { CreateGroupInvitationDto } from '../dto/chat-group-invitations/create-group-invitation.dto.js';
 import { GroupInvitation } from '../entities/group-invitation.entity.js';
 
 export interface GroupInvitationRepository {

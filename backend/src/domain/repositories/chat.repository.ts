@@ -1,6 +1,6 @@
 import { ChatSummaryDto } from '../dto/chat/chat-summary.dto.js';
 import { CreateGroupChatDto } from '../dto/chat/create-group-chat.dto.js';
-import { AcceptGroupInvitationDto } from '../dto/group-invitations/accept-group-invitation.dto.js';
+import { AcceptGroupInvitationDto } from '../dto/chat-group-invitations/accept-group-invitation.dto.js';
 import { ChatParticipant } from '../entities/chat-participant.entity.js';
 import { Chat } from '../entities/chat.entity.js';
 
