@@ -60,4 +60,6 @@ router.post(
   messageController.sendMessage,
 );
 
+router.get('/:chatId/messages', authenticate, messageController.getMessages);
+
 export default router;

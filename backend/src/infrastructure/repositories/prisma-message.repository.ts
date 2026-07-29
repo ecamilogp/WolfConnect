@@ -4,6 +4,7 @@ import { CreateMessageDto } from '../../domain/dto/message/create-message.dto.js
 import { MessageResponseDto } from '../../domain/dto/message/message-response.dto.js';
 import { MessageRepository } from '../../domain/repositories/message.repository.js';
 import { prisma } from '../database/prisma.service.js';
+import { MessageListItemDto } from '../../domain/dto/message/message-list-item.dto.js';
 
 export class PrismaMessageRepository implements MessageRepository {
   async create(data: CreateMessageDto): Promise<MessageResponseDto> {
@@ -37,5 +38,26 @@ export class PrismaMessageRepository implements MessageRepository {
       createdAt: message.createdAt,
       editedAt: message.editedAt,
     };
+  }
+
+  async findByChatId(chatId: string): Promise<MessageListItemDto[]> {
+    const messages = await prisma.message.findMany({
+      where: {
+        chatId,
+        deletedAt: null,
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+
+    return messages.map((message) => ({
+      id: message.id,
+      senderId: message.senderId,
+      content: message.content,
+      type: message.type,
+      createdAt: message.createdAt,
+      editedAt: message.editedAt,
+    }));
   }
 }

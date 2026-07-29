@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from 'express';
 import { PrismaChatRepository } from '../../infrastructure/repositories/prisma-chat.repository.js';
 import { PrismaMessageRepository } from '../../infrastructure/repositories/prisma-message.repository.js';
 import { SendMessageUseCase } from '../../application/use-cases/message/send-message.use-case.js';
+import { GetMessagesUseCase } from '../../application/use-cases/message/get-messages.use-case.js';
 
 export class MessageController {
   private readonly chatRepository = new PrismaChatRepository();
@@ -10,6 +11,11 @@ export class MessageController {
   private readonly messageRepository = new PrismaMessageRepository();
 
   private readonly sendMessageUseCase = new SendMessageUseCase(
+    this.chatRepository,
+    this.messageRepository,
+  );
+
+  private readonly getMessagesUseCase = new GetMessagesUseCase(
     this.chatRepository,
     this.messageRepository,
   );
@@ -26,6 +32,22 @@ export class MessageController {
         success: true,
         message: 'Message sent successfully.',
         data: message,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getMessages = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const messages = await this.getMessagesUseCase.execute(
+        String(req.params.chatId),
+        req.user.id,
+      );
+
+      res.status(200).json({
+        success: true,
+        data: messages,
       });
     } catch (error) {
       next(error);
