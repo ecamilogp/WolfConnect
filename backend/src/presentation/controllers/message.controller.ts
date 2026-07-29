@@ -1,0 +1,34 @@
+import { NextFunction, Request, Response } from 'express';
+
+import { PrismaChatRepository } from '../../infrastructure/repositories/prisma-chat.repository.js';
+import { PrismaMessageRepository } from '../../infrastructure/repositories/prisma-message.repository.js';
+import { SendMessageUseCase } from '../../application/use-cases/message/send-message.use-case.js';
+
+export class MessageController {
+  private readonly chatRepository = new PrismaChatRepository();
+
+  private readonly messageRepository = new PrismaMessageRepository();
+
+  private readonly sendMessageUseCase = new SendMessageUseCase(
+    this.chatRepository,
+    this.messageRepository,
+  );
+
+  sendMessage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const message = await this.sendMessageUseCase.execute({
+        chatId: String(req.params.chatId),
+        senderId: req.user.id,
+        content: req.body.content,
+      });
+
+      res.status(201).json({
+        success: true,
+        message: 'Message sent successfully.',
+        data: message,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+}
