@@ -133,6 +133,20 @@ export class PrismaChatRepository implements ChatRepository {
     };
   }
 
+  async findParticipantIds(chatId: string): Promise<string[]> {
+    const participants = await prisma.chatParticipant.findMany({
+      where: {
+        chatId,
+        leftAt: null,
+      },
+      select: {
+        userId: true,
+      },
+    });
+
+    return participants.map((participant) => participant.userId);
+  }
+
   async addParticipant(chatId: string, userId: string): Promise<void> {
     await prisma.chatParticipant.create({
       data: {

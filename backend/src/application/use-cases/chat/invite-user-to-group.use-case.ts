@@ -4,12 +4,15 @@ import { UserRepository } from '../../../domain/repositories/user.repository.js'
 import { BadRequestError } from '../../../shared/errors/bad-request-error.js';
 import { NotFoundError } from '../../../shared/errors/not-found-error.js';
 import { GroupInvitationRepository } from '../../../domain/repositories/group-invitation.repository.js';
+import { NotificationType } from '../../../shared/constants/notification-types.constant.js';
+import { SendNotificationUseCase } from '../notification/send-notification.use-case.js';
 
 export class InviteUserToGroupUseCase {
   constructor(
     private readonly chatRepository: ChatRepository,
     private readonly userRepository: UserRepository,
     private readonly groupInvitationRepository: GroupInvitationRepository,
+    private readonly sendNotificationUseCase: SendNotificationUseCase,
   ) {}
 
   async execute(dto: InviteUserToGroupDto): Promise<void> {
@@ -65,8 +68,36 @@ export class InviteUserToGroupUseCase {
       throw new BadRequestError('The user already has a pending invitation to this group.');
     }
 
+    const inviterUser = await this.userRepository.findById(dto.inviterUserId);
+    const inviterName = inviterUser ? `${inviterUser.firstName} ${inviterUser.lastName}` : 'Someone';
+    const groupName = group.name ?? 'the group';
+
     if (group.joinPolicy === 'AUTO_ADD') {
       await this.chatRepository.addParticipant(dto.chatId, dto.invitedUserId);
+
+      await this.sendNotificationUseCase.execute({
+        userId: dto.invitedUserId,
+        type: NotificationType.GROUP_MEMBER_JOINED,
+        title: 'Added to group',
+        body: `You were added to "${groupName}".`,
+        data: { chatId: dto.chatId },
+      });
+
+      const otherParticipantIds = (await this.chatRepository.findParticipantIds(dto.chatId)).filter(
+        (userId) => userId !== dto.invitedUserId && userId !== dto.inviterUserId,
+      );
+
+      await Promise.all(
+        otherParticipantIds.map((userId) =>
+          this.sendNotificationUseCase.execute({
+            userId,
+            type: NotificationType.GROUP_MEMBER_JOINED,
+            title: 'New member',
+            body: `${invitedUser.firstName} ${invitedUser.lastName} joined "${groupName}".`,
+            data: { chatId: dto.chatId, newMemberId: dto.invitedUserId },
+          }),
+        ),
+      );
 
       return;
     }
@@ -78,6 +109,14 @@ export class InviteUserToGroupUseCase {
         invitedUserId: dto.invitedUserId,
       });
 
+      await this.sendNotificationUseCase.execute({
+        userId: dto.invitedUserId,
+        type: NotificationType.GROUP_INVITATION,
+        title: 'Group invitation',
+        body: `${inviterName} invited you to join "${groupName}".`,
+        data: { chatId: dto.chatId, invitedByUserId: dto.inviterUserId },
+      });
+
       return;
     }
 
@@ -85,6 +124,14 @@ export class InviteUserToGroupUseCase {
       chatId: dto.chatId,
       invitedByUserId: dto.inviterUserId,
       invitedUserId: dto.invitedUserId,
+    });
+
+    await this.sendNotificationUseCase.execute({
+      userId: dto.invitedUserId,
+      type: NotificationType.GROUP_INVITATION,
+      title: 'Group invitation',
+      body: `${inviterName} invited you to join "${groupName}".`,
+      data: { chatId: dto.chatId, invitedByUserId: dto.inviterUserId },
     });
   }
 }
