@@ -1,7 +1,7 @@
 import { io } from 'socket.io-client';
 
 const token =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkMDgxNTgzNi00NjUyLTQ0NjAtOTQ2ZS00OTg1MWI4YjBkZDciLCJpYXQiOjE3ODUzODMxNzUsImV4cCI6MTc4NTQ2OTU3NX0.sZ3w0LpMqwzka5GMPI-HZDFRyMCdb3jg_qr_pjj-UC4';
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkMDgxNTgzNi00NjUyLTQ0NjAtOTQ2ZS00OTg1MWI4YjBkZDciLCJpYXQiOjE3ODU0MjgyOTIsImV4cCI6MTc4NTUxNDY5Mn0.7cQw4kO2VlIfmFraoLnxlS8RLKk1raNUZT6pH3xKs2Q';
 
 const socket = io('http://localhost:3000', {
   auth: {
@@ -11,6 +11,18 @@ const socket = io('http://localhost:3000', {
 
 socket.on('connect', () => {
   console.log('✅ Connected:', socket.id);
+
+  socket.emit('chat:join', {
+    chatId: '47ef1390-ac16-48djhjy9-b5db-de368236a6bd',
+  });
+});
+
+socket.on('chat:joined', (data) => {
+  console.log('🎉 Joined chat:', data);
+});
+
+socket.on('chat:error', (error) => {
+  console.log('❌ Chat error:', error);
 });
 
 socket.on('disconnect', () => {

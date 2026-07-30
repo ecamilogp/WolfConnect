@@ -2,7 +2,7 @@ import { ExtendedError } from 'socket.io';
 
 import { PrismaUserRepository } from '../../repositories/prisma-user.repository.js';
 import { verifyAccessToken } from '../../../shared/utils/jwt.js';
-import { AuthenticatedSocket } from '../socket.types.js';
+import { AuthenticatedSocket } from '../types/authenticated-socket.type.js';
 
 const userRepository = new PrismaUserRepository();
 
