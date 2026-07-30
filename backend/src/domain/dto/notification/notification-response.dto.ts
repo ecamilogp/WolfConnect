@@ -1,0 +1,11 @@
+export interface NotificationResponseDto {
+  id: string;
+  userId: string;
+  type: string;
+  title: string;
+  body: string;
+  isRead: boolean;
+  data: Record<string, unknown> | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
