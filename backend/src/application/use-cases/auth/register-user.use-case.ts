@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 
 import { UserStatus } from '../../../domain/entities/user.entity.js';
 import { UserRepository } from '../../../domain/repositories/user.repository.js';
+import { PlatformInvitationRepository } from '../../../domain/repositories/platform-invitation.repository.js';
 import { CreateUserDTO } from '../../../domain/dto/user/create-user.dto.js';
 import { ConflictError } from '../../../shared/errors/conflict-error.js';
 
@@ -11,10 +12,14 @@ export interface RegisterUserInput {
   username: string;
   email: string;
   password: string;
+  invitationToken?: string;
 }
 
 export class RegisterUserUseCase {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly platformInvitationRepository: PlatformInvitationRepository,
+  ) {}
 
   async execute(input: RegisterUserInput) {
     const existingEmail = await this.userRepository.findByEmail(input.email);
@@ -41,6 +46,20 @@ export class RegisterUserUseCase {
       status: UserStatus.ACTIVE,
     };
 
-    return this.userRepository.create(user);
+    const createdUser = await this.userRepository.create(user);
+
+    if (input.invitationToken) {
+      const invitation = await this.platformInvitationRepository.findByToken(
+        input.invitationToken,
+      );
+
+      // Un token inválido/vencido/ya usado no bloquea el registro -- la
+      // persona simplemente se registra como si hubiera entrado sin invitación.
+      if (invitation && invitation.status === 'PENDING') {
+        await this.platformInvitationRepository.markAsAccepted(invitation.id);
+      }
+    }
+
+    return createdUser;
   }
 }

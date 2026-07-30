@@ -3,6 +3,7 @@ import express from 'express';
 import authRoutes from './presentation/routes/auth.routes.js';
 import userRoutes from './presentation/routes/user.routes.js';
 import chatRoutes from './presentation/routes/chat.routes.js';
+import platformInvitationRoutes from './presentation/routes/platform-invitation.routes.js';
 
 import { errorHandler } from './presentation/middlewares/error-handler.middleware.js';
 
@@ -23,6 +24,7 @@ app.get('/health', (_req, res) => {
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/chats', chatRoutes);
+app.use('/api/v1/platform-invitations', platformInvitationRoutes);
 
 //Error handler
 app.use(errorHandler);
