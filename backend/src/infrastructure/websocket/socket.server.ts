@@ -1,26 +1,28 @@
 import { Server } from 'socket.io';
 import { Server as HttpServer } from 'http';
 
-import { registerSocketEvents } from './socket.events.js';
+import { socketServerOptions } from './config/socket.config.js';
+import { registerHandlers } from './handlers/index.js';
 import { socketAuthMiddleware } from './middlewares/socket-auth.middleware.js';
-import { SocketManager } from './socket.manager.js';
+import { SocketEvents } from './events/socket-events.enum.js';
+import { AuthenticatedSocket } from './types/authenticated-socket.type.js';
 
-export function createSocketServer(server: HttpServer): Server {
-  console.log('🚀 Creating Socket.IO server');
-
-  const io = new Server(server, {
-    cors: {
-      origin: '*',
-    },
-  });
-
-  console.log('✅ Registering socket events');
-
-  SocketManager.initialize(io);
+export function createSocketServer(httpServer: HttpServer): Server {
+  const io = new Server(httpServer, socketServerOptions);
 
   io.use(socketAuthMiddleware);
 
-  registerSocketEvents(io);
+  io.on(SocketEvents.CONNECTION, (socket) => {
+    const authenticatedSocket = socket as AuthenticatedSocket;
+
+    console.log(`🟢 Socket connected: ${authenticatedSocket.data.user.email} (${socket.id})`);
+
+    registerHandlers(io, authenticatedSocket);
+
+    socket.on(SocketEvents.DISCONNECT, (reason) => {
+      console.log(`🔴 Socket disconnected: ${socket.id} (${reason})`);
+    });
+  });
 
   return io;
 }
