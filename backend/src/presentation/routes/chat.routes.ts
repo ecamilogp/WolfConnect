@@ -4,6 +4,8 @@ import { authenticate } from '../middlewares/authenticate.middleware.js';
 import { validate } from '../middlewares/validation.middleware.js';
 import { ChatController } from '../controllers/chat.controller.js';
 import { MessageController } from '../controllers/message.controller.js';
+import { AttachmentController } from '../controllers/attachment.controller.js';
+import { uploadSingleAttachment } from '../middlewares/upload.middleware.js';
 import { createPrivateChatSchema } from '../validators/chat/create-private-chat.schema.js';
 import { createGroupChatSchema } from '../validators/chat/create-group-chat.schema.js';
 import { inviteUserToGroupSchema } from '../validators/chat/invite-user-to-group.schema.js';
@@ -14,6 +16,7 @@ const router = Router();
 
 const chatController = new ChatController();
 const messageController = new MessageController();
+const attachmentController = new AttachmentController();
 
 router.get('/', authenticate, chatController.getChats);
 
@@ -71,6 +74,13 @@ router.patch(
 );
 
 router.delete('/messages/:messageId', authenticate, messageController.deleteMessage);
+
+router.post(
+  '/messages/:messageId/attachments',
+  authenticate,
+  uploadSingleAttachment,
+  attachmentController.uploadAttachment,
+);
 
 router.patch('/:chatId/read', authenticate, messageController.markMessagesAsRead);
 

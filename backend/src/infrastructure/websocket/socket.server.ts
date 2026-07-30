@@ -7,8 +7,12 @@ import { socketAuthMiddleware } from './middlewares/socket-auth.middleware.js';
 import { SocketEvents } from './events/socket-events.enum.js';
 import { AuthenticatedSocket } from './types/authenticated-socket.type.js';
 
+let ioInstance: Server | undefined;
+
 export function createSocketServer(httpServer: HttpServer): Server {
   const io = new Server(httpServer, socketServerOptions);
+
+  ioInstance = io;
 
   io.use(socketAuthMiddleware);
 
@@ -25,4 +29,19 @@ export function createSocketServer(httpServer: HttpServer): Server {
   });
 
   return io;
+}
+
+/**
+ * Punto de acceso a la instancia de Socket.IO para código que no es un
+ * socket handler -- por ejemplo un controller REST que necesita emitir un
+ * evento después de guardar algo (attachments, notificaciones, etc.).
+ * Mismo patrón que `export const prisma` en `prisma.service.ts`: un único
+ * punto de acceso, sin contenedor de DI.
+ */
+export function getIO(): Server {
+  if (!ioInstance) {
+    throw new Error('Socket.IO server has not been initialized yet.');
+  }
+
+  return ioInstance;
 }
