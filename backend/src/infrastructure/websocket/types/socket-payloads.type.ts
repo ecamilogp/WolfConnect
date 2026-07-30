@@ -1,6 +1,7 @@
 import { AttachmentResponseDto } from '../../../domain/dto/attachment/attachment-response.dto.js';
 import { ChatSummaryDto } from '../../../domain/dto/chat/chat-summary.dto.js';
 import { MessageResponseDto } from '../../../domain/dto/message/message-response.dto.js';
+import { NotificationResponseDto } from '../../../domain/dto/notification/notification-response.dto.js';
 
 export interface ChatJoinPayload {
   chatId: string;
@@ -51,6 +52,8 @@ export interface AttachmentUploadedPayload {
   chatId: string;
   attachment: AttachmentResponseDto;
 }
+
+export type NotificationNewPayload = NotificationResponseDto;
 
 export interface AppErrorPayload {
   code: string;

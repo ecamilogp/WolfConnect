@@ -9,6 +9,16 @@ import { AuthenticatedSocket } from './types/authenticated-socket.type.js';
 
 let ioInstance: Server | undefined;
 
+/**
+ * Sala personal de un usuario -- todos sus sockets (puede tener varias
+ * pestañas/dispositivos abiertos) se unen acá al conectarse. Permite
+ * emitirle algo a "el usuario X" sin importar en qué chats esté, útil para
+ * notificaciones que no pertenecen a una sala de chat concreta.
+ */
+export function userRoom(userId: string): string {
+  return `user:${userId}`;
+}
+
 export function createSocketServer(httpServer: HttpServer): Server {
   const io = new Server(httpServer, socketServerOptions);
 
@@ -20,6 +30,8 @@ export function createSocketServer(httpServer: HttpServer): Server {
     const authenticatedSocket = socket as AuthenticatedSocket;
 
     console.log(`🟢 Socket connected: ${authenticatedSocket.data.user.email} (${socket.id})`);
+
+    socket.join(userRoom(authenticatedSocket.data.user.id));
 
     registerHandlers(io, authenticatedSocket);
 

@@ -25,6 +25,9 @@ export const SocketEvents = {
   // Attachments
   ATTACHMENT_UPLOADED: 'attachment:uploaded',
 
+  // Notificaciones
+  NOTIFICATION_NEW: 'notification:new',
+
   // Errores de aplicación (no de transporte). Distinto de "connect_error":
   // este se emite cuando la conexión ya existe pero una acción de negocio falla.
   APP_ERROR: 'app:error',
