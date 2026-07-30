@@ -5,13 +5,18 @@ import { MessageRepository } from '../../../domain/repositories/message.reposito
 import { ForbiddenError } from '../../../shared/errors/forbidden-error.js';
 import { NotFoundError } from '../../../shared/errors/not-found-error.js';
 
+export interface UploadAttachmentResult {
+  attachment: AttachmentResponseDto;
+  chatId: string;
+}
+
 export class UploadAttachmentUseCase {
   constructor(
     private readonly messageRepository: MessageRepository,
     private readonly attachmentRepository: AttachmentRepository,
   ) {}
 
-  async execute(dto: UploadAttachmentDto): Promise<AttachmentResponseDto> {
+  async execute(dto: UploadAttachmentDto): Promise<UploadAttachmentResult> {
     const message = await this.messageRepository.findById(dto.messageId);
 
     if (!message || message.deletedAt) {
@@ -22,7 +27,7 @@ export class UploadAttachmentUseCase {
       throw new ForbiddenError('You can only attach files to your own messages.');
     }
 
-    return this.attachmentRepository.create({
+    const attachment = await this.attachmentRepository.create({
       messageId: dto.messageId,
       fileName: dto.fileName,
       originalName: dto.originalName,
@@ -30,5 +35,10 @@ export class UploadAttachmentUseCase {
       size: dto.size,
       path: dto.path,
     });
+
+    // chatId sale del mismo `message` que ya se consultó para autorizar --
+    // el Controller lo necesita para emitir por Socket.IO a la sala correcta,
+    // sin una segunda consulta a la base de datos.
+    return { attachment, chatId: message.chatId };
   }
 }

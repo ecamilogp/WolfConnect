@@ -26,7 +26,13 @@ const sendMessageUseCase = new SendMessageUseCase(chatRepository, messageReposit
 const editMessageUseCase = new EditMessageUseCase(messageRepository);
 const deleteMessageUseCase = new DeleteMessageUseCase(messageRepository);
 
-function chatRoom(chatId: string): string {
+/**
+ * Exportada porque `AttachmentController` (capa REST) también necesita
+ * emitir a la misma sala tras guardar un adjunto -- ver `getIO()` en
+ * `socket.server.ts`. Debe ser la única definición de esta convención de
+ * nombres de sala en todo el proyecto.
+ */
+export function chatRoom(chatId: string): string {
   return `chat:${chatId}`;
 }
 

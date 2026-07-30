@@ -1,3 +1,4 @@
+import { AttachmentResponseDto } from '../../../domain/dto/attachment/attachment-response.dto.js';
 import { ChatSummaryDto } from '../../../domain/dto/chat/chat-summary.dto.js';
 import { MessageResponseDto } from '../../../domain/dto/message/message-response.dto.js';
 
@@ -43,6 +44,12 @@ export interface MessageDeletedPayload {
 
 export interface PresenceChangedPayload {
   userId: string;
+}
+
+export interface AttachmentUploadedPayload {
+  messageId: string;
+  chatId: string;
+  attachment: AttachmentResponseDto;
 }
 
 export interface AppErrorPayload {

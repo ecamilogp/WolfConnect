@@ -22,6 +22,9 @@ export const SocketEvents = {
   MESSAGE_DELETE: 'message:delete',
   MESSAGE_DELETED: 'message:deleted',
 
+  // Attachments
+  ATTACHMENT_UPLOADED: 'attachment:uploaded',
+
   // Errores de aplicación (no de transporte). Distinto de "connect_error":
   // este se emite cuando la conexión ya existe pero una acción de negocio falla.
   APP_ERROR: 'app:error',
