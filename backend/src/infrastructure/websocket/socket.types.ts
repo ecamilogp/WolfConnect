@@ -1,10 +1,9 @@
-import { Server } from 'socket.io';
-import { Server as HttpServer } from 'http';
+import { Socket } from 'socket.io';
 
-export function createSocketServer(server: HttpServer): Server {
-  return new Server(server, {
-    cors: {
-      origin: '*',
-    },
-  });
+import { User } from '../../domain/entities/user.entity.js';
+
+export interface AuthenticatedSocket extends Socket {
+  data: Socket['data'] & {
+    user: User;
+  };
 }
