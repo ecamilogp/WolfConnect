@@ -1,5 +1,7 @@
 import { MessageType } from '@prisma/client';
 
+import { ReplyToMessageDto } from './reply-to-message.dto.js';
+
 export interface MessageListItemDto {
   id: string;
   senderId: string;
@@ -7,4 +9,5 @@ export interface MessageListItemDto {
   type: MessageType;
   createdAt: Date;
   editedAt: Date | null;
+  replyTo: ReplyToMessageDto | null;
 }
