@@ -119,19 +119,5 @@ export class InviteUserToGroupUseCase {
 
       return;
     }
-
-    const invitation = await this.groupInvitationRepository.create({
-      chatId: dto.chatId,
-      invitedByUserId: dto.inviterUserId,
-      invitedUserId: dto.invitedUserId,
-    });
-
-    await this.sendNotificationUseCase.execute({
-      userId: dto.invitedUserId,
-      type: NotificationType.GROUP_INVITATION,
-      title: 'Group invitation',
-      body: `${inviterName} invited you to join "${groupName}".`,
-      data: { chatId: dto.chatId, invitationId: invitation.id, invitedByUserId: dto.inviterUserId },
-    });
   }
 }

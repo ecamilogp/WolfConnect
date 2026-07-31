@@ -2,40 +2,36 @@ import { RemoveParticipantDto } from '../../../domain/dto/chat/remove-participan
 import { ChatRepository } from '../../../domain/repositories/chat.repository.js';
 import { BadRequestError } from '../../../shared/errors/bad-request-error.js';
 import { ForbiddenError } from '../../../shared/errors/forbidden-error.js';
-import { NotFoundError } from '../../../shared/errors/not-found-error.js';
+import {
+  requireActiveGroup,
+  requireActiveParticipant,
+  requireActiveTargetParticipant,
+  requireOwnerOrAdmin,
+} from './group-admin.guards.js';
 
 export class RemoveParticipantUseCase {
   constructor(private readonly chatRepository: ChatRepository) {}
 
   async execute(dto: RemoveParticipantDto): Promise<{ message: string }> {
-    const chat = await this.chatRepository.findById(dto.chatId);
-
-    if (!chat || chat.deletedAt) {
-      throw new NotFoundError('Group not found.');
-    }
+    await requireActiveGroup(this.chatRepository, dto.chatId);
 
     if (dto.requesterUserId === dto.targetUserId) {
       throw new BadRequestError('You cannot remove yourself. Use leave group instead.');
     }
 
-    const requester = await this.chatRepository.findParticipantByUser(
+    const requester = await requireActiveParticipant(
+      this.chatRepository,
       dto.chatId,
       dto.requesterUserId,
     );
 
-    if (!requester || requester.leftAt) {
-      throw new ForbiddenError('You are not a participant of this group.');
-    }
+    requireOwnerOrAdmin(requester, 'Only the group owner or an admin can remove a participant.');
 
-    if (requester.role !== 'OWNER' && requester.role !== 'ADMIN') {
-      throw new ForbiddenError('Only the group owner or an admin can remove a participant.');
-    }
-
-    const target = await this.chatRepository.findParticipantByUser(dto.chatId, dto.targetUserId);
-
-    if (!target || target.leftAt) {
-      throw new NotFoundError('Participant not found in this group.');
-    }
+    const target = await requireActiveTargetParticipant(
+      this.chatRepository,
+      dto.chatId,
+      dto.targetUserId,
+    );
 
     if (target.role === 'OWNER') {
       throw new ForbiddenError('The group owner cannot be removed. Transfer ownership first.');

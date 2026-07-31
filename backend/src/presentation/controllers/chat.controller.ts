@@ -20,7 +20,7 @@ import { DemoteAdminUseCase } from '../../application/use-cases/chat/demote-admi
 import { RemoveParticipantUseCase } from '../../application/use-cases/chat/remove-participant.use-case.js';
 import { TransferOwnershipUseCase } from '../../application/use-cases/chat/transfer-ownership.use-case.js';
 import { SendNotificationUseCase } from '../../application/use-cases/notification/send-notification.use-case.js';
-import { SocketEvents } from '../../infrastructure/websocket/events/socket-events.enum.js';
+import { SocketEventName, SocketEvents } from '../../infrastructure/websocket/events/socket-events.enum.js';
 import { chatRoom } from '../../infrastructure/websocket/handlers/chat.handler.js';
 import { getIO } from '../../infrastructure/websocket/socket.server.js';
 import {
@@ -86,6 +86,14 @@ export class ChatController {
   private readonly removeParticipantUseCase = new RemoveParticipantUseCase(this.chatRepository);
 
   private readonly transferOwnershipUseCase = new TransferOwnershipUseCase(this.chatRepository);
+
+  private emitGroupEvent<T>(event: SocketEventName, chatId: string, payload: T): void {
+    try {
+      getIO().to(chatRoom(chatId)).emit(event, payload);
+    } catch (socketError) {
+      console.error('[group:socket-emit-failed]', socketError);
+    }
+  }
 
   createPrivateChat = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -234,13 +242,9 @@ export class ChatController {
         imageUrl: req.body.imageUrl,
       });
 
-      try {
-        const payload: GroupUpdatedPayload = chat;
+      const payload: GroupUpdatedPayload = chat;
 
-        getIO().to(chatRoom(chat.id)).emit(SocketEvents.GROUP_UPDATED, payload);
-      } catch (socketError) {
-        console.error('[group:socket-emit-failed]', socketError);
-      }
+      this.emitGroupEvent(SocketEvents.GROUP_UPDATED, chat.id, payload);
 
       const response = ChatResponseMapper.toResponse(chat);
 
@@ -265,13 +269,9 @@ export class ChatController {
         targetUserId,
       });
 
-      try {
-        const payload: GroupRoleChangedPayload = { chatId, userId: targetUserId, role: 'ADMIN' };
+      const payload: GroupRoleChangedPayload = { chatId, userId: targetUserId, role: 'ADMIN' };
 
-        getIO().to(chatRoom(chatId)).emit(SocketEvents.GROUP_ROLE_CHANGED, payload);
-      } catch (socketError) {
-        console.error('[group:socket-emit-failed]', socketError);
-      }
+      this.emitGroupEvent(SocketEvents.GROUP_ROLE_CHANGED, chatId, payload);
 
       res.status(200).json({
         success: true,
@@ -293,13 +293,9 @@ export class ChatController {
         targetUserId,
       });
 
-      try {
-        const payload: GroupRoleChangedPayload = { chatId, userId: targetUserId, role: 'MEMBER' };
+      const payload: GroupRoleChangedPayload = { chatId, userId: targetUserId, role: 'MEMBER' };
 
-        getIO().to(chatRoom(chatId)).emit(SocketEvents.GROUP_ROLE_CHANGED, payload);
-      } catch (socketError) {
-        console.error('[group:socket-emit-failed]', socketError);
-      }
+      this.emitGroupEvent(SocketEvents.GROUP_ROLE_CHANGED, chatId, payload);
 
       res.status(200).json({
         success: true,
@@ -321,13 +317,9 @@ export class ChatController {
         targetUserId,
       });
 
-      try {
-        const payload: GroupParticipantRemovedPayload = { chatId, userId: targetUserId };
+      const payload: GroupParticipantRemovedPayload = { chatId, userId: targetUserId };
 
-        getIO().to(chatRoom(chatId)).emit(SocketEvents.GROUP_PARTICIPANT_REMOVED, payload);
-      } catch (socketError) {
-        console.error('[group:socket-emit-failed]', socketError);
-      }
+      this.emitGroupEvent(SocketEvents.GROUP_PARTICIPANT_REMOVED, chatId, payload);
 
       res.status(200).json({
         success: true,
@@ -350,17 +342,13 @@ export class ChatController {
         targetUserId,
       });
 
-      try {
-        const payload: GroupOwnershipTransferredPayload = {
-          chatId,
-          previousOwnerId,
-          newOwnerId: targetUserId,
-        };
+      const payload: GroupOwnershipTransferredPayload = {
+        chatId,
+        previousOwnerId,
+        newOwnerId: targetUserId,
+      };
 
-        getIO().to(chatRoom(chatId)).emit(SocketEvents.GROUP_OWNERSHIP_TRANSFERRED, payload);
-      } catch (socketError) {
-        console.error('[group:socket-emit-failed]', socketError);
-      }
+      this.emitGroupEvent(SocketEvents.GROUP_OWNERSHIP_TRANSFERRED, chatId, payload);
 
       res.status(200).json({
         success: true,

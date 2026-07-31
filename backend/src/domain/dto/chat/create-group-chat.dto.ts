@@ -1,3 +1,5 @@
+import { GroupJoinPolicy } from '../../entities/chat.entity.js';
+
 export interface CreateGroupChatDto {
   creatorUserId: string;
 
@@ -7,5 +9,5 @@ export interface CreateGroupChatDto {
 
   imageUrl?: string;
 
-  joinPolicy: 'AUTO_ADD' | 'INVITATION_REQUIRED';
+  joinPolicy: GroupJoinPolicy;
 }
