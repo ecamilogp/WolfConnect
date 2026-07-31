@@ -1,3 +1,5 @@
+import { PlatformInvitation as PrismaPlatformInvitation } from '@prisma/client';
+
 import { CreatePlatformInvitationDto } from '../../domain/dto/platform-invitation/create-platform-invitation.dto.js';
 import { PlatformInvitationResponseDto } from '../../domain/dto/platform-invitation/platform-invitation-response.dto.js';
 import { PlatformInvitation } from '../../domain/entities/platform-invitation.entity.js';
@@ -5,6 +7,25 @@ import { PlatformInvitationRepository } from '../../domain/repositories/platform
 import { prisma } from '../database/prisma.service.js';
 
 export class PrismaPlatformInvitationRepository implements PlatformInvitationRepository {
+  private toResponseDto(invitation: PrismaPlatformInvitation): PlatformInvitationResponseDto {
+    return {
+      id: invitation.id,
+      email: invitation.email,
+      status: invitation.status,
+      invitedByUserId: invitation.invitedByUserId,
+      expiresAt: invitation.expiresAt,
+      acceptedAt: invitation.acceptedAt,
+      createdAt: invitation.createdAt,
+    };
+  }
+
+  private toEntity(invitation: PrismaPlatformInvitation): PlatformInvitation {
+    return {
+      ...this.toResponseDto(invitation),
+      token: invitation.token,
+    };
+  }
+
   async create(data: CreatePlatformInvitationDto): Promise<PlatformInvitationResponseDto> {
     const invitation = await prisma.platformInvitation.create({
       data: {
@@ -15,15 +36,7 @@ export class PrismaPlatformInvitationRepository implements PlatformInvitationRep
       },
     });
 
-    return {
-      id: invitation.id,
-      email: invitation.email,
-      status: invitation.status,
-      invitedByUserId: invitation.invitedByUserId,
-      expiresAt: invitation.expiresAt,
-      acceptedAt: invitation.acceptedAt,
-      createdAt: invitation.createdAt,
-    };
+    return this.toResponseDto(invitation);
   }
 
   async findByToken(token: string): Promise<PlatformInvitation | null> {
@@ -37,16 +50,7 @@ export class PrismaPlatformInvitationRepository implements PlatformInvitationRep
       return null;
     }
 
-    return {
-      id: invitation.id,
-      email: invitation.email,
-      token: invitation.token,
-      status: invitation.status,
-      invitedByUserId: invitation.invitedByUserId,
-      expiresAt: invitation.expiresAt,
-      acceptedAt: invitation.acceptedAt,
-      createdAt: invitation.createdAt,
-    };
+    return this.toEntity(invitation);
   }
 
   async markAsAccepted(id: string): Promise<void> {

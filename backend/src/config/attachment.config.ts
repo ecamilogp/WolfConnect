@@ -1,4 +1,8 @@
+import path from 'node:path';
+
 export const MAX_ATTACHMENT_SIZE_BYTES = 25 * 1024 * 1024;
+
+export const UPLOADS_ROOT = path.resolve(process.cwd(), 'uploads');
 
 export type AttachmentFolder = 'images' | 'videos' | 'documents' | 'others';
 

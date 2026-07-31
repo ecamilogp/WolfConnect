@@ -1,4 +1,3 @@
-import { Notification } from '../entities/notification.entity.js';
 import { CreateNotificationDto } from '../dto/notification/create-notification.dto.js';
 import { NotificationResponseDto } from '../dto/notification/notification-response.dto.js';
 
@@ -7,7 +6,7 @@ export interface NotificationRepository {
 
   findAllByUser(userId: string): Promise<NotificationResponseDto[]>;
 
-  findById(id: string): Promise<Notification | null>;
+  findById(id: string): Promise<NotificationResponseDto | null>;
 
   markAsRead(id: string): Promise<void>;
 
