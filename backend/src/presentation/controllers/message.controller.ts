@@ -38,6 +38,7 @@ export class MessageController {
         chatId: String(req.params.chatId),
         senderId: req.user.id,
         content: req.body.content,
+        replyToMessageId: req.body.replyToMessageId,
       });
 
       res.status(201).json({
