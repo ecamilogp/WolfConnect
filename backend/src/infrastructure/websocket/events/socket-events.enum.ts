@@ -18,6 +18,7 @@ export const SocketEvents = {
   MESSAGE_EDITED: 'message:edited',
   MESSAGE_DELETE: 'message:delete',
   MESSAGE_DELETED: 'message:deleted',
+  MESSAGE_REACTION_UPDATED: 'message:reaction:updated',
 
   ATTACHMENT_UPLOADED: 'attachment:uploaded',
 

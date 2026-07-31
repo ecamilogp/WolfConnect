@@ -20,6 +20,7 @@ export class PrismaMessageRepository implements MessageRepository {
         },
         include: {
           replyTo: true,
+          reactions: true,
         },
       });
 
@@ -52,6 +53,10 @@ export class PrismaMessageRepository implements MessageRepository {
             type: message.replyTo.type,
           }
         : null,
+      reactions: message.reactions.map((reaction) => ({
+        userId: reaction.userId,
+        emoji: reaction.emoji,
+      })),
     };
   }
 
@@ -66,6 +71,7 @@ export class PrismaMessageRepository implements MessageRepository {
       },
       include: {
         replyTo: true,
+        reactions: true,
       },
     });
 
@@ -84,6 +90,10 @@ export class PrismaMessageRepository implements MessageRepository {
             type: message.replyTo.type,
           }
         : null,
+      reactions: message.reactions.map((reaction) => ({
+        userId: reaction.userId,
+        emoji: reaction.emoji,
+      })),
     }));
   }
 
@@ -94,6 +104,7 @@ export class PrismaMessageRepository implements MessageRepository {
       },
       include: {
         replyTo: true,
+        reactions: true,
       },
     });
 
@@ -118,6 +129,10 @@ export class PrismaMessageRepository implements MessageRepository {
             type: message.replyTo.type,
           }
         : null,
+      reactions: message.reactions.map((reaction) => ({
+        userId: reaction.userId,
+        emoji: reaction.emoji,
+      })),
     };
   }
 
