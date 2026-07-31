@@ -6,8 +6,6 @@ export class CreateGroupChatUseCase {
   constructor(private readonly chatRepository: ChatRepository) {}
 
   async execute(dto: CreateGroupChatDto): Promise<Chat> {
-    dto.name = dto.name.trim();
-
     return this.chatRepository.createGroupChat(dto);
   }
 }

@@ -1,9 +1,22 @@
+import { InvitationStatus, GroupInvitation as PrismaGroupInvitation } from '@prisma/client';
 import { prisma } from '../database/prisma.service.js';
 import { GroupInvitationRepository } from '../../domain/repositories/group-invitation.repository.js';
 import { GroupInvitation } from '../../domain/entities/group-invitation.entity.js';
 import { CreateGroupInvitationDto } from '../../domain/dto/chat-group-invitations/create-group-invitation.dto.js';
 
 export class PrismaGroupInvitationRepository implements GroupInvitationRepository {
+  private toDomain(invitation: PrismaGroupInvitation): GroupInvitation {
+    return {
+      id: invitation.id,
+      chatId: invitation.chatId,
+      invitedByUserId: invitation.invitedByUserId,
+      invitedUserId: invitation.invitedUserId,
+      status: invitation.status,
+      createdAt: invitation.createdAt,
+      respondedAt: invitation.respondedAt,
+    };
+  }
+
   async findPendingInvitation(
     chatId: string,
     invitedUserId: string,
@@ -20,15 +33,7 @@ export class PrismaGroupInvitationRepository implements GroupInvitationRepositor
       return null;
     }
 
-    return {
-      id: invitation.id,
-      chatId: invitation.chatId,
-      invitedByUserId: invitation.invitedByUserId,
-      invitedUserId: invitation.invitedUserId,
-      status: invitation.status,
-      createdAt: invitation.createdAt,
-      respondedAt: invitation.respondedAt,
-    };
+    return this.toDomain(invitation);
   }
 
   async findById(id: string): Promise<GroupInvitation | null> {
@@ -42,15 +47,7 @@ export class PrismaGroupInvitationRepository implements GroupInvitationRepositor
       return null;
     }
 
-    return {
-      id: invitation.id,
-      chatId: invitation.chatId,
-      invitedByUserId: invitation.invitedByUserId,
-      invitedUserId: invitation.invitedUserId,
-      status: invitation.status,
-      createdAt: invitation.createdAt,
-      respondedAt: invitation.respondedAt,
-    };
+    return this.toDomain(invitation);
   }
 
   async create(dto: CreateGroupInvitationDto): Promise<GroupInvitation> {
@@ -63,20 +60,12 @@ export class PrismaGroupInvitationRepository implements GroupInvitationRepositor
       },
     });
 
-    return {
-      id: invitation.id,
-      chatId: invitation.chatId,
-      invitedByUserId: invitation.invitedByUserId,
-      invitedUserId: invitation.invitedUserId,
-      status: invitation.status,
-      createdAt: invitation.createdAt,
-      respondedAt: invitation.respondedAt,
-    };
+    return this.toDomain(invitation);
   }
 
   async updateStatus(
     id: string,
-    status: 'ACCEPTED' | 'REJECTED' | 'CANCELLED',
+    status: Exclude<InvitationStatus, 'PENDING'>,
   ): Promise<GroupInvitation> {
     const invitation = await prisma.groupInvitation.update({
       where: {
@@ -88,14 +77,6 @@ export class PrismaGroupInvitationRepository implements GroupInvitationRepositor
       },
     });
 
-    return {
-      id: invitation.id,
-      chatId: invitation.chatId,
-      invitedByUserId: invitation.invitedByUserId,
-      invitedUserId: invitation.invitedUserId,
-      status: invitation.status,
-      createdAt: invitation.createdAt,
-      respondedAt: invitation.respondedAt,
-    };
+    return this.toDomain(invitation);
   }
 }

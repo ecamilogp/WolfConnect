@@ -4,6 +4,11 @@ export enum UserStatus {
   BLOCKED = 'BLOCKED',
 }
 
+export enum UserRole {
+  USER = 'USER',
+  ADMIN = 'ADMIN',
+}
+
 export interface UserProps {
   id: string;
   firstName: string;
@@ -13,6 +18,7 @@ export interface UserProps {
   password: string;
   profileImage: string | null;
   status: UserStatus;
+  role: UserRole;
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
@@ -27,6 +33,7 @@ export class User {
   public password: string;
   public profileImage: string | null;
   public status: UserStatus;
+  public role: UserRole;
   public readonly createdAt: Date;
   public updatedAt: Date;
   public deletedAt: Date | null;
@@ -40,6 +47,7 @@ export class User {
     this.password = props.password;
     this.profileImage = props.profileImage;
     this.status = props.status;
+    this.role = props.role;
     this.createdAt = props.createdAt;
     this.updatedAt = props.updatedAt;
     this.deletedAt = props.deletedAt;

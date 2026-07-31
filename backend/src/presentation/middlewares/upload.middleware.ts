@@ -8,11 +8,10 @@ import multer, { type FileFilterCallback } from 'multer';
 import {
   ALLOWED_ATTACHMENT_MIME_TYPES,
   MAX_ATTACHMENT_SIZE_BYTES,
+  UPLOADS_ROOT,
   resolveAttachmentFolder,
 } from '../../config/attachment.config.js';
 import { BadRequestError } from '../../shared/errors/bad-request-error.js';
-
-const UPLOADS_ROOT = path.resolve(process.cwd(), 'uploads');
 
 const storage = multer.diskStorage({
   destination: (_req, file, callback) => {

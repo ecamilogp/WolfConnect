@@ -27,7 +27,7 @@ export const registerUserSchema = z.object({
     .max(30, 'Username cannot exceed 30 characters.')
     .regex(usernameRegex, 'Username can only contain letters, numbers, dots and underscores.'),
 
-  email: z.string().trim().toLowerCase().email('Invalid email address.'),
+  email: z.string().trim().toLowerCase().pipe(z.email({ message: 'Invalid email address.' })),
 
   password: passwordSchema,
 

@@ -11,6 +11,7 @@ export class UserResponseMapper {
       email: user.email,
       profileImage: user.profileImage,
       status: user.status,
+      role: user.role,
     };
   }
 }

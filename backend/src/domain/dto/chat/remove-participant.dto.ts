@@ -1,5 +1,3 @@
-export interface RemoveParticipantDto {
-  chatId: string;
-  requesterUserId: string;
-  targetUserId: string;
-}
+import { GroupParticipantActionDto } from './group-participant-action.dto.js';
+
+export type RemoveParticipantDto = GroupParticipantActionDto;

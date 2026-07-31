@@ -4,16 +4,10 @@ import { UserStatus } from '../../../domain/entities/user.entity.js';
 import { UserRepository } from '../../../domain/repositories/user.repository.js';
 import { PlatformInvitationRepository } from '../../../domain/repositories/platform-invitation.repository.js';
 import { CreateUserDTO } from '../../../domain/dto/user/create-user.dto.js';
+import { RegisterUserDTO } from '../../../domain/dto/auth/register-user.dto.js';
+import { BadRequestError } from '../../../shared/errors/bad-request-error.js';
 import { ConflictError } from '../../../shared/errors/conflict-error.js';
-
-export interface RegisterUserInput {
-  firstName: string;
-  lastName: string;
-  username: string;
-  email: string;
-  password: string;
-  invitationToken?: string;
-}
+import { BCRYPT_SALT_ROUNDS } from '../../../shared/constants/security.constant.js';
 
 export class RegisterUserUseCase {
   constructor(
@@ -21,7 +15,7 @@ export class RegisterUserUseCase {
     private readonly platformInvitationRepository: PlatformInvitationRepository,
   ) {}
 
-  async execute(input: RegisterUserInput) {
+  async execute(input: RegisterUserDTO) {
     const existingEmail = await this.userRepository.findByEmail(input.email);
 
     if (existingEmail) {
@@ -34,7 +28,25 @@ export class RegisterUserUseCase {
       throw new ConflictError('Username already exists');
     }
 
-    const hashedPassword = await bcrypt.hash(input.password, 10);
+    let invitationId: string | null = null;
+
+    if (input.invitationToken) {
+      const invitation = await this.platformInvitationRepository.findByToken(
+        input.invitationToken,
+      );
+
+      if (!invitation || invitation.status !== 'PENDING') {
+        throw new BadRequestError('This invitation link is invalid or has already been used.');
+      }
+
+      if (invitation.expiresAt < new Date()) {
+        throw new BadRequestError('This invitation link has expired.');
+      }
+
+      invitationId = invitation.id;
+    }
+
+    const hashedPassword = await bcrypt.hash(input.password, BCRYPT_SALT_ROUNDS);
 
     const user: CreateUserDTO = {
       firstName: input.firstName,
@@ -48,14 +60,8 @@ export class RegisterUserUseCase {
 
     const createdUser = await this.userRepository.create(user);
 
-    if (input.invitationToken) {
-      const invitation = await this.platformInvitationRepository.findByToken(
-        input.invitationToken,
-      );
-
-      if (invitation && invitation.status === 'PENDING') {
-        await this.platformInvitationRepository.markAsAccepted(invitation.id);
-      }
+    if (invitationId) {
+      await this.platformInvitationRepository.markAsAccepted(invitationId);
     }
 
     return createdUser;

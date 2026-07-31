@@ -3,8 +3,8 @@ import { MessageResponseDto } from '../../../domain/dto/message/message-response
 import { ChatRepository } from '../../../domain/repositories/chat.repository.js';
 import { MessageRepository } from '../../../domain/repositories/message.repository.js';
 import { BadRequestError } from '../../../shared/errors/bad-request-error.js';
-import { ForbiddenError } from '../../../shared/errors/forbidden-error.js';
 import { NotFoundError } from '../../../shared/errors/not-found-error.js';
+import { requireActiveChat, requireChatParticipant } from './message.guards.js';
 
 export class SendMessageUseCase {
   constructor(
@@ -13,17 +13,11 @@ export class SendMessageUseCase {
   ) {}
 
   async execute(data: CreateMessageDto): Promise<MessageResponseDto> {
-    const chat = await this.chatRepository.findById(data.chatId);
+    await requireActiveChat(this.chatRepository, data.chatId);
 
-    if (!chat || chat.deletedAt) {
-      throw new NotFoundError('Chat not found.');
-    }
-
-    const participant = await this.chatRepository.findParticipantByUser(data.chatId, data.senderId);
-
-    if (!participant) {
-      throw new ForbiddenError('You are not a participant of this chat.');
-    }
+    await requireChatParticipant(this.chatRepository, data.chatId, data.senderId, {
+      checkLeft: false,
+    });
 
     if (data.replyToMessageId) {
       const repliedMessage = await this.messageRepository.findById(data.replyToMessageId);

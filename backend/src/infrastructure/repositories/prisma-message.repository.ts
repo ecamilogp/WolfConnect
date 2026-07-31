@@ -1,14 +1,59 @@
+import { Prisma } from '@prisma/client';
+
 import { CreateMessageDto } from '../../domain/dto/message/create-message.dto.js';
 import { MessageResponseDto } from '../../domain/dto/message/message-response.dto.js';
 import { MessageRepository } from '../../domain/repositories/message.repository.js';
 import { prisma } from '../database/prisma.service.js';
 import { MessageListItemDto } from '../../domain/dto/message/message-list-item.dto.js';
+import { MessageReactionSummaryDto } from '../../domain/dto/message/message-reaction-summary.dto.js';
+import { ReplyToMessageDto } from '../../domain/dto/message/reply-to-message.dto.js';
 import { UpdateMessageResponseDto } from '../../domain/dto/message/update-message-response.dto.js';
 import { UpdateMessageDto } from '../../domain/dto/message/update-message.dto.js';
 import { DeleteMessageDto } from '../../domain/dto/message/delete-message.dto.js';
 import { MarkMessagesAsReadDto } from '../../domain/dto/message/mark-messages-as-read.dto.js';
 
+type MessageWithRelations = Prisma.MessageGetPayload<{
+  include: { replyTo: true; reactions: true };
+}>;
+
 export class PrismaMessageRepository implements MessageRepository {
+  private toReplyToDto(replyTo: MessageWithRelations['replyTo']): ReplyToMessageDto | null {
+    if (!replyTo) {
+      return null;
+    }
+
+    return {
+      id: replyTo.id,
+      senderId: replyTo.senderId,
+      content: replyTo.content,
+      type: replyTo.type,
+    };
+  }
+
+  private toReactionsSummary(
+    reactions: MessageWithRelations['reactions'],
+  ): MessageReactionSummaryDto[] {
+    return reactions.map((reaction) => ({
+      userId: reaction.userId,
+      emoji: reaction.emoji,
+    }));
+  }
+
+  private toMessageResponseDto(message: MessageWithRelations): MessageResponseDto {
+    return {
+      id: message.id,
+      chatId: message.chatId,
+      senderId: message.senderId,
+      content: message.content,
+      type: message.type,
+      createdAt: message.createdAt,
+      editedAt: message.editedAt,
+      deletedAt: message.deletedAt,
+      replyTo: this.toReplyToDto(message.replyTo),
+      reactions: this.toReactionsSummary(message.reactions),
+    };
+  }
+
   async create(data: CreateMessageDto): Promise<MessageResponseDto> {
     const message = await prisma.$transaction(async (tx) => {
       const createdMessage = await tx.message.create({
@@ -36,28 +81,7 @@ export class PrismaMessageRepository implements MessageRepository {
       return createdMessage;
     });
 
-    return {
-      id: message.id,
-      chatId: message.chatId,
-      senderId: message.senderId,
-      content: message.content,
-      type: message.type,
-      createdAt: message.createdAt,
-      editedAt: message.editedAt,
-      deletedAt: message.deletedAt,
-      replyTo: message.replyTo
-        ? {
-            id: message.replyTo.id,
-            senderId: message.replyTo.senderId,
-            content: message.replyTo.content,
-            type: message.replyTo.type,
-          }
-        : null,
-      reactions: message.reactions.map((reaction) => ({
-        userId: reaction.userId,
-        emoji: reaction.emoji,
-      })),
-    };
+    return this.toMessageResponseDto(message);
   }
 
   async findByChatId(chatId: string): Promise<MessageListItemDto[]> {
@@ -82,18 +106,8 @@ export class PrismaMessageRepository implements MessageRepository {
       type: message.type,
       createdAt: message.createdAt,
       editedAt: message.editedAt,
-      replyTo: message.replyTo
-        ? {
-            id: message.replyTo.id,
-            senderId: message.replyTo.senderId,
-            content: message.replyTo.content,
-            type: message.replyTo.type,
-          }
-        : null,
-      reactions: message.reactions.map((reaction) => ({
-        userId: reaction.userId,
-        emoji: reaction.emoji,
-      })),
+      replyTo: this.toReplyToDto(message.replyTo),
+      reactions: this.toReactionsSummary(message.reactions),
     }));
   }
 
@@ -112,28 +126,7 @@ export class PrismaMessageRepository implements MessageRepository {
       return null;
     }
 
-    return {
-      id: message.id,
-      chatId: message.chatId,
-      senderId: message.senderId,
-      content: message.content,
-      type: message.type,
-      createdAt: message.createdAt,
-      editedAt: message.editedAt,
-      deletedAt: message.deletedAt,
-      replyTo: message.replyTo
-        ? {
-            id: message.replyTo.id,
-            senderId: message.replyTo.senderId,
-            content: message.replyTo.content,
-            type: message.replyTo.type,
-          }
-        : null,
-      reactions: message.reactions.map((reaction) => ({
-        userId: reaction.userId,
-        emoji: reaction.emoji,
-      })),
-    };
+    return this.toMessageResponseDto(message);
   }
 
   async update(dto: UpdateMessageDto): Promise<UpdateMessageResponseDto> {

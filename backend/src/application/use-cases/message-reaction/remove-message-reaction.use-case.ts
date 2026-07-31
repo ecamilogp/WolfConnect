@@ -3,8 +3,7 @@ import { RemoveMessageReactionDto } from '../../../domain/dto/message-reaction/r
 import { ChatRepository } from '../../../domain/repositories/chat.repository.js';
 import { MessageReactionRepository } from '../../../domain/repositories/message-reaction.repository.js';
 import { MessageRepository } from '../../../domain/repositories/message.repository.js';
-import { ForbiddenError } from '../../../shared/errors/forbidden-error.js';
-import { NotFoundError } from '../../../shared/errors/not-found-error.js';
+import { requireActiveMessage, requireChatParticipant } from '../message/message.guards.js';
 
 export class RemoveMessageReactionUseCase {
   constructor(
@@ -14,17 +13,9 @@ export class RemoveMessageReactionUseCase {
   ) {}
 
   async execute(dto: RemoveMessageReactionDto): Promise<MessageReactionUpdateResultDto> {
-    const message = await this.messageRepository.findById(dto.messageId);
+    const message = await requireActiveMessage(this.messageRepository, dto.messageId);
 
-    if (!message || message.deletedAt) {
-      throw new NotFoundError('Message not found.');
-    }
-
-    const participant = await this.chatRepository.findParticipantByUser(message.chatId, dto.userId);
-
-    if (!participant || participant.leftAt) {
-      throw new ForbiddenError('You are not a participant of this chat.');
-    }
+    await requireChatParticipant(this.chatRepository, message.chatId, dto.userId);
 
     await this.messageReactionRepository.remove(dto);
 

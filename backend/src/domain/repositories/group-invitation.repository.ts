@@ -1,3 +1,4 @@
+import { InvitationStatus } from '@prisma/client';
 import { CreateGroupInvitationDto } from '../dto/chat-group-invitations/create-group-invitation.dto.js';
 import { GroupInvitation } from '../entities/group-invitation.entity.js';
 
@@ -8,5 +9,8 @@ export interface GroupInvitationRepository {
 
   findById(id: string): Promise<GroupInvitation | null>;
 
-  updateStatus(id: string, status: 'ACCEPTED' | 'REJECTED' | 'CANCELLED'): Promise<GroupInvitation>;
+  updateStatus(
+    id: string,
+    status: Exclude<InvitationStatus, 'PENDING'>,
+  ): Promise<GroupInvitation>;
 }

@@ -113,10 +113,12 @@ export class PrismaChatRepository implements ChatRepository {
   }
 
   async findParticipantByUser(chatId: string, userId: string): Promise<ChatParticipant | null> {
-    const participant = await prisma.chatParticipant.findFirst({
+    const participant = await prisma.chatParticipant.findUnique({
       where: {
-        chatId,
-        userId,
+        chatId_userId: {
+          chatId,
+          userId,
+        },
       },
     });
 
