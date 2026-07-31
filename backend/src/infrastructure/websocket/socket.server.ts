@@ -6,6 +6,7 @@ import { registerHandlers } from './handlers/index.js';
 import { socketAuthMiddleware } from './middlewares/socket-auth.middleware.js';
 import { SocketEvents } from './events/socket-events.enum.js';
 import { AuthenticatedSocket } from './types/authenticated-socket.type.js';
+import { logger } from '../../shared/utils/logger.js';
 
 let ioInstance: Server | undefined;
 
@@ -23,14 +24,14 @@ export function createSocketServer(httpServer: HttpServer): Server {
   io.on(SocketEvents.CONNECTION, (socket) => {
     const authenticatedSocket = socket as AuthenticatedSocket;
 
-    console.log(`🟢 Socket connected: ${authenticatedSocket.data.user.email} (${socket.id})`);
+    logger.info(`🟢 Socket connected: ${authenticatedSocket.data.user.email} (${socket.id})`);
 
     socket.join(userRoom(authenticatedSocket.data.user.id));
 
     registerHandlers(io, authenticatedSocket);
 
     socket.on(SocketEvents.DISCONNECT, (reason) => {
-      console.log(`🔴 Socket disconnected: ${socket.id} (${reason})`);
+      logger.info(`🔴 Socket disconnected: ${socket.id} (${reason})`);
     });
   });
 
