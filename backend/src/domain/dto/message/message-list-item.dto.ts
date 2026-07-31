@@ -1,5 +1,6 @@
 import { MessageType } from '@prisma/client';
 
+import { MessageReactionSummaryDto } from './message-reaction-summary.dto.js';
 import { ReplyToMessageDto } from './reply-to-message.dto.js';
 
 export interface MessageListItemDto {
@@ -10,4 +11,5 @@ export interface MessageListItemDto {
   createdAt: Date;
   editedAt: Date | null;
   replyTo: ReplyToMessageDto | null;
+  reactions: MessageReactionSummaryDto[];
 }
