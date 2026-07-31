@@ -14,6 +14,11 @@ import { RejectGroupInvitationUseCase } from '../../application/use-cases/chat/r
 import { LeaveGroupUseCase } from '../../application/use-cases/chat/leave-group.use-case.js';
 import { DeleteGroupUseCase } from '../../application/use-cases/chat/delete-group.use-case.js';
 import { GetChatsUseCase } from '../../application/use-cases/chat/get-chats.use-case.js';
+import { UpdateGroupUseCase } from '../../application/use-cases/chat/update-group.use-case.js';
+import { PromoteToAdminUseCase } from '../../application/use-cases/chat/promote-to-admin.use-case.js';
+import { DemoteAdminUseCase } from '../../application/use-cases/chat/demote-admin.use-case.js';
+import { RemoveParticipantUseCase } from '../../application/use-cases/chat/remove-participant.use-case.js';
+import { TransferOwnershipUseCase } from '../../application/use-cases/chat/transfer-ownership.use-case.js';
 import { SendNotificationUseCase } from '../../application/use-cases/notification/send-notification.use-case.js';
 
 export class ChatController {
@@ -62,6 +67,16 @@ export class ChatController {
   private readonly deleteGroupUseCase = new DeleteGroupUseCase(this.chatRepository);
 
   private readonly getChatsUseCase = new GetChatsUseCase(this.chatRepository);
+
+  private readonly updateGroupUseCase = new UpdateGroupUseCase(this.chatRepository);
+
+  private readonly promoteToAdminUseCase = new PromoteToAdminUseCase(this.chatRepository);
+
+  private readonly demoteAdminUseCase = new DemoteAdminUseCase(this.chatRepository);
+
+  private readonly removeParticipantUseCase = new RemoveParticipantUseCase(this.chatRepository);
+
+  private readonly transferOwnershipUseCase = new TransferOwnershipUseCase(this.chatRepository);
 
   createPrivateChat = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -194,6 +209,96 @@ export class ChatController {
       res.status(200).json({
         success: true,
         data: chats,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  updateGroup = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const chat = await this.updateGroupUseCase.execute({
+        chatId: String(req.params.chatId),
+        requesterUserId: req.user.id,
+        name: req.body.name,
+        description: req.body.description,
+        imageUrl: req.body.imageUrl,
+      });
+
+      const response = ChatResponseMapper.toResponse(chat);
+
+      res.status(200).json({
+        success: true,
+        message: 'Group updated successfully.',
+        data: response,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  promoteToAdmin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const result = await this.promoteToAdminUseCase.execute({
+        chatId: String(req.params.chatId),
+        requesterUserId: req.user.id,
+        targetUserId: String(req.params.userId),
+      });
+
+      res.status(200).json({
+        success: true,
+        ...result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  demoteAdmin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const result = await this.demoteAdminUseCase.execute({
+        chatId: String(req.params.chatId),
+        requesterUserId: req.user.id,
+        targetUserId: String(req.params.userId),
+      });
+
+      res.status(200).json({
+        success: true,
+        ...result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  removeParticipant = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const result = await this.removeParticipantUseCase.execute({
+        chatId: String(req.params.chatId),
+        requesterUserId: req.user.id,
+        targetUserId: String(req.params.userId),
+      });
+
+      res.status(200).json({
+        success: true,
+        ...result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  transferOwnership = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const result = await this.transferOwnershipUseCase.execute({
+        chatId: String(req.params.chatId),
+        requesterUserId: req.user.id,
+        targetUserId: String(req.params.userId),
+      });
+
+      res.status(200).json({
+        success: true,
+        ...result,
       });
     } catch (error) {
       next(error);
