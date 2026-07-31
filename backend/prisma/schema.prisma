@@ -65,6 +65,7 @@ model User {
   participants ChatParticipant[]
   sentMessages Message[]         @relation("MessageSender")
   readMessages MessageRead[]
+  reactions    MessageReaction[]
 
   sentGroupInvitations     GroupInvitation[] @relation("GroupInvitationSender")
   receivedGroupInvitations GroupInvitation[] @relation("GroupInvitationReceiver")
@@ -200,6 +201,7 @@ model Message {
 
   reads       MessageRead[]
   attachments Attachment[]
+  reactions   MessageReaction[]
 
   @@index([chatId])
   @@index([senderId])
@@ -245,6 +247,26 @@ model MessageRead {
   @@index([messageId])
   @@index([userId])
   @@map("message_reads")
+}
+
+model MessageReaction {
+  id String @id @default(uuid())
+
+  messageId String
+  userId    String
+
+  emoji String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@index([messageId])
+  @@index([userId])
+  @@map("message_reactions")
 }
 
 model Notification {
