@@ -20,6 +20,15 @@ import { DemoteAdminUseCase } from '../../application/use-cases/chat/demote-admi
 import { RemoveParticipantUseCase } from '../../application/use-cases/chat/remove-participant.use-case.js';
 import { TransferOwnershipUseCase } from '../../application/use-cases/chat/transfer-ownership.use-case.js';
 import { SendNotificationUseCase } from '../../application/use-cases/notification/send-notification.use-case.js';
+import { SocketEvents } from '../../infrastructure/websocket/events/socket-events.enum.js';
+import { chatRoom } from '../../infrastructure/websocket/handlers/chat.handler.js';
+import { getIO } from '../../infrastructure/websocket/socket.server.js';
+import {
+  GroupOwnershipTransferredPayload,
+  GroupParticipantRemovedPayload,
+  GroupRoleChangedPayload,
+  GroupUpdatedPayload,
+} from '../../infrastructure/websocket/types/socket-payloads.type.js';
 
 export class ChatController {
   private readonly chatRepository = new PrismaChatRepository();
@@ -225,6 +234,14 @@ export class ChatController {
         imageUrl: req.body.imageUrl,
       });
 
+      try {
+        const payload: GroupUpdatedPayload = chat;
+
+        getIO().to(chatRoom(chat.id)).emit(SocketEvents.GROUP_UPDATED, payload);
+      } catch (socketError) {
+        console.error('[group:socket-emit-failed]', socketError);
+      }
+
       const response = ChatResponseMapper.toResponse(chat);
 
       res.status(200).json({
@@ -239,11 +256,22 @@ export class ChatController {
 
   promoteToAdmin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
+      const chatId = String(req.params.chatId);
+      const targetUserId = String(req.params.userId);
+
       const result = await this.promoteToAdminUseCase.execute({
-        chatId: String(req.params.chatId),
+        chatId,
         requesterUserId: req.user.id,
-        targetUserId: String(req.params.userId),
+        targetUserId,
       });
+
+      try {
+        const payload: GroupRoleChangedPayload = { chatId, userId: targetUserId, role: 'ADMIN' };
+
+        getIO().to(chatRoom(chatId)).emit(SocketEvents.GROUP_ROLE_CHANGED, payload);
+      } catch (socketError) {
+        console.error('[group:socket-emit-failed]', socketError);
+      }
 
       res.status(200).json({
         success: true,
@@ -256,11 +284,22 @@ export class ChatController {
 
   demoteAdmin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
+      const chatId = String(req.params.chatId);
+      const targetUserId = String(req.params.userId);
+
       const result = await this.demoteAdminUseCase.execute({
-        chatId: String(req.params.chatId),
+        chatId,
         requesterUserId: req.user.id,
-        targetUserId: String(req.params.userId),
+        targetUserId,
       });
+
+      try {
+        const payload: GroupRoleChangedPayload = { chatId, userId: targetUserId, role: 'MEMBER' };
+
+        getIO().to(chatRoom(chatId)).emit(SocketEvents.GROUP_ROLE_CHANGED, payload);
+      } catch (socketError) {
+        console.error('[group:socket-emit-failed]', socketError);
+      }
 
       res.status(200).json({
         success: true,
@@ -273,11 +312,22 @@ export class ChatController {
 
   removeParticipant = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
+      const chatId = String(req.params.chatId);
+      const targetUserId = String(req.params.userId);
+
       const result = await this.removeParticipantUseCase.execute({
-        chatId: String(req.params.chatId),
+        chatId,
         requesterUserId: req.user.id,
-        targetUserId: String(req.params.userId),
+        targetUserId,
       });
+
+      try {
+        const payload: GroupParticipantRemovedPayload = { chatId, userId: targetUserId };
+
+        getIO().to(chatRoom(chatId)).emit(SocketEvents.GROUP_PARTICIPANT_REMOVED, payload);
+      } catch (socketError) {
+        console.error('[group:socket-emit-failed]', socketError);
+      }
 
       res.status(200).json({
         success: true,
@@ -290,11 +340,27 @@ export class ChatController {
 
   transferOwnership = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
+      const chatId = String(req.params.chatId);
+      const targetUserId = String(req.params.userId);
+      const previousOwnerId = req.user.id;
+
       const result = await this.transferOwnershipUseCase.execute({
-        chatId: String(req.params.chatId),
-        requesterUserId: req.user.id,
-        targetUserId: String(req.params.userId),
+        chatId,
+        requesterUserId: previousOwnerId,
+        targetUserId,
       });
+
+      try {
+        const payload: GroupOwnershipTransferredPayload = {
+          chatId,
+          previousOwnerId,
+          newOwnerId: targetUserId,
+        };
+
+        getIO().to(chatRoom(chatId)).emit(SocketEvents.GROUP_OWNERSHIP_TRANSFERRED, payload);
+      } catch (socketError) {
+        console.error('[group:socket-emit-failed]', socketError);
+      }
 
       res.status(200).json({
         success: true,

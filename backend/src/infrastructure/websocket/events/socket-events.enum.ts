@@ -22,6 +22,11 @@ export const SocketEvents = {
 
   ATTACHMENT_UPLOADED: 'attachment:uploaded',
 
+  GROUP_UPDATED: 'group:updated',
+  GROUP_ROLE_CHANGED: 'group:role:changed',
+  GROUP_PARTICIPANT_REMOVED: 'group:participant:removed',
+  GROUP_OWNERSHIP_TRANSFERRED: 'group:ownership:transferred',
+
   NOTIFICATION_NEW: 'notification:new',
 
   APP_ERROR: 'app:error',
