@@ -27,4 +27,6 @@ router.patch(
 
 router.patch('/me/deactivate', authenticate, userController.deactivateAccount);
 
+router.patch('/:userId/deactivate', authenticate, userController.adminDeactivateUser);
+
 export default router;

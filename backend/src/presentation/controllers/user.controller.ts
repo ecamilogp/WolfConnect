@@ -6,6 +6,7 @@ import { ChangePasswordUseCase } from '../../application/use-cases/users/change-
 import { PrismaUserRepository } from '../../infrastructure/repositories/prisma-user.repository.js';
 import { UserResponseMapper } from '../mappers/user-response.mapper.js';
 import { DeactivateUserUseCase } from '../../application/use-cases/users/deactivate-user.use-case.js';
+import { AdminDeactivateUserUseCase } from '../../application/use-cases/users/admin-deactivate-user.use-case.js';
 
 export class UserController {
   private readonly userRepository = new PrismaUserRepository();
@@ -15,6 +16,8 @@ export class UserController {
   private readonly changePasswordUseCase = new ChangePasswordUseCase(this.userRepository);
 
   private readonly deactivateUserUseCase = new DeactivateUserUseCase(this.userRepository);
+
+  private readonly adminDeactivateUserUseCase = new AdminDeactivateUserUseCase(this.userRepository);
 
   constructor(private readonly getCurrentUserUseCase: GetCurrentUserUseCase) {}
 
@@ -66,6 +69,19 @@ export class UserController {
       res.status(200).json({
         success: true,
         message: 'Account deactivated successfully.',
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  adminDeactivateUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      await this.adminDeactivateUserUseCase.execute(req.user, String(req.params.userId));
+
+      res.status(200).json({
+        success: true,
+        message: 'User deactivated successfully.',
       });
     } catch (error) {
       next(error);

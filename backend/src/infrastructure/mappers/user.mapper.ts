@@ -1,5 +1,5 @@
 import { User as PrismaUser, UserStatus as PrismaUserStatus } from '@prisma/client';
-import { User, UserStatus } from '../../domain/entities/user.entity.js';
+import { User, UserRole, UserStatus } from '../../domain/entities/user.entity.js';
 import { CreateUserDTO } from '../../domain/dto/user/create-user.dto.js';
 
 export class UserMapper {
@@ -13,6 +13,7 @@ export class UserMapper {
       password: user.password,
       profileImage: user.profileImage,
       status: user.status as UserStatus,
+      role: user.role as UserRole,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
       deletedAt: user.deletedAt,

@@ -13,6 +13,11 @@ enum UserStatus {
   BLOCKED
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
 enum ChatType {
   PRIVATE
   GROUP
@@ -57,6 +62,7 @@ model User {
   password     String
   profileImage String?
   status       UserStatus @default(ACTIVE)
+  role         UserRole   @default(USER)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
