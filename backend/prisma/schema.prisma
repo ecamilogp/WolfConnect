@@ -189,9 +189,14 @@ model Message {
   editedAt  DateTime?
   deletedAt DateTime?
 
+  replyToMessageId String?
+
   chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
 
   sender User @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  replyTo Message?  @relation("MessageReplies", fields: [replyToMessageId], references: [id], onDelete: SetNull)
+  replies Message[] @relation("MessageReplies")
 
   reads       MessageRead[]
   attachments Attachment[]
@@ -199,6 +204,7 @@ model Message {
   @@index([chatId])
   @@index([senderId])
   @@index([createdAt])
+  @@index([replyToMessageId])
   @@map("messages")
 }
 

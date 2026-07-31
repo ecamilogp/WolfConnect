@@ -16,6 +16,10 @@ export class PrismaMessageRepository implements MessageRepository {
           chatId: data.chatId,
           senderId: data.senderId,
           content: data.content,
+          replyToMessageId: data.replyToMessageId,
+        },
+        include: {
+          replyTo: true,
         },
       });
 
@@ -40,6 +44,14 @@ export class PrismaMessageRepository implements MessageRepository {
       createdAt: message.createdAt,
       editedAt: message.editedAt,
       deletedAt: message.deletedAt,
+      replyTo: message.replyTo
+        ? {
+            id: message.replyTo.id,
+            senderId: message.replyTo.senderId,
+            content: message.replyTo.content,
+            type: message.replyTo.type,
+          }
+        : null,
     };
   }
 
@@ -52,6 +64,9 @@ export class PrismaMessageRepository implements MessageRepository {
       orderBy: {
         createdAt: 'asc',
       },
+      include: {
+        replyTo: true,
+      },
     });
 
     return messages.map((message) => ({
@@ -61,6 +76,14 @@ export class PrismaMessageRepository implements MessageRepository {
       type: message.type,
       createdAt: message.createdAt,
       editedAt: message.editedAt,
+      replyTo: message.replyTo
+        ? {
+            id: message.replyTo.id,
+            senderId: message.replyTo.senderId,
+            content: message.replyTo.content,
+            type: message.replyTo.type,
+          }
+        : null,
     }));
   }
 
@@ -68,6 +91,9 @@ export class PrismaMessageRepository implements MessageRepository {
     const message = await prisma.message.findUnique({
       where: {
         id: messageId,
+      },
+      include: {
+        replyTo: true,
       },
     });
 
@@ -84,6 +110,14 @@ export class PrismaMessageRepository implements MessageRepository {
       createdAt: message.createdAt,
       editedAt: message.editedAt,
       deletedAt: message.deletedAt,
+      replyTo: message.replyTo
+        ? {
+            id: message.replyTo.id,
+            senderId: message.replyTo.senderId,
+            content: message.replyTo.content,
+            type: message.replyTo.type,
+          }
+        : null,
     };
   }
 

@@ -14,6 +14,7 @@ export interface ChatLeavePayload {
 export interface MessageSendPayload {
   chatId: string;
   content: string;
+  replyToMessageId?: string;
 }
 
 export interface MessageEditPayload {

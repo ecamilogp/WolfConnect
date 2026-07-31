@@ -55,9 +55,14 @@ export function registerChatHandlers(io: Server, socket: AuthenticatedSocket): v
     socket.emit(SocketEvents.CHAT_LEFT, { chatId });
   });
 
-  socket.on(SocketEvents.MESSAGE_SEND, async ({ chatId, content }: MessageSendPayload) => {
+  socket.on(SocketEvents.MESSAGE_SEND, async ({ chatId, content, replyToMessageId }: MessageSendPayload) => {
     try {
-      const message = await sendMessageUseCase.execute({ chatId, senderId: userId, content });
+      const message = await sendMessageUseCase.execute({
+        chatId,
+        senderId: userId,
+        content,
+        replyToMessageId,
+      });
 
       io.to(chatRoom(chatId)).emit(SocketEvents.MESSAGE_NEW, message);
     } catch (error) {
