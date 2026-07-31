@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from 'express';
 import { verifyAccessToken } from '../../shared/utils/jwt.js';
 import { UnauthorizedError } from '../../shared/errors/unauthorized-error.js';
 import { PrismaUserRepository } from '../../infrastructure/repositories/prisma-user.repository.js';
+import { UserStatus } from '../../domain/entities/user.entity.js';
 
 const userRepository = new PrismaUserRepository();
 
@@ -30,6 +31,14 @@ export async function authenticate(
 
     if (!user) {
       throw new UnauthorizedError('User not found.');
+    }
+
+    if (user.status === UserStatus.INACTIVE) {
+      throw new UnauthorizedError('Your account has been deactivated.');
+    }
+
+    if (user.status === UserStatus.BLOCKED) {
+      throw new UnauthorizedError('Your account has been blocked.');
     }
 
     req.user = user;

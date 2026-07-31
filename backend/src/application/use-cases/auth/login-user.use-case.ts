@@ -16,7 +16,9 @@ export class LoginUserUseCase {
   }> {
     const user = await this.userRepository.findByEmail(dto.email);
 
-    if (!user) {
+    const passwordMatches = user ? await bcrypt.compare(dto.password, user.password) : false;
+
+    if (!user || !passwordMatches) {
       throw new UnauthorizedError();
     }
 
@@ -26,12 +28,6 @@ export class LoginUserUseCase {
 
     if (user.status === UserStatus.BLOCKED) {
       throw new UnauthorizedError('Your account has been blocked.');
-    }
-
-    const passwordMatches = await bcrypt.compare(dto.password, user.password);
-
-    if (!passwordMatches) {
-      throw new UnauthorizedError();
     }
 
     const accessToken = generateAccessToken(user.id);
