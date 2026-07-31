@@ -103,7 +103,7 @@ export class InviteUserToGroupUseCase {
     }
 
     if (group.joinPolicy === 'INVITATION_REQUIRED') {
-      await this.groupInvitationRepository.create({
+      const invitation = await this.groupInvitationRepository.create({
         chatId: dto.chatId,
         invitedByUserId: dto.inviterUserId,
         invitedUserId: dto.invitedUserId,
@@ -114,13 +114,13 @@ export class InviteUserToGroupUseCase {
         type: NotificationType.GROUP_INVITATION,
         title: 'Group invitation',
         body: `${inviterName} invited you to join "${groupName}".`,
-        data: { chatId: dto.chatId, invitedByUserId: dto.inviterUserId },
+        data: { chatId: dto.chatId, invitationId: invitation.id, invitedByUserId: dto.inviterUserId },
       });
 
       return;
     }
 
-    await this.groupInvitationRepository.create({
+    const invitation = await this.groupInvitationRepository.create({
       chatId: dto.chatId,
       invitedByUserId: dto.inviterUserId,
       invitedUserId: dto.invitedUserId,
@@ -131,7 +131,7 @@ export class InviteUserToGroupUseCase {
       type: NotificationType.GROUP_INVITATION,
       title: 'Group invitation',
       body: `${inviterName} invited you to join "${groupName}".`,
-      data: { chatId: dto.chatId, invitedByUserId: dto.inviterUserId },
+      data: { chatId: dto.chatId, invitationId: invitation.id, invitedByUserId: dto.inviterUserId },
     });
   }
 }
