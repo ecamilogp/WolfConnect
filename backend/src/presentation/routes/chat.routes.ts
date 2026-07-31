@@ -13,6 +13,7 @@ import { inviteUserToGroupSchema } from '../validators/chat/invite-user-to-group
 import { sendMessageSchema } from '../validators/message/send-message.schema.js';
 import { editMessageSchema } from '../validators/message/edit-message.schema.js';
 import { setMessageReactionSchema } from '../validators/message/set-message-reaction.schema.js';
+import { updateGroupSchema } from '../validators/chat/update-group.schema.js';
 
 const router = Router();
 
@@ -59,6 +60,37 @@ router.patch(
 router.patch('/groups/:chatId/leave', authenticate, chatController.leaveGroup);
 
 router.delete('/groups/:chatId', authenticate, chatController.deleteGroup);
+
+router.patch(
+  '/groups/:chatId',
+  authenticate,
+  validate(updateGroupSchema),
+  chatController.updateGroup,
+);
+
+router.patch(
+  '/groups/:chatId/participants/:userId/promote',
+  authenticate,
+  chatController.promoteToAdmin,
+);
+
+router.patch(
+  '/groups/:chatId/participants/:userId/demote',
+  authenticate,
+  chatController.demoteAdmin,
+);
+
+router.delete(
+  '/groups/:chatId/participants/:userId',
+  authenticate,
+  chatController.removeParticipant,
+);
+
+router.patch(
+  '/groups/:chatId/owner/:userId',
+  authenticate,
+  chatController.transferOwnership,
+);
 
 router.post(
   '/:chatId/messages',
