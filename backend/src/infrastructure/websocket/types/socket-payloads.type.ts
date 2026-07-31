@@ -1,5 +1,6 @@
 import { AttachmentResponseDto } from '../../../domain/dto/attachment/attachment-response.dto.js';
 import { ChatSummaryDto } from '../../../domain/dto/chat/chat-summary.dto.js';
+import { MessageReactionSummaryDto } from '../../../domain/dto/message/message-reaction-summary.dto.js';
 import { MessageResponseDto } from '../../../domain/dto/message/message-response.dto.js';
 import { NotificationResponseDto } from '../../../domain/dto/notification/notification-response.dto.js';
 
@@ -50,6 +51,12 @@ export interface AttachmentUploadedPayload {
   messageId: string;
   chatId: string;
   attachment: AttachmentResponseDto;
+}
+
+export interface MessageReactionUpdatedPayload {
+  messageId: string;
+  chatId: string;
+  reactions: MessageReactionSummaryDto[];
 }
 
 export type NotificationNewPayload = NotificationResponseDto;

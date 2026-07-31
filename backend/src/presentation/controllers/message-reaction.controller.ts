@@ -2,6 +2,10 @@ import { NextFunction, Request, Response } from 'express';
 
 import { SetMessageReactionUseCase } from '../../application/use-cases/message-reaction/set-message-reaction.use-case.js';
 import { RemoveMessageReactionUseCase } from '../../application/use-cases/message-reaction/remove-message-reaction.use-case.js';
+import { SocketEvents } from '../../infrastructure/websocket/events/socket-events.enum.js';
+import { chatRoom } from '../../infrastructure/websocket/handlers/chat.handler.js';
+import { getIO } from '../../infrastructure/websocket/socket.server.js';
+import { MessageReactionUpdatedPayload } from '../../infrastructure/websocket/types/socket-payloads.type.js';
 import { PrismaChatRepository } from '../../infrastructure/repositories/prisma-chat.repository.js';
 import { PrismaMessageRepository } from '../../infrastructure/repositories/prisma-message.repository.js';
 import { PrismaMessageReactionRepository } from '../../infrastructure/repositories/prisma-message-reaction.repository.js';
@@ -33,6 +37,18 @@ export class MessageReactionController {
         emoji: req.body.emoji,
       });
 
+      try {
+        const payload: MessageReactionUpdatedPayload = {
+          messageId: result.messageId,
+          chatId: result.chatId,
+          reactions: result.reactions,
+        };
+
+        getIO().to(chatRoom(result.chatId)).emit(SocketEvents.MESSAGE_REACTION_UPDATED, payload);
+      } catch (socketError) {
+        console.error('[message-reaction:socket-emit-failed]', socketError);
+      }
+
       res.status(200).json({
         success: true,
         message: 'Reaction set successfully.',
@@ -45,10 +61,22 @@ export class MessageReactionController {
 
   removeReaction = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      await this.removeMessageReactionUseCase.execute({
+      const result = await this.removeMessageReactionUseCase.execute({
         messageId: String(req.params.messageId),
         userId: req.user.id,
       });
+
+      try {
+        const payload: MessageReactionUpdatedPayload = {
+          messageId: result.messageId,
+          chatId: result.chatId,
+          reactions: result.reactions,
+        };
+
+        getIO().to(chatRoom(result.chatId)).emit(SocketEvents.MESSAGE_REACTION_UPDATED, payload);
+      } catch (socketError) {
+        console.error('[message-reaction:socket-emit-failed]', socketError);
+      }
 
       res.status(200).json({
         success: true,
