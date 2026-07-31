@@ -15,3 +15,11 @@ createSocketServer(httpServer);
 httpServer.listen(env.PORT, () => {
   console.log(`🚀 WolfConnect API running on http://localhost:${env.PORT}`);
 });
+
+async function shutdown(): Promise<void> {
+  await prisma.disconnect();
+  httpServer.close(() => process.exit(0));
+}
+
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);

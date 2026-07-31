@@ -5,6 +5,7 @@ import { UserRepository } from '../../../domain/repositories/user.repository.js'
 import { PlatformInvitationRepository } from '../../../domain/repositories/platform-invitation.repository.js';
 import { CreateUserDTO } from '../../../domain/dto/user/create-user.dto.js';
 import { ConflictError } from '../../../shared/errors/conflict-error.js';
+import { BCRYPT_SALT_ROUNDS } from '../../../shared/constants/security.constant.js';
 
 export interface RegisterUserInput {
   firstName: string;
@@ -34,7 +35,7 @@ export class RegisterUserUseCase {
       throw new ConflictError('Username already exists');
     }
 
-    const hashedPassword = await bcrypt.hash(input.password, 10);
+    const hashedPassword = await bcrypt.hash(input.password, BCRYPT_SALT_ROUNDS);
 
     const user: CreateUserDTO = {
       firstName: input.firstName,

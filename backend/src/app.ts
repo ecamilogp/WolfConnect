@@ -28,6 +28,13 @@ app.use('/api/v1/chats', chatRoutes);
 app.use('/api/v1/platform-invitations', platformInvitationRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 
+app.use((_req, res) => {
+  res.status(404).json({
+    success: false,
+    message: 'Not Found',
+  });
+});
+
 //Error handler
 app.use(errorHandler);
 
