@@ -3,23 +3,18 @@ import { NextFunction, Request, Response } from 'express';
 import { GetCurrentUserUseCase } from '../../application/use-cases/users/get-current-user.use-case.js';
 import { UpdateCurrentUserUseCase } from '../../application/use-cases/users/update-current-user.use-case.js';
 import { ChangePasswordUseCase } from '../../application/use-cases/users/change-password.use-case.js';
-import { PrismaUserRepository } from '../../infrastructure/repositories/prisma-user.repository.js';
 import { UserResponseMapper } from '../mappers/user-response.mapper.js';
 import { DeactivateUserUseCase } from '../../application/use-cases/users/deactivate-user.use-case.js';
 import { AdminDeactivateUserUseCase } from '../../application/use-cases/users/admin-deactivate-user.use-case.js';
 
 export class UserController {
-  private readonly userRepository = new PrismaUserRepository();
-
-  private readonly updateCurrentUserUseCase = new UpdateCurrentUserUseCase(this.userRepository);
-
-  private readonly changePasswordUseCase = new ChangePasswordUseCase(this.userRepository);
-
-  private readonly deactivateUserUseCase = new DeactivateUserUseCase(this.userRepository);
-
-  private readonly adminDeactivateUserUseCase = new AdminDeactivateUserUseCase(this.userRepository);
-
-  constructor(private readonly getCurrentUserUseCase: GetCurrentUserUseCase) {}
+  constructor(
+    private readonly getCurrentUserUseCase: GetCurrentUserUseCase,
+    private readonly updateCurrentUserUseCase: UpdateCurrentUserUseCase,
+    private readonly changePasswordUseCase: ChangePasswordUseCase,
+    private readonly deactivateUserUseCase: DeactivateUserUseCase,
+    private readonly adminDeactivateUserUseCase: AdminDeactivateUserUseCase,
+  ) {}
 
   me = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {

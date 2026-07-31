@@ -4,17 +4,9 @@ import { UserStatus } from '../../../domain/entities/user.entity.js';
 import { UserRepository } from '../../../domain/repositories/user.repository.js';
 import { PlatformInvitationRepository } from '../../../domain/repositories/platform-invitation.repository.js';
 import { CreateUserDTO } from '../../../domain/dto/user/create-user.dto.js';
+import { RegisterUserDTO } from '../../../domain/dto/auth/register-user.dto.js';
 import { ConflictError } from '../../../shared/errors/conflict-error.js';
 import { BCRYPT_SALT_ROUNDS } from '../../../shared/constants/security.constant.js';
-
-export interface RegisterUserInput {
-  firstName: string;
-  lastName: string;
-  username: string;
-  email: string;
-  password: string;
-  invitationToken?: string;
-}
 
 export class RegisterUserUseCase {
   constructor(
@@ -22,7 +14,7 @@ export class RegisterUserUseCase {
     private readonly platformInvitationRepository: PlatformInvitationRepository,
   ) {}
 
-  async execute(input: RegisterUserInput) {
+  async execute(input: RegisterUserDTO) {
     const existingEmail = await this.userRepository.findByEmail(input.email);
 
     if (existingEmail) {

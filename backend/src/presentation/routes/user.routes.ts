@@ -4,15 +4,31 @@ import { authenticate } from '../middlewares/authenticate.middleware.js';
 import { validate } from '../middlewares/validation.middleware.js';
 import { UserController } from '../controllers/user.controller.js';
 import { updateUserSchema } from '../validators/users/update-user.validator.js';
+import { PrismaUserRepository } from '../../infrastructure/repositories/prisma-user.repository.js';
 
 import { GetCurrentUserUseCase } from '../../application/use-cases/users/get-current-user.use-case.js';
+import { UpdateCurrentUserUseCase } from '../../application/use-cases/users/update-current-user.use-case.js';
+import { ChangePasswordUseCase } from '../../application/use-cases/users/change-password.use-case.js';
+import { DeactivateUserUseCase } from '../../application/use-cases/users/deactivate-user.use-case.js';
+import { AdminDeactivateUserUseCase } from '../../application/use-cases/users/admin-deactivate-user.use-case.js';
 import { changePasswordSchema } from '../validators/users/change-password.validator.js';
 
 const router = Router();
 
+const userRepository = new PrismaUserRepository();
 const getCurrentUserUseCase = new GetCurrentUserUseCase();
+const updateCurrentUserUseCase = new UpdateCurrentUserUseCase(userRepository);
+const changePasswordUseCase = new ChangePasswordUseCase(userRepository);
+const deactivateUserUseCase = new DeactivateUserUseCase(userRepository);
+const adminDeactivateUserUseCase = new AdminDeactivateUserUseCase(userRepository);
 
-const userController = new UserController(getCurrentUserUseCase);
+const userController = new UserController(
+  getCurrentUserUseCase,
+  updateCurrentUserUseCase,
+  changePasswordUseCase,
+  deactivateUserUseCase,
+  adminDeactivateUserUseCase,
+);
 
 router.get('/me', authenticate, userController.me);
 
