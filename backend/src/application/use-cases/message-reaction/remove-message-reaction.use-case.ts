@@ -1,3 +1,4 @@
+import { MessageReactionUpdateResultDto } from '../../../domain/dto/message-reaction/message-reaction-update-result.dto.js';
 import { RemoveMessageReactionDto } from '../../../domain/dto/message-reaction/remove-message-reaction.dto.js';
 import { ChatRepository } from '../../../domain/repositories/chat.repository.js';
 import { MessageReactionRepository } from '../../../domain/repositories/message-reaction.repository.js';
@@ -12,7 +13,7 @@ export class RemoveMessageReactionUseCase {
     private readonly messageReactionRepository: MessageReactionRepository,
   ) {}
 
-  async execute(dto: RemoveMessageReactionDto): Promise<void> {
+  async execute(dto: RemoveMessageReactionDto): Promise<MessageReactionUpdateResultDto> {
     const message = await this.messageRepository.findById(dto.messageId);
 
     if (!message || message.deletedAt) {
@@ -26,5 +27,14 @@ export class RemoveMessageReactionUseCase {
     }
 
     await this.messageReactionRepository.remove(dto);
+
+    const updatedMessage = await this.messageRepository.findById(dto.messageId);
+
+    return {
+      chatId: message.chatId,
+      messageId: message.id,
+      reactions: updatedMessage?.reactions ?? [],
+      reaction: null,
+    };
   }
 }

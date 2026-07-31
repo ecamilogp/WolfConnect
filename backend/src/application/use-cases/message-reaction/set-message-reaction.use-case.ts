@@ -1,4 +1,4 @@
-import { MessageReactionResponseDto } from '../../../domain/dto/message-reaction/message-reaction-response.dto.js';
+import { MessageReactionUpdateResultDto } from '../../../domain/dto/message-reaction/message-reaction-update-result.dto.js';
 import { SetMessageReactionDto } from '../../../domain/dto/message-reaction/set-message-reaction.dto.js';
 import { ChatRepository } from '../../../domain/repositories/chat.repository.js';
 import { MessageReactionRepository } from '../../../domain/repositories/message-reaction.repository.js';
@@ -13,7 +13,7 @@ export class SetMessageReactionUseCase {
     private readonly messageReactionRepository: MessageReactionRepository,
   ) {}
 
-  async execute(dto: SetMessageReactionDto): Promise<MessageReactionResponseDto> {
+  async execute(dto: SetMessageReactionDto): Promise<MessageReactionUpdateResultDto> {
     const message = await this.messageRepository.findById(dto.messageId);
 
     if (!message || message.deletedAt) {
@@ -26,6 +26,15 @@ export class SetMessageReactionUseCase {
       throw new ForbiddenError('You are not a participant of this chat.');
     }
 
-    return this.messageReactionRepository.upsert(dto);
+    const reaction = await this.messageReactionRepository.upsert(dto);
+
+    const updatedMessage = await this.messageRepository.findById(dto.messageId);
+
+    return {
+      chatId: message.chatId,
+      messageId: message.id,
+      reactions: updatedMessage?.reactions ?? [],
+      reaction,
+    };
   }
 }
