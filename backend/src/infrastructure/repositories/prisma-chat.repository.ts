@@ -3,6 +3,7 @@ import { Chat } from '../../domain/entities/chat.entity.js';
 import { prisma } from '../database/prisma.service.js';
 import { ChatMapper } from '../mappers/chat.mapper.js';
 import { CreateGroupChatDto } from '../../domain/dto/chat/create-group-chat.dto.js';
+import { UpdateGroupDto } from '../../domain/dto/chat/update-group.dto.js';
 import { ChatParticipant } from '../../domain/entities/chat-participant.entity.js';
 import { AcceptGroupInvitationDto } from '../../domain/dto/chat-group-invitations/accept-group-invitation.dto.js';
 import { ChatSummaryDto } from '../../domain/dto/chat/chat-summary.dto.js';
@@ -262,5 +263,83 @@ export class PrismaChatRepository implements ChatRepository {
       },
     });
     return chats.map((chat) => ChatSummaryMapper.toDto(chat, userId));
+  }
+
+  async updateGroup(dto: UpdateGroupDto): Promise<Chat> {
+    const chat = await prisma.chat.update({
+      where: {
+        id: dto.chatId,
+      },
+      data: {
+        name: dto.name,
+        description: dto.description,
+        imageUrl: dto.imageUrl,
+      },
+    });
+
+    return ChatMapper.toDomain(chat);
+  }
+
+  async updateParticipantRole(
+    chatId: string,
+    userId: string,
+    role: ChatParticipant['role'],
+  ): Promise<void> {
+    await prisma.chatParticipant.update({
+      where: {
+        chatId_userId: {
+          chatId,
+          userId,
+        },
+      },
+      data: {
+        role,
+      },
+    });
+  }
+
+  async removeParticipant(chatId: string, userId: string): Promise<void> {
+    await prisma.chatParticipant.update({
+      where: {
+        chatId_userId: {
+          chatId,
+          userId,
+        },
+      },
+      data: {
+        leftAt: new Date(),
+      },
+    });
+  }
+
+  async transferOwnership(
+    chatId: string,
+    currentOwnerUserId: string,
+    newOwnerUserId: string,
+  ): Promise<void> {
+    await prisma.$transaction([
+      prisma.chatParticipant.update({
+        where: {
+          chatId_userId: {
+            chatId,
+            userId: currentOwnerUserId,
+          },
+        },
+        data: {
+          role: 'ADMIN',
+        },
+      }),
+      prisma.chatParticipant.update({
+        where: {
+          chatId_userId: {
+            chatId,
+            userId: newOwnerUserId,
+          },
+        },
+        data: {
+          role: 'OWNER',
+        },
+      }),
+    ]);
   }
 }

@@ -1,5 +1,6 @@
 import { ChatSummaryDto } from '../dto/chat/chat-summary.dto.js';
 import { CreateGroupChatDto } from '../dto/chat/create-group-chat.dto.js';
+import { UpdateGroupDto } from '../dto/chat/update-group.dto.js';
 import { AcceptGroupInvitationDto } from '../dto/chat-group-invitations/accept-group-invitation.dto.js';
 import { ChatParticipant } from '../entities/chat-participant.entity.js';
 import { Chat } from '../entities/chat.entity.js';
@@ -26,4 +27,12 @@ export interface ChatRepository {
   deleteGroup(chatId: string): Promise<void>;
 
   findAllByUser(userId: string): Promise<ChatSummaryDto[]>;
+
+  updateGroup(dto: UpdateGroupDto): Promise<Chat>;
+
+  updateParticipantRole(chatId: string, userId: string, role: ChatParticipant['role']): Promise<void>;
+
+  removeParticipant(chatId: string, userId: string): Promise<void>;
+
+  transferOwnership(chatId: string, currentOwnerUserId: string, newOwnerUserId: string): Promise<void>;
 }

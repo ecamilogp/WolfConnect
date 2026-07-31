@@ -3,6 +3,7 @@ import { ChatSummaryDto } from '../../../domain/dto/chat/chat-summary.dto.js';
 import { MessageReactionSummaryDto } from '../../../domain/dto/message/message-reaction-summary.dto.js';
 import { MessageResponseDto } from '../../../domain/dto/message/message-response.dto.js';
 import { NotificationResponseDto } from '../../../domain/dto/notification/notification-response.dto.js';
+import { Chat } from '../../../domain/entities/chat.entity.js';
 
 export interface ChatJoinPayload {
   chatId: string;
@@ -57,6 +58,25 @@ export interface MessageReactionUpdatedPayload {
   messageId: string;
   chatId: string;
   reactions: MessageReactionSummaryDto[];
+}
+
+export type GroupUpdatedPayload = Chat;
+
+export interface GroupRoleChangedPayload {
+  chatId: string;
+  userId: string;
+  role: 'OWNER' | 'ADMIN' | 'MEMBER';
+}
+
+export interface GroupParticipantRemovedPayload {
+  chatId: string;
+  userId: string;
+}
+
+export interface GroupOwnershipTransferredPayload {
+  chatId: string;
+  previousOwnerId: string;
+  newOwnerId: string;
 }
 
 export type NotificationNewPayload = NotificationResponseDto;
