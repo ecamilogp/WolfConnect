@@ -3,6 +3,8 @@ import { NextFunction, Request, Response } from 'express';
 import { PrismaChatRepository } from '../../infrastructure/repositories/prisma-chat.repository.js';
 import { PrismaUserRepository } from '../../infrastructure/repositories/prisma-user.repository.js';
 import { PrismaGroupInvitationRepository } from '../../infrastructure/repositories/prisma-group-invitation.repository.js';
+import { PrismaNotificationRepository } from '../../infrastructure/repositories/prisma-notification.repository.js';
+import { SocketNotificationBroadcasterRepository } from '../../infrastructure/repositories/socket-notification-broadcaster.repository.js';
 import { ChatResponseMapper } from '../mappers/chat-response.mapper.js';
 import { CreatePrivateChatUseCase } from '../../application/use-cases/chat/create-private-chat.use-case.js';
 import { CreateGroupChatUseCase } from '../../application/use-cases/chat/create-group-chat.use-case.js';
@@ -12,6 +14,7 @@ import { RejectGroupInvitationUseCase } from '../../application/use-cases/chat/r
 import { LeaveGroupUseCase } from '../../application/use-cases/chat/leave-group.use-case.js';
 import { DeleteGroupUseCase } from '../../application/use-cases/chat/delete-group.use-case.js';
 import { GetChatsUseCase } from '../../application/use-cases/chat/get-chats.use-case.js';
+import { SendNotificationUseCase } from '../../application/use-cases/notification/send-notification.use-case.js';
 
 export class ChatController {
   private readonly chatRepository = new PrismaChatRepository();
@@ -19,6 +22,15 @@ export class ChatController {
   private readonly userRepository = new PrismaUserRepository();
 
   private readonly groupInvitationRepository = new PrismaGroupInvitationRepository();
+
+  private readonly notificationRepository = new PrismaNotificationRepository();
+
+  private readonly notificationBroadcaster = new SocketNotificationBroadcasterRepository();
+
+  private readonly sendNotificationUseCase = new SendNotificationUseCase(
+    this.notificationRepository,
+    this.notificationBroadcaster,
+  );
 
   private readonly createPrivateChatUseCase = new CreatePrivateChatUseCase(this.chatRepository);
 
@@ -28,15 +40,21 @@ export class ChatController {
     this.chatRepository,
     this.userRepository,
     this.groupInvitationRepository,
+    this.sendNotificationUseCase,
   );
 
   private readonly acceptGroupInvitationUseCase = new AcceptGroupInvitationUseCase(
     this.chatRepository,
     this.groupInvitationRepository,
+    this.userRepository,
+    this.sendNotificationUseCase,
   );
 
   private readonly rejectGroupInvitationUseCase = new RejectGroupInvitationUseCase(
     this.groupInvitationRepository,
+    this.chatRepository,
+    this.userRepository,
+    this.sendNotificationUseCase,
   );
 
   private readonly leaveGroupUseCase = new LeaveGroupUseCase(this.chatRepository);

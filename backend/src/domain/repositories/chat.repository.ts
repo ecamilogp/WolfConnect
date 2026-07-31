@@ -15,6 +15,8 @@ export interface ChatRepository {
 
   findParticipantByUser(chatId: string, userId: string): Promise<ChatParticipant | null>;
 
+  findParticipantIds(chatId: string): Promise<string[]>;
+
   addParticipant(chatId: string, userId: string): Promise<void>;
 
   acceptGroupInvitation(dto: AcceptGroupInvitationDto): Promise<void>;
