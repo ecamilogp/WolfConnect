@@ -4,7 +4,6 @@ import { SendMessageUseCase } from '../../../application/use-cases/message/send-
 import { EditMessageUseCase } from '../../../application/use-cases/message/edit-message.use-case.js';
 import { DeleteMessageUseCase } from '../../../application/use-cases/message/delete-message.use-case.js';
 import { ForbiddenError } from '../../../shared/errors/forbidden-error.js';
-import { NotFoundError } from '../../../shared/errors/not-found-error.js';
 import { PrismaChatRepository } from '../../repositories/prisma-chat.repository.js';
 import { PrismaMessageRepository } from '../../repositories/prisma-message.repository.js';
 import { SocketEvents } from '../events/socket-events.enum.js';
@@ -82,17 +81,11 @@ export function registerChatHandlers(io: Server, socket: AuthenticatedSocket): v
 
   socket.on(SocketEvents.MESSAGE_DELETE, async ({ messageId }: MessageDeletePayload) => {
     try {
-      const existing = await messageRepository.findById(messageId);
+      const { chatId } = await deleteMessageUseCase.execute({ messageId, userId });
 
-      if (!existing) {
-        throw new NotFoundError('Message not found.');
-      }
+      const payload: MessageDeletedPayload = { messageId, chatId };
 
-      await deleteMessageUseCase.execute({ messageId, userId });
-
-      const payload: MessageDeletedPayload = { messageId, chatId: existing.chatId };
-
-      io.to(chatRoom(existing.chatId)).emit(SocketEvents.MESSAGE_DELETED, payload);
+      io.to(chatRoom(chatId)).emit(SocketEvents.MESSAGE_DELETED, payload);
     } catch (error) {
       emitSocketError(socket, error);
     }

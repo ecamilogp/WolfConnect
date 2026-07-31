@@ -29,6 +29,14 @@ export class MessageReactionController {
     this.messageReactionRepository,
   );
 
+  private emitReactionUpdate(payload: MessageReactionUpdatedPayload): void {
+    try {
+      getIO().to(chatRoom(payload.chatId)).emit(SocketEvents.MESSAGE_REACTION_UPDATED, payload);
+    } catch (socketError) {
+      console.error('[message-reaction:socket-emit-failed]', socketError);
+    }
+  }
+
   setReaction = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const result = await this.setMessageReactionUseCase.execute({
@@ -37,17 +45,11 @@ export class MessageReactionController {
         emoji: req.body.emoji,
       });
 
-      try {
-        const payload: MessageReactionUpdatedPayload = {
-          messageId: result.messageId,
-          chatId: result.chatId,
-          reactions: result.reactions,
-        };
-
-        getIO().to(chatRoom(result.chatId)).emit(SocketEvents.MESSAGE_REACTION_UPDATED, payload);
-      } catch (socketError) {
-        console.error('[message-reaction:socket-emit-failed]', socketError);
-      }
+      this.emitReactionUpdate({
+        messageId: result.messageId,
+        chatId: result.chatId,
+        reactions: result.reactions,
+      });
 
       res.status(200).json({
         success: true,
@@ -66,17 +68,11 @@ export class MessageReactionController {
         userId: req.user.id,
       });
 
-      try {
-        const payload: MessageReactionUpdatedPayload = {
-          messageId: result.messageId,
-          chatId: result.chatId,
-          reactions: result.reactions,
-        };
-
-        getIO().to(chatRoom(result.chatId)).emit(SocketEvents.MESSAGE_REACTION_UPDATED, payload);
-      } catch (socketError) {
-        console.error('[message-reaction:socket-emit-failed]', socketError);
-      }
+      this.emitReactionUpdate({
+        messageId: result.messageId,
+        chatId: result.chatId,
+        reactions: result.reactions,
+      });
 
       res.status(200).json({
         success: true,
