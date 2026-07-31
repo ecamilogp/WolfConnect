@@ -9,12 +9,6 @@ import { AuthenticatedSocket } from './types/authenticated-socket.type.js';
 
 let ioInstance: Server | undefined;
 
-/**
- * Sala personal de un usuario -- todos sus sockets (puede tener varias
- * pestañas/dispositivos abiertos) se unen acá al conectarse. Permite
- * emitirle algo a "el usuario X" sin importar en qué chats esté, útil para
- * notificaciones que no pertenecen a una sala de chat concreta.
- */
 export function userRoom(userId: string): string {
   return `user:${userId}`;
 }
@@ -43,13 +37,6 @@ export function createSocketServer(httpServer: HttpServer): Server {
   return io;
 }
 
-/**
- * Punto de acceso a la instancia de Socket.IO para código que no es un
- * socket handler -- por ejemplo un controller REST que necesita emitir un
- * evento después de guardar algo (attachments, notificaciones, etc.).
- * Mismo patrón que `export const prisma` en `prisma.service.ts`: un único
- * punto de acceso, sin contenedor de DI.
- */
 export function getIO(): Server {
   if (!ioInstance) {
     throw new Error('Socket.IO server has not been initialized yet.');

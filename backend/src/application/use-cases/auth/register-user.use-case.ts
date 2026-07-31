@@ -53,8 +53,6 @@ export class RegisterUserUseCase {
         input.invitationToken,
       );
 
-      // Un token inválido/vencido/ya usado no bloquea el registro -- la
-      // persona simplemente se registra como si hubiera entrado sin invitación.
       if (invitation && invitation.status === 'PENDING') {
         await this.platformInvitationRepository.markAsAccepted(invitation.id);
       }

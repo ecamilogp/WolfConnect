@@ -18,9 +18,6 @@ const storage = multer.diskStorage({
   destination: (_req, file, callback) => {
     const destination = path.join(UPLOADS_ROOT, resolveAttachmentFolder(file.mimetype));
 
-    // Local storage MVP: se asegura que la carpeta exista antes de escribir.
-    // El día que esto se reemplace por S3/Cloudinary, este archivo es el
-    // único que cambia -- el resto del módulo no sabe que el disco existe.
     fs.mkdirSync(destination, { recursive: true });
 
     callback(null, destination);
@@ -47,11 +44,6 @@ const multerUpload = multer({
   },
 });
 
-/**
- * Envuelve `multer.single('file')` para traducir sus errores (tamaño
- * excedido, tipo rechazado) al mismo formato que usa el resto de la API
- * (`AppError` -> `errorHandler`), sin tocar `errorHandler.middleware.ts`.
- */
 export function uploadSingleAttachment(req: Request, res: Response, next: NextFunction): void {
   multerUpload.single('file')(req, res, (error: unknown) => {
     if (error instanceof multer.MulterError) {

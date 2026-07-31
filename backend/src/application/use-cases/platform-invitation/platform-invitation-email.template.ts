@@ -4,11 +4,6 @@ export interface PlatformInvitationEmailData {
   joinUrl: string;
 }
 
-/**
- * Contenido del correo de invitación. Vive en application/ (decide QUÉ se
- * manda) separado de infrastructure/ (decide CÓMO se manda) -- así cambiar
- * de proveedor de correo nunca implica tocar este archivo.
- */
 export function buildPlatformInvitationEmailHtml(data: PlatformInvitationEmailData): string {
   return `
     <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; color: #1a1a1a;">

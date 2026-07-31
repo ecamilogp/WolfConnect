@@ -35,11 +35,6 @@ export class AttachmentController {
         path: req.file.path,
       });
 
-      // Emitir SOLO después de que el archivo y su metadata quedaron
-      // guardados correctamente (ver requisito del módulo). Si Socket.IO
-      // no está inicializado (por ejemplo en un test unitario del controller
-      // sin servidor real), no debe tumbar la respuesta HTTP -- el archivo
-      // ya se guardó, eso es lo que importa.
       try {
         const payload: AttachmentUploadedPayload = { messageId: attachment.messageId, chatId, attachment };
 

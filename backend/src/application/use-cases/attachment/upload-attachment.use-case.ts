@@ -36,9 +36,6 @@ export class UploadAttachmentUseCase {
       path: dto.path,
     });
 
-    // chatId sale del mismo `message` que ya se consultó para autorizar --
-    // el Controller lo necesita para emitir por Socket.IO a la sala correcta,
-    // sin una segunda consulta a la base de datos.
     return { attachment, chatId: message.chatId };
   }
 }

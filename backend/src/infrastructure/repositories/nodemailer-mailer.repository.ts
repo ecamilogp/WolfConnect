@@ -3,12 +3,6 @@ import nodemailer, { Transporter } from 'nodemailer';
 import { env } from '../../config/env.js';
 import { MailerRepository, SendEmailOptions } from '../../domain/repositories/mailer.repository.js';
 
-/**
- * Única implementación concreta de `MailerRepository`. El día que se
- * reemplace por SES/SendGrid, se crea otra clase que implemente la misma
- * interfaz y se cambia la línea `new NodemailerMailerRepository()` en el
- * lugar donde se arma el use case -- nada más se entera del cambio.
- */
 export class NodemailerMailerRepository implements MailerRepository {
   private transporter: Transporter | undefined;
 

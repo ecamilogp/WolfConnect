@@ -1,4 +1,4 @@
-export const MAX_ATTACHMENT_SIZE_BYTES = 25 * 1024 * 1024; // 25 MB
+export const MAX_ATTACHMENT_SIZE_BYTES = 25 * 1024 * 1024;
 
 export type AttachmentFolder = 'images' | 'videos' | 'documents' | 'others';
 
@@ -28,8 +28,6 @@ const ARCHIVE_MIME_TYPES = [
   'application/x-tar',
 ];
 
-// Whitelist consumida por el middleware de Multer: cualquier mimeType fuera
-// de esta lista se rechaza antes de tocar el filesystem.
 export const ALLOWED_ATTACHMENT_MIME_TYPES = [
   ...IMAGE_MIME_TYPES,
   ...VIDEO_MIME_TYPES,
@@ -37,11 +35,6 @@ export const ALLOWED_ATTACHMENT_MIME_TYPES = [
   ...ARCHIVE_MIME_TYPES,
 ];
 
-/**
- * Decide en cuál de las 4 carpetas de `uploads/` cae un archivo, a partir de
- * su mimeType. Los comprimidos (zip/rar/7z/tar/gzip) caen en "others" -- el
- * spec del módulo solo pidió 4 carpetas, no una quinta para archivos comprimidos.
- */
 export function resolveAttachmentFolder(mimeType: string): AttachmentFolder {
   if (IMAGE_MIME_TYPES.includes(mimeType)) {
     return 'images';

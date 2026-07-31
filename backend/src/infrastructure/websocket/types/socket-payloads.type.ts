@@ -25,8 +25,6 @@ export interface MessageDeletePayload {
   messageId: string;
 }
 
-// ---- Servidor -> Cliente ----
-
 export interface ChatJoinedPayload {
   chat: ChatSummaryDto;
 }
