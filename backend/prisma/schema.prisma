@@ -1,0 +1,300 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  BLOCKED
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum ChatType {
+  PRIVATE
+  GROUP
+}
+
+enum GroupJoinPolicy {
+  AUTO_ADD
+  INVITATION_REQUIRED
+}
+
+enum ParticipantRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+
+enum PlatformInvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  CANCELLED
+}
+
+enum MessageType {
+  TEXT
+  SYSTEM
+}
+
+model User {
+  id           String     @id @default(uuid())
+  firstName    String
+  lastName     String
+  username     String     @unique
+  email        String     @unique
+  password     String
+  profileImage String?
+  status       UserStatus @default(ACTIVE)
+  role         UserRole   @default(USER)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  participants ChatParticipant[]
+  sentMessages Message[]         @relation("MessageSender")
+  readMessages MessageRead[]
+  reactions    MessageReaction[]
+
+  sentGroupInvitations     GroupInvitation[] @relation("GroupInvitationSender")
+  receivedGroupInvitations GroupInvitation[] @relation("GroupInvitationReceiver")
+
+  sentPlatformInvitations PlatformInvitation[] @relation("PlatformInvitationSender")
+
+  notifications Notification[]
+
+  @@map("users")
+}
+
+model Chat {
+  id String @id @default(uuid())
+
+  type ChatType
+
+  name        String?
+  description String?
+  imageUrl    String?
+
+  joinPolicy GroupJoinPolicy?
+
+  lastMessageAt DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  participants     ChatParticipant[]
+  groupInvitations GroupInvitation[]
+  messages         Message[]
+
+  @@index([type])
+  @@index([lastMessageAt])
+  @@map("chats")
+}
+
+model ChatParticipant {
+  id String @id @default(uuid())
+
+  chatId String
+  userId String
+
+  role ParticipantRole @default(MEMBER)
+
+  joinedAt DateTime  @default(now())
+  leftAt   DateTime?
+
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([chatId, userId])
+  @@index([chatId])
+  @@index([userId])
+  @@map("chat_participants")
+}
+
+model GroupInvitation {
+  id String @id @default(uuid())
+
+  chatId String
+
+  invitedUserId String
+
+  invitedByUserId String
+
+  status InvitationStatus @default(PENDING)
+
+  createdAt   DateTime  @default(now())
+  respondedAt DateTime?
+
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  invitedUser User @relation("GroupInvitationReceiver", fields: [invitedUserId], references: [id], onDelete: Cascade)
+
+  invitedBy User @relation("GroupInvitationSender", fields: [invitedByUserId], references: [id], onDelete: Cascade)
+
+  @@unique([chatId, invitedUserId])
+  @@index([chatId])
+  @@index([status])
+  @@map("group_invitations")
+}
+
+model PlatformInvitation {
+  id String @id @default(uuid())
+
+  email String
+
+  token String @unique
+
+  status PlatformInvitationStatus @default(PENDING)
+
+  invitedByUserId String
+
+  invitedBy User @relation("PlatformInvitationSender", fields: [invitedByUserId], references: [id], onDelete: Cascade)
+
+  expiresAt DateTime
+
+  acceptedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([status])
+  @@map("platform_invitations")
+}
+
+model Message {
+  id String @id @default(uuid())
+
+  chatId String
+
+  senderId String
+
+  content String?
+
+  type MessageType @default(TEXT)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  editedAt  DateTime?
+  deletedAt DateTime?
+
+  replyToMessageId String?
+
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  sender User @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  replyTo Message?  @relation("MessageReplies", fields: [replyToMessageId], references: [id], onDelete: SetNull)
+  replies Message[] @relation("MessageReplies")
+
+  reads       MessageRead[]
+  attachments Attachment[]
+  reactions   MessageReaction[]
+
+  @@index([chatId])
+  @@index([senderId])
+  @@index([createdAt])
+  @@index([replyToMessageId])
+  @@map("messages")
+}
+
+model Attachment {
+  id String @id @default(uuid())
+
+  messageId String
+
+  fileName     String
+  originalName String
+
+  mimeType String
+
+  size Int
+
+  path String
+
+  createdAt DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+  @@map("attachments")
+}
+
+model MessageRead {
+  id String @id @default(uuid())
+
+  messageId String
+  userId    String
+
+  readAt DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@index([messageId])
+  @@index([userId])
+  @@map("message_reads")
+}
+
+model MessageReaction {
+  id String @id @default(uuid())
+
+  messageId String
+  userId    String
+
+  emoji String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@index([messageId])
+  @@index([userId])
+  @@map("message_reactions")
+}
+
+model Notification {
+  id String @id @default(uuid())
+
+  userId String
+
+  type String
+
+  title String
+  body  String
+
+  isRead Boolean @default(false)
+
+  data Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, isRead])
+  @@map("notifications")
+}
