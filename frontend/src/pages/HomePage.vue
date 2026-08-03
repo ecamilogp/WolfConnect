@@ -1,5 +1,5 @@
 <script setup lang="ts"></script>
 
 <template>
-  <router-view />
+  <div>WolfConnect — home placeholder.</div>
 </template>
