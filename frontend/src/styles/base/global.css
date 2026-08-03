@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(body.body--dark, body.body--dark *));
+
+@theme {
+  --color-brand-violet: #693ac3;
+  --color-brand-amber: #f2b71d;
+  --color-brand-black: #0e0d11;
+  --color-brand-white: #ffffff;
+}
+
+.body--dark {
+  --q-primary: #f2b71d;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
