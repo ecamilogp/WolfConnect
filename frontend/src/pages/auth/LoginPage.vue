@@ -8,12 +8,15 @@ import AppButton from '@/components/ui/AppButton.vue'
 import { useAuthStore } from '@/stores/auth.store'
 import { createLoginSchema } from '@/utils/validators/auth.validators'
 import { ApiError } from '@/types/api/error.type'
+import { useTheme } from '@/composables/useTheme'
 
-import logoWolf from '@/assets/images/lobo.png'
+import logoWolf from '@/assets/images/headwolfeyepruple.png'
+import logoWolfDark from '@/assets/images/headwolf.png'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const { t } = useI18n()
+const { isDark } = useTheme()
 
 const form = reactive({ email: '', password: '' })
 const errors = reactive<Record<string, string>>({})
@@ -54,9 +57,11 @@ async function onSubmit(): Promise<void> {
     <div class="flex w-1/2 items-center justify-end px-6 py-8 lg:px-10">
       <div class="flex w-full max-w-xl flex-col gap-5">
         <div class="text-left">
-          <h3 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+          <h4
+            class="text-3xl text-center mb-2.5 font-black tracking-tight bg-linear-to-t from-brand-violet to-black dark:from-white dark:to-brand-amber bg-clip-text text-transparent"
+          >
             {{ t('auth.login.title') }}
-          </h3>
+          </h4>
         </div>
 
         <form class="flex flex-col gap-5" @submit.prevent="onSubmit">
@@ -87,14 +92,31 @@ async function onSubmit(): Promise<void> {
           />
         </form>
 
-        <RouterLink to="/register" class="text-left text-sm text-brand-violet">
+        <RouterLink
+          to="/register"
+          class="text-left text-sm text-brand-violet dark:text-brand-amber"
+        >
           {{ t('auth.login.createAccount') }}
         </RouterLink>
       </div>
     </div>
 
-    <div class="flex w-1/2 items-center justify-center px-6 py-8 lg:px-10">
-      <img :src="logoWolf" class="w-full max-w-[500px] object-contain" alt="Wolf mascot" />
+    <div class="wolf flex w-1/2 items-center justify-center px-6 py-8 lg:px-10">
+      <img
+        :src="isDark ? logoWolfDark : logoWolf"
+        class="w-full max-w-135 object-contain"
+        alt="Wolf mascot"
+      />
     </div>
   </div>
 </template>
+
+<style scoped>
+.wolf {
+  filter: drop-shadow(0 0 1.5px #693ac3);
+}
+
+.body--dark .wolf {
+  filter: drop-shadow(0 0 1.5px #f2b71d);
+}
+</style>

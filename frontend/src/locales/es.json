@@ -1,7 +1,7 @@
 {
   "auth": {
     "login": {
-      "title": "Bienvenido a WolfConnect",
+      "title": "Inicia sesión en WolfConnect",
       "emailLabel": "Correo electrónico",
       "passwordLabel": "Contraseña",
       "submit": "Iniciar sesión",
@@ -15,7 +15,6 @@
       "usernameLabel": "Nombre de usuario",
       "emailLabel": "Correo electrónico",
       "passwordLabel": "Contraseña",
-      "invitationTokenLabel": "Código de invitación (opcional)",
       "submit": "Crear cuenta",
       "haveAccount": "¿Ya tienes una cuenta?",
       "genericError": "Algo salió mal. Inténtalo de nuevo."

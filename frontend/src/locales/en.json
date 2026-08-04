@@ -1,7 +1,7 @@
 {
   "auth": {
     "login": {
-      "title": "Welcome to WolfConnect",
+      "title": "Log in to WolfConnect",
       "emailLabel": "Email",
       "passwordLabel": "Password",
       "submit": "Log in",
@@ -15,7 +15,6 @@
       "usernameLabel": "Username",
       "emailLabel": "Email",
       "passwordLabel": "Password",
-      "invitationTokenLabel": "Invitation code (optional)",
       "submit": "Create account",
       "haveAccount": "Already have an account?",
       "genericError": "Something went wrong. Please try again."
