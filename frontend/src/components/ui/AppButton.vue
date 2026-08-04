@@ -9,6 +9,7 @@ withDefaults(
     loading?: boolean
     disabled?: boolean
     icon?: string
+    type?: 'button' | 'submit' | 'reset'
   }>(),
   {
     label: undefined,
@@ -17,6 +18,7 @@ withDefaults(
     loading: false,
     disabled: false,
     icon: undefined,
+    type: 'button',
   },
 )
 
@@ -31,6 +33,7 @@ defineEmits<{ click: [event: Event] }>()
     :loading="loading"
     :disable="disabled"
     :icon="icon"
+    :type="type"
     unelevated
     rounded
     @click="(event: Event) => $emit('click', event)"

@@ -1,0 +1,60 @@
+{
+  "auth": {
+    "login": {
+      "title": "Welcome to WolfConnect",
+      "emailLabel": "Email",
+      "passwordLabel": "Password",
+      "submit": "Log in",
+      "createAccount": "Create an account",
+      "genericError": "Something went wrong. Please try again."
+    },
+    "register": {
+      "title": "Create your WolfConnect account",
+      "firstNameLabel": "First name",
+      "lastNameLabel": "Last name",
+      "usernameLabel": "Username",
+      "emailLabel": "Email",
+      "passwordLabel": "Password",
+      "invitationTokenLabel": "Invitation code (optional)",
+      "submit": "Create account",
+      "haveAccount": "Already have an account?",
+      "genericError": "Something went wrong. Please try again."
+    }
+  },
+  "home": {
+    "placeholder": "WolfConnect — home placeholder."
+  },
+  "errors": {
+    "notFound": "404 — page not found."
+  },
+  "validation": {
+    "email": {
+      "invalid": "Invalid email address."
+    },
+    "password": {
+      "required": "Password is required.",
+      "minLength": "Password must be at least 8 characters.",
+      "maxLength": "Password cannot exceed 100 characters.",
+      "lowercase": "Password must contain at least one lowercase letter.",
+      "uppercase": "Password must contain at least one uppercase letter.",
+      "number": "Password must contain at least one number.",
+      "specialChar": "Password must contain at least one special character.",
+      "noSpaces": "Password cannot contain spaces."
+    },
+    "firstName": {
+      "minLength": "First name must be at least 2 characters.",
+      "maxLength": "First name cannot exceed 50 characters.",
+      "invalidChars": "First name contains invalid characters."
+    },
+    "lastName": {
+      "minLength": "Last name must be at least 2 characters.",
+      "maxLength": "Last name cannot exceed 50 characters.",
+      "invalidChars": "Last name contains invalid characters."
+    },
+    "username": {
+      "minLength": "Username must be at least 3 characters.",
+      "maxLength": "Username cannot exceed 30 characters.",
+      "invalidChars": "Username can only contain letters, numbers, dots and underscores."
+    }
+  }
+}
