@@ -23,6 +23,14 @@
   "home": {
     "placeholder": "WolfConnect — página de inicio (placeholder)."
   },
+  "layout": {
+    "logout": "Cerrar sesión"
+  },
+  "sidebar": {
+    "searchPlaceholder": "Buscar conversaciones",
+    "noConversationsTitle": "Todavía no hay conversaciones",
+    "noConversationsDescription": "Inicia un chat y aparecerá aquí."
+  },
   "errors": {
     "notFound": "404 — página no encontrada."
   },

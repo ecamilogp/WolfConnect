@@ -23,6 +23,14 @@
   "home": {
     "placeholder": "WolfConnect — home placeholder."
   },
+  "layout": {
+    "logout": "Log out"
+  },
+  "sidebar": {
+    "searchPlaceholder": "Search conversations",
+    "noConversationsTitle": "No conversations yet",
+    "noConversationsDescription": "Start a chat and it will show up here."
+  },
   "errors": {
     "notFound": "404 — page not found."
   },

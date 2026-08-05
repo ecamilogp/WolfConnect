@@ -3,9 +3,15 @@ import type { RouteRecordRaw } from 'vue-router'
 export const routes: RouteRecordRaw[] = [
   {
     path: '/',
-    name: 'home',
-    component: () => import('@/pages/HomePage.vue'),
+    component: () => import('@/layouts/MainLayout.vue'),
     meta: { requiresAuth: true },
+    children: [
+      {
+        path: '',
+        name: 'home',
+        component: () => import('@/pages/HomePage.vue'),
+      },
+    ],
   },
   {
     path: '/login',
