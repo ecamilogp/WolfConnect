@@ -57,7 +57,7 @@ async function onSubmit(): Promise<void> {
 
   try {
     await authStore.register(result.data)
-    router.push({ name: 'home' })
+    router.push({ name: 'chat-empty' })
   } catch (error) {
     submitError.value = error instanceof ApiError ? error.message : t('auth.register.genericError')
   } finally {

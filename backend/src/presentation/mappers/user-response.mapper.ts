@@ -1,5 +1,5 @@
 import { User } from '../../domain/entities/user.entity.js';
-import { UserResponse } from '../responses/user.response.js';
+import { UserResponse, UserSearchResultResponse } from '../responses/user.response.js';
 
 export class UserResponseMapper {
   static toResponse(user: User): UserResponse {
@@ -12,6 +12,16 @@ export class UserResponseMapper {
       profileImage: user.profileImage,
       status: user.status,
       role: user.role,
+    };
+  }
+
+  static toSearchResult(user: User): UserSearchResultResponse {
+    return {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      username: user.username,
+      profileImage: user.profileImage,
     };
   }
 }

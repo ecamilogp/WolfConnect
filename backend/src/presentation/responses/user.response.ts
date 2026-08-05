@@ -10,3 +10,11 @@ export interface UserResponse {
   status: UserStatus;
   role: UserRole;
 }
+
+export interface UserSearchResultResponse {
+  id: string;
+  firstName: string;
+  lastName: string;
+  username: string;
+  profileImage: string | null;
+}

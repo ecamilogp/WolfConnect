@@ -11,6 +11,8 @@ export interface UserRepository {
 
   findByUsername(username: string): Promise<User | null>;
 
+  search(query: string, excludeUserId: string): Promise<User[]>;
+
   update(id: string, data: UpdateUserDTO): Promise<User>;
 
   updatePassword(id: string, password: string): Promise<User>;

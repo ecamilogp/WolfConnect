@@ -1,23 +1,57 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { QAvatar, QBtn, QIcon, QInput, QItem, QItemSection, QList, QMenu } from 'quasar'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
-import AppEmptyState from '@/components/ui/AppEmptyState.vue'
 import ThemeToggle from '@/components/ui/ThemeToggle.vue'
 import LanguageToggle from '@/components/ui/LanguageToggle.vue'
+import ConversationList from '@/components/chat/ConversationList.vue'
+import NewChatModal from '@/components/chat/NewChatModal.vue'
 import { useAuthStore } from '@/stores/auth.store'
+import { useChatStore } from '@/stores/chat.store'
 import { useTheme } from '@/composables/useTheme'
 import brandMark from '@/assets/images/WolfconnectimageLight.png'
 import brandMarkDark from '@/assets/images/WolfconnectimageDark.png'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
+const chatStore = useChatStore()
 const { t } = useI18n()
 const { isDark } = useTheme()
 
 const search = ref('')
+const isNewChatOpen = ref(false)
+
+const activeChatId = computed(() => {
+  const chatId = route.params.chatId
+
+  return typeof chatId === 'string' ? chatId : null
+})
+
+const filteredChats = computed(() => {
+  const query = search.value.trim().toLowerCase()
+
+  if (query.length === 0) {
+    return chatStore.chats
+  }
+
+  return chatStore.chats.filter((chat) => chat.name.toLowerCase().includes(query))
+})
+
+onMounted(() => {
+  chatStore.fetchChats()
+})
+
+function goToChat(chatId: string): void {
+  router.push({ name: 'chat', params: { chatId } })
+}
+
+async function handleNewChat(userId: string): Promise<void> {
+  const chat = await chatStore.createPrivateChat(userId)
+  goToChat(chat.id)
+}
 
 const fullName = computed(() => {
   const user = authStore.user
@@ -59,20 +93,41 @@ async function handleLogout(): Promise<void> {
       </div>
     </div>
 
-    <div class="px-3 pb-3">
-      <QInput v-model="search" :placeholder="t('sidebar.searchPlaceholder')" dense outlined rounded>
+    <div class="flex items-center gap-2 px-3 pb-3">
+      <QInput
+        v-model="search"
+        class="flex-1"
+        :placeholder="t('sidebar.searchPlaceholder')"
+        dense
+        outlined
+        rounded
+      >
         <template #prepend>
           <QIcon name="search" size="18px" />
         </template>
       </QInput>
+
+      <QBtn
+        round
+        flat
+        dense
+        icon="add"
+        color="grey-6"
+        :title="t('sidebar.newChat')"
+        @click="isNewChatOpen = true"
+      />
     </div>
 
     <div class="flex-1 overflow-y-auto px-2">
-      <AppEmptyState
-        :title="t('sidebar.noConversationsTitle')"
-        :description="t('sidebar.noConversationsDescription')"
+      <ConversationList
+        :chats="filteredChats"
+        :is-loading="chatStore.isLoading"
+        :active-chat-id="activeChatId"
+        @select="goToChat"
       />
     </div>
+
+    <NewChatModal v-model="isNewChatOpen" @select="handleNewChat" />
 
     <div class="app-sidebar__footer border-t border-white/10 px-6 py-4">
       <div class="flex items-center gap-3">

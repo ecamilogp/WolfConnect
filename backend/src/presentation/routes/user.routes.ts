@@ -11,6 +11,7 @@ import { UpdateCurrentUserUseCase } from '../../application/use-cases/users/upda
 import { ChangePasswordUseCase } from '../../application/use-cases/users/change-password.use-case.js';
 import { DeactivateUserUseCase } from '../../application/use-cases/users/deactivate-user.use-case.js';
 import { AdminDeactivateUserUseCase } from '../../application/use-cases/users/admin-deactivate-user.use-case.js';
+import { SearchUsersUseCase } from '../../application/use-cases/users/search-users.use-case.js';
 import { changePasswordSchema } from '../validators/users/change-password.validator.js';
 
 const router = Router();
@@ -21,6 +22,7 @@ const updateCurrentUserUseCase = new UpdateCurrentUserUseCase(userRepository);
 const changePasswordUseCase = new ChangePasswordUseCase(userRepository);
 const deactivateUserUseCase = new DeactivateUserUseCase(userRepository);
 const adminDeactivateUserUseCase = new AdminDeactivateUserUseCase(userRepository);
+const searchUsersUseCase = new SearchUsersUseCase(userRepository);
 
 const userController = new UserController(
   getCurrentUserUseCase,
@@ -28,9 +30,12 @@ const userController = new UserController(
   changePasswordUseCase,
   deactivateUserUseCase,
   adminDeactivateUserUseCase,
+  searchUsersUseCase,
 );
 
 router.get('/me', authenticate, userController.me);
+
+router.get('/search', authenticate, userController.search);
 
 router.patch('/me', authenticate, validate(updateUserSchema), userController.update);
 
