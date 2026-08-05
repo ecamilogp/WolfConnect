@@ -1,0 +1,67 @@
+{
+  "auth": {
+    "login": {
+      "title": "Inicia sesión en WolfConnect",
+      "emailLabel": "Correo electrónico",
+      "passwordLabel": "Contraseña",
+      "submit": "Iniciar sesión",
+      "createAccount": "Crear una cuenta",
+      "genericError": "Algo salió mal. Inténtalo de nuevo."
+    },
+    "register": {
+      "title": "Crea tu cuenta de WolfConnect",
+      "firstNameLabel": "Nombre",
+      "lastNameLabel": "Apellido",
+      "usernameLabel": "Nombre de usuario",
+      "emailLabel": "Correo electrónico",
+      "passwordLabel": "Contraseña",
+      "submit": "Crear cuenta",
+      "haveAccount": "¿Ya tienes una cuenta?",
+      "genericError": "Algo salió mal. Inténtalo de nuevo."
+    }
+  },
+  "home": {
+    "placeholder": "WolfConnect — página de inicio (placeholder)."
+  },
+  "layout": {
+    "logout": "Cerrar sesión"
+  },
+  "sidebar": {
+    "searchPlaceholder": "Buscar conversaciones",
+    "noConversationsTitle": "Todavía no hay conversaciones",
+    "noConversationsDescription": "Inicia un chat y aparecerá aquí."
+  },
+  "errors": {
+    "notFound": "404 — página no encontrada."
+  },
+  "validation": {
+    "email": {
+      "invalid": "Correo electrónico inválido."
+    },
+    "password": {
+      "required": "La contraseña es obligatoria.",
+      "minLength": "La contraseña debe tener al menos 8 caracteres.",
+      "maxLength": "La contraseña no puede superar los 100 caracteres.",
+      "lowercase": "La contraseña debe contener al menos una letra minúscula.",
+      "uppercase": "La contraseña debe contener al menos una letra mayúscula.",
+      "number": "La contraseña debe contener al menos un número.",
+      "specialChar": "La contraseña debe contener al menos un carácter especial.",
+      "noSpaces": "La contraseña no puede contener espacios."
+    },
+    "firstName": {
+      "minLength": "El nombre debe tener al menos 2 caracteres.",
+      "maxLength": "El nombre no puede superar los 50 caracteres.",
+      "invalidChars": "El nombre contiene caracteres inválidos."
+    },
+    "lastName": {
+      "minLength": "El apellido debe tener al menos 2 caracteres.",
+      "maxLength": "El apellido no puede superar los 50 caracteres.",
+      "invalidChars": "El apellido contiene caracteres inválidos."
+    },
+    "username": {
+      "minLength": "El nombre de usuario debe tener al menos 3 caracteres.",
+      "maxLength": "El nombre de usuario no puede superar los 30 caracteres.",
+      "invalidChars": "El nombre de usuario solo puede contener letras, números, puntos y guiones bajos."
+    }
+  }
+}
