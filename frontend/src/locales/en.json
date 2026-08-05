@@ -20,16 +20,21 @@
       "genericError": "Something went wrong. Please try again."
     }
   },
-  "home": {
-    "placeholder": "WolfConnect — home placeholder."
-  },
   "layout": {
     "logout": "Log out"
   },
   "sidebar": {
     "searchPlaceholder": "Search conversations",
     "noConversationsTitle": "No conversations yet",
-    "noConversationsDescription": "Start a chat and it will show up here."
+    "noConversationsDescription": "Start a chat and it will show up here.",
+    "newChat": "New chat"
+  },
+  "chat": {
+    "searchUsersPlaceholder": "Search by name or username",
+    "noUsersFound": "No users found.",
+    "emptyStateTitle": "Select a conversation",
+    "emptyStateDescription": "Choose a chat from the list or start a new one.",
+    "messagesComingSoon": "Messages will be available soon."
   },
   "errors": {
     "notFound": "404 — page not found."

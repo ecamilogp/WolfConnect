@@ -12,7 +12,7 @@ export const authGuard: NavigationGuardWithThis<undefined> = (to) => {
   }
 
   if (isGuestOnly && authStore.isAuthenticated) {
-    return { name: 'home' }
+    return { name: 'chat-empty' }
   }
 
   return true

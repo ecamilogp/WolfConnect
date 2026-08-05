@@ -6,6 +6,7 @@ import { ChangePasswordUseCase } from '../../application/use-cases/users/change-
 import { UserResponseMapper } from '../mappers/user-response.mapper.js';
 import { DeactivateUserUseCase } from '../../application/use-cases/users/deactivate-user.use-case.js';
 import { AdminDeactivateUserUseCase } from '../../application/use-cases/users/admin-deactivate-user.use-case.js';
+import { SearchUsersUseCase } from '../../application/use-cases/users/search-users.use-case.js';
 
 export class UserController {
   constructor(
@@ -14,6 +15,7 @@ export class UserController {
     private readonly changePasswordUseCase: ChangePasswordUseCase,
     private readonly deactivateUserUseCase: DeactivateUserUseCase,
     private readonly adminDeactivateUserUseCase: AdminDeactivateUserUseCase,
+    private readonly searchUsersUseCase: SearchUsersUseCase,
   ) {}
 
   me = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -77,6 +79,29 @@ export class UserController {
       res.status(200).json({
         success: true,
         message: 'User deactivated successfully.',
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  search = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const query = typeof req.query.q === 'string' ? req.query.q.trim() : '';
+
+      if (query.length === 0) {
+        res.status(200).json({
+          success: true,
+          data: [],
+        });
+        return;
+      }
+
+      const users = await this.searchUsersUseCase.execute(query, req.user.id);
+
+      res.status(200).json({
+        success: true,
+        data: users.map(UserResponseMapper.toSearchResult),
       });
     } catch (error) {
       next(error);

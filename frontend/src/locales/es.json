@@ -20,16 +20,21 @@
       "genericError": "Algo salió mal. Inténtalo de nuevo."
     }
   },
-  "home": {
-    "placeholder": "WolfConnect — página de inicio (placeholder)."
-  },
   "layout": {
     "logout": "Cerrar sesión"
   },
   "sidebar": {
     "searchPlaceholder": "Buscar conversaciones",
     "noConversationsTitle": "Todavía no hay conversaciones",
-    "noConversationsDescription": "Inicia un chat y aparecerá aquí."
+    "noConversationsDescription": "Inicia un chat y aparecerá aquí.",
+    "newChat": "Nuevo chat"
+  },
+  "chat": {
+    "searchUsersPlaceholder": "Buscar por nombre o usuario",
+    "noUsersFound": "No se encontraron usuarios.",
+    "emptyStateTitle": "Selecciona una conversación",
+    "emptyStateDescription": "Elige un chat de la lista o inicia uno nuevo.",
+    "messagesComingSoon": "Los mensajes estarán disponibles próximamente."
   },
   "errors": {
     "notFound": "404 — página no encontrada."

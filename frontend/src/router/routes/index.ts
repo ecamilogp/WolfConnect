@@ -8,8 +8,13 @@ export const routes: RouteRecordRaw[] = [
     children: [
       {
         path: '',
-        name: 'home',
-        component: () => import('@/pages/HomePage.vue'),
+        name: 'chat-empty',
+        component: () => import('@/pages/chat/ChatEmptyPage.vue'),
+      },
+      {
+        path: 'chat/:chatId',
+        name: 'chat',
+        component: () => import('@/pages/chat/ChatPage.vue'),
       },
     ],
   },
