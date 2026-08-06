@@ -3,10 +3,15 @@ import { CreatePrivateChatDto } from '../../../domain/dto/chat/create-private-ch
 import { ChatRepository } from '../../../domain/repositories/chat.repository.js';
 import { BadRequestError } from '../../../shared/errors/bad-request-error.js';
 
+export interface CreatePrivateChatResult {
+  chat: Chat;
+  isNew: boolean;
+}
+
 export class CreatePrivateChatUseCase {
   constructor(private readonly chatRepository: ChatRepository) {}
 
-  async execute(dto: CreatePrivateChatDto): Promise<Chat> {
+  async execute(dto: CreatePrivateChatDto): Promise<CreatePrivateChatResult> {
     const { currentUserId, targetUserId } = dto;
 
     if (currentUserId === targetUserId) {
@@ -19,9 +24,11 @@ export class CreatePrivateChatUseCase {
     );
 
     if (existingChat) {
-      return existingChat;
+      return { chat: existingChat, isNew: false };
     }
 
-    return this.chatRepository.createPrivateChat(currentUserId, targetUserId);
+    const chat = await this.chatRepository.createPrivateChat(currentUserId, targetUserId);
+
+    return { chat, isNew: true };
   }
 }

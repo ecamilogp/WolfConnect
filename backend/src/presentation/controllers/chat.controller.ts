@@ -22,7 +22,7 @@ import { TransferOwnershipUseCase } from '../../application/use-cases/chat/trans
 import { SendNotificationUseCase } from '../../application/use-cases/notification/send-notification.use-case.js';
 import { SocketEventName, SocketEvents } from '../../infrastructure/websocket/events/socket-events.enum.js';
 import { chatRoom } from '../../infrastructure/websocket/handlers/chat.handler.js';
-import { getIO } from '../../infrastructure/websocket/socket.server.js';
+import { getIO, userRoom } from '../../infrastructure/websocket/socket.server.js';
 import {
   GroupOwnershipTransferredPayload,
   GroupParticipantRemovedPayload,
@@ -95,9 +95,22 @@ export class ChatController {
     }
   }
 
+  private async notifyNewPrivateChat(chatId: string, targetUserId: string): Promise<void> {
+    const io = getIO();
+
+    await io.in(userRoom(targetUserId)).socketsJoin(chatRoom(chatId));
+
+    const summaries = await this.chatRepository.findAllByUser(targetUserId);
+    const summary = summaries.find((item) => item.id === chatId);
+
+    if (summary) {
+      io.to(userRoom(targetUserId)).emit(SocketEvents.CHAT_NEW, summary);
+    }
+  }
+
   createPrivateChat = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const chat = await this.createPrivateChatUseCase.execute({
+      const { chat, isNew } = await this.createPrivateChatUseCase.execute({
         currentUserId: req.user.id,
         targetUserId: req.body.targetUserId,
       });
@@ -109,6 +122,12 @@ export class ChatController {
         message: 'Private chat created successfully.',
         data: response,
       });
+
+      if (isNew) {
+        this.notifyNewPrivateChat(chat.id, req.body.targetUserId).catch((socketError) => {
+          console.error('[chat:socket-emit-failed]', socketError);
+        });
+      }
     } catch (error) {
       next(error);
     }
