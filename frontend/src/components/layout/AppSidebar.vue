@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import { QAvatar, QBtn, QIcon, QInput, QItem, QItemSection, QList, QMenu } from 'quasar'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { QAvatar, QBtn, QIcon, QInput, QItem, QItemSection, QList, QMenu, QTooltip } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
@@ -11,6 +11,9 @@ import NewChatModal from '@/components/chat/NewChatModal.vue'
 import { useAuthStore } from '@/stores/auth.store'
 import { useChatStore } from '@/stores/chat.store'
 import { useTheme } from '@/composables/useTheme'
+import { useChatSocket } from '@/composables/useChatSocket'
+import type { ChatSummary } from '@/types/models/chat.model'
+import type { Message } from '@/types/models/message.model'
 import brandMark from '@/assets/images/WolfconnectimageLight.png'
 import brandMarkDark from '@/assets/images/WolfconnectimageDark.png'
 
@@ -18,6 +21,7 @@ const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 const chatStore = useChatStore()
+const chatSocket = useChatSocket()
 const { t } = useI18n()
 const { isDark } = useTheme()
 
@@ -42,6 +46,26 @@ const filteredChats = computed(() => {
 
 onMounted(() => {
   chatStore.fetchChats()
+})
+
+const unsubscribeChatSocket = chatSocket.subscribe({
+  onMessageNew: (message: Message) => {
+    chatStore.applyIncomingMessage({
+      chatId: message.chatId,
+      senderId: message.senderId,
+      currentUserId: authStore.user?.id ?? '',
+      activeChatId: activeChatId.value,
+    })
+  },
+  onMessageEdited: () => {},
+  onMessageDeleted: () => {},
+  onChatNew: (chat: ChatSummary) => {
+    chatStore.upsertChat(chat)
+  },
+})
+
+onUnmounted(() => {
+  unsubscribeChatSocket()
 })
 
 function goToChat(chatId: string): void {
@@ -107,15 +131,11 @@ async function handleLogout(): Promise<void> {
         </template>
       </QInput>
 
-      <QBtn
-        round
-        flat
-        dense
-        icon="add"
-        color="grey-6"
-        :title="t('sidebar.newChat')"
-        @click="isNewChatOpen = true"
-      />
+      <QBtn round flat dense icon="add" color="grey-6" @click="isNewChatOpen = true">
+        <QTooltip anchor="bottom middle" self="top middle">
+          {{ t('sidebar.newChatTooltip') }}
+        </QTooltip>
+      </QBtn>
     </div>
 
     <div class="flex-1 overflow-y-auto px-2">
@@ -142,7 +162,9 @@ async function handleLogout(): Promise<void> {
         <div class="min-w-0 flex-1 overflow-hidden">
           <p class="truncate text-sm font-semibold leading-tight translate-y-3">
             {{ fullName }}
-            <span class="font-normal text-gray-500 dark:text-gray-400"> — {{ authStore.user?.username }}</span>
+            <span class="font-normal text-gray-500 dark:text-gray-400">
+              — {{ authStore.user?.username }}</span
+            >
           </p>
 
           <p class="truncate text-xs leading-tight text-gray-500 dark:text-gray-400">
@@ -168,20 +190,20 @@ async function handleLogout(): Promise<void> {
 
 <style scoped>
 .app-sidebar {
-  background-color: #ffffff;
-  border-right: 1px solid rgba(0, 0, 0, 0.08);
+  background-color: #faf8f8;
+  border-right: 1px solid #cecdcd;
 }
 
 .body--dark .app-sidebar {
   background-color: var(--q-dark);
-  border-right-color: rgba(255, 255, 255, 0.08);
+  border-right-color: #4e4d51;
 }
 
 .app-sidebar__footer {
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  border-top: 1px solid #cecdcd;
 }
 
 .body--dark .app-sidebar__footer {
-  border-top-color: rgba(255, 255, 255, 0.08);
+  border-top-color: #4e4d51;
 }
 </style>
