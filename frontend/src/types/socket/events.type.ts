@@ -1,4 +1,4 @@
-import type { Chat } from '@/types/models/chat.model'
+import type { Chat, ChatSummary } from '@/types/models/chat.model'
 import type { Message } from '@/types/models/message.model'
 import type { Notification } from '@/types/models/notification.model'
 
@@ -19,6 +19,7 @@ export interface ServerToClientEvents {
   'presence:offline': (payload: { userId: string }) => void
   'chat:joined': (payload: ChatJoinedPayload) => void
   'chat:left': (payload: ChatLeftPayload) => void
+  'chat:new': (payload: ChatSummary) => void
   'message:new': (payload: Message) => void
   'message:edited': (payload: Message) => void
   'message:deleted': (payload: MessageDeletedPayload) => void

@@ -21,4 +21,5 @@ export interface ChatSummary {
   type: ChatType
   name: string
   imageUrl: string | null
+  unreadCount: number
 }

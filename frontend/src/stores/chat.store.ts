@@ -24,7 +24,52 @@ export const useChatStore = defineStore('chat', () => {
     const created = await createPrivateChatRequest(targetUserId)
     await fetchChats()
 
-    return chats.value.find((chat) => chat.id === created.id) ?? { ...created, name: '' }
+    return (
+      chats.value.find((chat) => chat.id === created.id) ?? {
+        ...created,
+        name: '',
+        unreadCount: 0,
+      }
+    )
+  }
+
+  function resetUnread(chatId: string): void {
+    const chat = chats.value.find((item) => item.id === chatId)
+
+    if (chat) {
+      chat.unreadCount = 0
+    }
+  }
+
+  function upsertChat(summary: ChatSummary): void {
+    const index = chats.value.findIndex((item) => item.id === summary.id)
+
+    if (index !== -1) {
+      chats.value.splice(index, 1)
+    }
+
+    chats.value.unshift(summary)
+  }
+
+  function applyIncomingMessage(options: {
+    chatId: string
+    senderId: string
+    currentUserId: string
+    activeChatId: string | null
+  }): void {
+    const index = chats.value.findIndex((item) => item.id === options.chatId)
+    const chat = index === -1 ? undefined : chats.value[index]
+
+    if (!chat) {
+      return
+    }
+
+    if (options.chatId !== options.activeChatId && options.senderId !== options.currentUserId) {
+      chat.unreadCount += 1
+    }
+
+    chats.value.splice(index, 1)
+    chats.value.unshift(chat)
   }
 
   return {
@@ -33,5 +78,8 @@ export const useChatStore = defineStore('chat', () => {
     isReady,
     fetchChats,
     createPrivateChat,
+    resetUnread,
+    upsertChat,
+    applyIncomingMessage,
   }
 })

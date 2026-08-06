@@ -19,13 +19,18 @@ type ChatWithParticipants = Prisma.ChatGetPayload<{
 }>;
 
 export class ChatSummaryMapper {
-  static toDto(chat: ChatWithParticipants, currentUserId: string): ChatSummaryDto {
+  static toDto(
+    chat: ChatWithParticipants,
+    currentUserId: string,
+    unreadCount: number,
+  ): ChatSummaryDto {
     if (chat.type === 'GROUP') {
       return {
         id: chat.id,
         type: chat.type,
         name: chat.name ?? '',
         imageUrl: chat.imageUrl,
+        unreadCount,
       };
     }
 
@@ -40,6 +45,7 @@ export class ChatSummaryMapper {
         ? `${otherParticipant.user.firstName} ${otherParticipant.user.lastName}`
         : '',
       imageUrl: otherParticipant?.user.profileImage ?? null,
+      unreadCount,
     };
   }
 }

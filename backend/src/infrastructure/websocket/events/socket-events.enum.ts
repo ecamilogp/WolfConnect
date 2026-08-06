@@ -11,6 +11,7 @@ export const SocketEvents = {
   CHAT_JOINED: 'chat:joined',
   CHAT_LEAVE: 'chat:leave',
   CHAT_LEFT: 'chat:left',
+  CHAT_NEW: 'chat:new',
 
   MESSAGE_SEND: 'message:send',
   MESSAGE_NEW: 'message:new',

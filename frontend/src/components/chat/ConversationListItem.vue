@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { QBadge } from 'quasar'
+
 import AppAvatar from '@/components/ui/AppAvatar.vue'
 import type { ChatSummary } from '@/types/models/chat.model'
 
@@ -26,8 +28,18 @@ function initials(name: string): string {
     :class="{ 'conversation-item--active': active }"
     @click="$emit('click')"
   >
-    <AppAvatar :src="chat.imageUrl ?? undefined" :initials="initials(chat.name)" size="40px" />
-    <p class="truncate text-sm font-medium">{{ chat.name }}</p>
+    <div class="relative shrink-0">
+      <AppAvatar :src="chat.imageUrl ?? undefined" :initials="initials(chat.name)" size="40px" />
+      <QBadge v-if="chat.unreadCount > 0" color="primary" rounded floating class="unread-badge">
+        {{ chat.unreadCount > 99 ? '99+' : chat.unreadCount }}
+      </QBadge>
+    </div>
+    <p
+      class="flex-1 truncate text-sm translate-y-2"
+      :class="chat.unreadCount > 0 ? 'font-bold' : 'font-medium'"
+    >
+      {{ chat.name }}
+    </p>
   </li>
 </template>
 
@@ -42,5 +54,14 @@ function initials(name: string): string {
 
 .conversation-item--active {
   background-color: color-mix(in srgb, var(--q-primary) 12%, transparent);
+}
+
+.unread-badge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  font-size: 10px;
+  font-weight: 700;
+  justify-content: center;
 }
 </style>

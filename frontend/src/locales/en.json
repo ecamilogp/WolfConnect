@@ -27,14 +27,18 @@
     "searchPlaceholder": "Search conversations",
     "noConversationsTitle": "No conversations yet",
     "noConversationsDescription": "Start a chat and it will show up here.",
-    "newChat": "New chat"
+    "newChat": "New chat",
+    "newChatTooltip": "Add a user to start a chat"
   },
   "chat": {
     "searchUsersPlaceholder": "Search by name or username",
     "noUsersFound": "No users found.",
     "emptyStateTitle": "Select a conversation",
     "emptyStateDescription": "Choose a chat from the list or start a new one.",
-    "messagesComingSoon": "Messages will be available soon."
+    "messagePlaceholder": "Write a message",
+    "noMessagesTitle": "No messages yet",
+    "noMessagesDescription": "Send the first message to start the conversation.",
+    "edited": "Edited"
   },
   "errors": {
     "notFound": "404 — page not found."

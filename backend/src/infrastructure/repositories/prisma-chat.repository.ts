@@ -264,7 +264,31 @@ export class PrismaChatRepository implements ChatRepository {
         lastMessageAt: 'desc',
       },
     });
-    return chats.map((chat) => ChatSummaryMapper.toDto(chat, userId));
+
+    const unreadCounts = await prisma.message.groupBy({
+      by: ['chatId'],
+      where: {
+        chatId: { in: chats.map((chat) => chat.id) },
+        senderId: { not: userId },
+        deletedAt: null,
+        reads: {
+          none: {
+            userId,
+          },
+        },
+      },
+      _count: {
+        id: true,
+      },
+    });
+
+    const unreadCountByChatId = new Map(
+      unreadCounts.map((row) => [row.chatId, row._count.id]),
+    );
+
+    return chats.map((chat) =>
+      ChatSummaryMapper.toDto(chat, userId, unreadCountByChatId.get(chat.id) ?? 0),
+    );
   }
 
   async updateGroup(dto: UpdateGroupDto): Promise<Chat> {
