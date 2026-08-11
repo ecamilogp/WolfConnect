@@ -42,6 +42,27 @@
     "newChatMenuGroup": "Nuevo grupo",
     "pendingInvitationsTooltip": "Invitaciones pendientes"
   },
+  "notifications": {
+    "title": "Notificaciones",
+    "tooltip": "Notificaciones",
+    "emptyTitle": "No tienes notificaciones",
+    "emptyDescription": "Aquí verás las novedades de tus grupos.",
+    "markAllRead": "Marcar todas como leídas",
+    "fallbackName": "Alguien",
+    "fallbackGroupName": "el grupo",
+    "justNow": "Justo ahora",
+    "minutesAgo": "Hace {count} min",
+    "hoursAgo": "Hace {count} h",
+    "daysAgo": "Hace {count} d",
+    "types": {
+      "addedToGroup": "Fuiste agregado a \"{group}\".",
+      "groupMemberJoined": "{name} se unió a \"{group}\".",
+      "groupInvitation": "{name} te invitó a unirte a \"{group}\".",
+      "groupInvitationAccepted": "{name} aceptó tu invitación a \"{group}\".",
+      "groupInvitationRejected": "{name} rechazó tu invitación a \"{group}\".",
+      "generic": "Tienes una nueva notificación."
+    }
+  },
   "chat": {
     "searchUsersPlaceholder": "Buscar por nombre o usuario",
     "noUsersFound": "No se encontraron usuarios.",
@@ -51,6 +72,8 @@
     "noMessagesTitle": "Todavía no hay mensajes",
     "noMessagesDescription": "Envía el primer mensaje para comenzar la conversación.",
     "edited": "Editado",
+    "sent": "Enviado",
+    "readByAll": "Leído por todos",
     "systemEvents": {
       "participantLeft": "{name} salió del grupo.",
       "participantRemoved": "{name} fue eliminado del grupo.",

@@ -11,6 +11,7 @@ import NewChatModal from '@/components/chat/NewChatModal.vue'
 import CreateGroupModal from '@/components/chat/CreateGroupModal.vue'
 import GroupPostCreateInviteModal from '@/components/chat/GroupPostCreateInviteModal.vue'
 import PendingInvitationsModal from '@/components/chat/PendingInvitationsModal.vue'
+import NotificationCenter from '@/components/layout/NotificationCenter.vue'
 import { useAuthStore } from '@/stores/auth.store'
 import { useChatStore } from '@/stores/chat.store'
 import { useGroupStore } from '@/stores/group.store'
@@ -173,6 +174,8 @@ async function handleLogout(): Promise<void> {
           <QIcon name="search" size="18px" />
         </template>
       </QInput>
+
+      <NotificationCenter />
 
       <QBtn round flat dense icon="mail" color="grey-6" @click="isPendingInvitationsOpen = true">
         <QBadge v-if="groupStore.pendingInvitations.length > 0" color="primary" floating rounded>
