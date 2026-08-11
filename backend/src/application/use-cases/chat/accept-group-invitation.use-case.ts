@@ -1,3 +1,4 @@
+import { MessageResponseDto } from '../../../domain/dto/message/message-response.dto.js';
 import { ChatRepository } from '../../../domain/repositories/chat.repository.js';
 import { GroupInvitationRepository } from '../../../domain/repositories/group-invitation.repository.js';
 import { UserRepository } from '../../../domain/repositories/user.repository.js';
@@ -15,7 +16,10 @@ export class AcceptGroupInvitationUseCase {
     private readonly sendNotificationUseCase: SendNotificationUseCase,
   ) {}
 
-  async execute(invitationId: string, currentUserId: string) {
+  async execute(
+    invitationId: string,
+    currentUserId: string,
+  ): Promise<{ message: string; chatId: string; systemMessage: MessageResponseDto }> {
     const invitation = await this.groupInvitationRepository.findById(invitationId);
 
     if (!invitation) {
@@ -30,7 +34,7 @@ export class AcceptGroupInvitationUseCase {
       throw new ConflictError('Invitation has already been processed.');
     }
 
-    await this.chatRepository.acceptGroupInvitation({
+    const systemMessage = await this.chatRepository.acceptGroupInvitation({
       invitationId: invitation.id,
       chatId: invitation.chatId,
       userId: currentUserId,
@@ -56,6 +60,8 @@ export class AcceptGroupInvitationUseCase {
 
     return {
       message: 'Invitation accepted successfully.',
+      chatId: invitation.chatId,
+      systemMessage,
     };
   }
 }

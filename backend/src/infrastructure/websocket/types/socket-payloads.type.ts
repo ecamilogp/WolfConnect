@@ -1,6 +1,7 @@
 import { ParticipantRole } from '@prisma/client';
 import { AttachmentResponseDto } from '../../../domain/dto/attachment/attachment-response.dto.js';
 import { ChatSummaryDto } from '../../../domain/dto/chat/chat-summary.dto.js';
+import { GroupParticipantSummaryDto } from '../../../domain/dto/chat/group-participant-summary.dto.js';
 import { MessageReactionSummaryDto } from '../../../domain/dto/message/message-reaction-summary.dto.js';
 import { MessageResponseDto } from '../../../domain/dto/message/message-response.dto.js';
 import { NotificationResponseDto } from '../../../domain/dto/notification/notification-response.dto.js';
@@ -67,6 +68,11 @@ export interface GroupRoleChangedPayload {
   chatId: string;
   userId: string;
   role: ParticipantRole;
+}
+
+export interface GroupParticipantAddedPayload {
+  chatId: string;
+  participant: GroupParticipantSummaryDto;
 }
 
 export interface GroupParticipantRemovedPayload {

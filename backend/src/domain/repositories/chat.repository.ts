@@ -1,7 +1,9 @@
 import { ChatSummaryDto } from '../dto/chat/chat-summary.dto.js';
 import { CreateGroupChatDto } from '../dto/chat/create-group-chat.dto.js';
 import { UpdateGroupDto } from '../dto/chat/update-group.dto.js';
+import { GroupParticipantSummaryDto } from '../dto/chat/group-participant-summary.dto.js';
 import { AcceptGroupInvitationDto } from '../dto/chat-group-invitations/accept-group-invitation.dto.js';
+import { MessageResponseDto } from '../dto/message/message-response.dto.js';
 import { ChatParticipant } from '../entities/chat-participant.entity.js';
 import { Chat } from '../entities/chat.entity.js';
 
@@ -18,11 +20,15 @@ export interface ChatRepository {
 
   findParticipantIds(chatId: string): Promise<string[]>;
 
-  addParticipant(chatId: string, userId: string): Promise<void>;
+  findParticipants(chatId: string): Promise<GroupParticipantSummaryDto[]>;
 
-  acceptGroupInvitation(dto: AcceptGroupInvitationDto): Promise<void>;
+  findParticipantSummary(chatId: string, userId: string): Promise<GroupParticipantSummaryDto | null>;
 
-  leaveGroup(chatId: string, userId: string): Promise<void>;
+  addParticipant(chatId: string, userId: string): Promise<MessageResponseDto>;
+
+  acceptGroupInvitation(dto: AcceptGroupInvitationDto): Promise<MessageResponseDto>;
+
+  leaveGroup(chatId: string, userId: string): Promise<MessageResponseDto>;
 
   deleteGroup(chatId: string): Promise<void>;
 
@@ -32,7 +38,7 @@ export interface ChatRepository {
 
   updateParticipantRole(chatId: string, userId: string, role: ChatParticipant['role']): Promise<void>;
 
-  removeParticipant(chatId: string, userId: string): Promise<void>;
+  removeParticipant(chatId: string, userId: string): Promise<MessageResponseDto>;
 
   transferOwnership(chatId: string, currentOwnerUserId: string, newOwnerUserId: string): Promise<void>;
 }
