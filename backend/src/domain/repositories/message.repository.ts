@@ -17,5 +17,5 @@ export interface MessageRepository {
 
   delete(dto: DeleteMessageDto): Promise<void>;
 
-  markAsRead(dto: MarkMessagesAsReadDto): Promise<void>;
+  markAsRead(dto: MarkMessagesAsReadDto): Promise<string[]>;
 }

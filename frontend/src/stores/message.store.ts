@@ -13,6 +13,7 @@ function toListItem(message: Message): MessageListItem {
     type: message.type,
     systemEventType: message.systemEventType,
     systemEventPayload: message.systemEventPayload,
+    isReadByAll: message.isReadByAll,
     createdAt: message.createdAt,
     editedAt: message.editedAt,
     replyTo: message.replyTo,
@@ -48,6 +49,10 @@ export const useMessageStore = defineStore('message', () => {
     }
 
     messages.value.push(toListItem(message))
+
+    markMessagesAsRead(message.chatId).catch((error) => {
+      console.error('Failed to mark incoming message as read', error)
+    })
   }
 
   function handleEditedMessage(message: Message): void {
@@ -70,6 +75,18 @@ export const useMessageStore = defineStore('message', () => {
     messages.value = messages.value.filter((item) => item.id !== messageId)
   }
 
+  function handleMessagesReadUpdated(chatId: string, messageIds: string[]): void {
+    if (chatId !== activeChatId.value) {
+      return
+    }
+
+    const readIds = new Set(messageIds)
+
+    messages.value = messages.value.map((item) =>
+      readIds.has(item.id) ? { ...item, isReadByAll: true } : item,
+    )
+  }
+
   return {
     activeChatId,
     messages,
@@ -79,5 +96,6 @@ export const useMessageStore = defineStore('message', () => {
     handleIncomingMessage,
     handleEditedMessage,
     handleDeletedMessage,
+    handleMessagesReadUpdated,
   }
 })

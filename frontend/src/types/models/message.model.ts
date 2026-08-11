@@ -30,6 +30,7 @@ export interface Message {
   type: MessageType
   systemEventType: SystemEventType | null
   systemEventPayload: Record<string, unknown> | null
+  isReadByAll: boolean
   createdAt: string
   editedAt: string | null
   deletedAt: string | null
@@ -45,6 +46,7 @@ export interface MessageListItem {
   type: MessageType
   systemEventType: SystemEventType | null
   systemEventPayload: Record<string, unknown> | null
+  isReadByAll: boolean
   createdAt: string
   editedAt: string | null
   replyTo: ReplyToMessage | null

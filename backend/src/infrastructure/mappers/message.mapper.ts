@@ -7,7 +7,7 @@ import { MessageSenderSummaryDto } from '../../domain/dto/message/message-sender
 import { ReplyToMessageDto } from '../../domain/dto/message/reply-to-message.dto.js';
 
 export type MessageWithRelations = Prisma.MessageGetPayload<{
-  include: { sender: true; replyTo: true; reactions: true };
+  include: { sender: true; replyTo: true; reactions: true; reads: { select: { userId: true } } };
 }>;
 
 export class MessageMapper {
@@ -48,7 +48,22 @@ export class MessageMapper {
     }));
   }
 
-  static toResponseDto(message: MessageWithRelations): MessageResponseDto {
+  static toIsReadByAll(message: MessageWithRelations, activeParticipantIds: string[]): boolean {
+    const requiredReaderIds = activeParticipantIds.filter((id) => id !== message.senderId);
+
+    if (requiredReaderIds.length === 0) {
+      return true;
+    }
+
+    const readerIds = new Set(message.reads.map((read) => read.userId));
+
+    return requiredReaderIds.every((id) => readerIds.has(id));
+  }
+
+  static toResponseDto(
+    message: MessageWithRelations,
+    activeParticipantIds: string[],
+  ): MessageResponseDto {
     return {
       id: message.id,
       chatId: message.chatId,
@@ -58,6 +73,7 @@ export class MessageMapper {
       type: message.type,
       systemEventType: message.systemEventType,
       systemEventPayload: message.systemEventPayload as Record<string, unknown> | null,
+      isReadByAll: this.toIsReadByAll(message, activeParticipantIds),
       createdAt: message.createdAt,
       editedAt: message.editedAt,
       deletedAt: message.deletedAt,
@@ -66,7 +82,10 @@ export class MessageMapper {
     };
   }
 
-  static toListItemDto(message: MessageWithRelations): MessageListItemDto {
+  static toListItemDto(
+    message: MessageWithRelations,
+    activeParticipantIds: string[],
+  ): MessageListItemDto {
     return {
       id: message.id,
       senderId: message.senderId,
@@ -75,6 +94,7 @@ export class MessageMapper {
       type: message.type,
       systemEventType: message.systemEventType,
       systemEventPayload: message.systemEventPayload as Record<string, unknown> | null,
+      isReadByAll: this.toIsReadByAll(message, activeParticipantIds),
       createdAt: message.createdAt,
       editedAt: message.editedAt,
       replyTo: this.toReplyToDto(message.replyTo),

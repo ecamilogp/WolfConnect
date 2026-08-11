@@ -28,6 +28,11 @@ export interface MessageReactionUpdatedPayload {
   reactions: MessageReactionSummary[]
 }
 
+export interface MessageReadUpdatedPayload {
+  chatId: string
+  messageIds: string[]
+}
+
 export interface GroupRoleChangedPayload {
   chatId: string
   userId: string

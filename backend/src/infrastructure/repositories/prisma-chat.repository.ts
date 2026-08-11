@@ -318,6 +318,11 @@ export class PrismaChatRepository implements ChatRepository {
         sender: true,
         replyTo: true,
         reactions: true,
+        reads: {
+          select: {
+            userId: true,
+          },
+        },
       },
     });
 
@@ -330,7 +335,7 @@ export class PrismaChatRepository implements ChatRepository {
       },
     });
 
-    return MessageMapper.toResponseDto(message);
+    return MessageMapper.toResponseDto(message, []);
   }
 
   async leaveGroup(chatId: string, userId: string): Promise<MessageResponseDto> {
