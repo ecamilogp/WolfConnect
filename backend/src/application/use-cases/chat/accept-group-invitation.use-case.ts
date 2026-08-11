@@ -55,7 +55,12 @@ export class AcceptGroupInvitationUseCase {
       type: NotificationType.GROUP_INVITATION_ACCEPTED,
       title: 'Invitation accepted',
       body: `${acceptedByName} accepted your invitation to join "${groupName}".`,
-      data: { chatId: invitation.chatId, acceptedByUserId: currentUserId },
+      data: {
+        chatId: invitation.chatId,
+        acceptedByUserId: currentUserId,
+        actorName: acceptedByName,
+        groupName,
+      },
     });
 
     return {

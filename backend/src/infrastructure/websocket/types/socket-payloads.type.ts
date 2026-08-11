@@ -62,6 +62,11 @@ export interface MessageReactionUpdatedPayload {
   reactions: MessageReactionSummaryDto[];
 }
 
+export interface MessageReadUpdatedPayload {
+  chatId: string;
+  messageIds: string[];
+}
+
 export type GroupUpdatedPayload = Chat;
 
 export interface GroupRoleChangedPayload {

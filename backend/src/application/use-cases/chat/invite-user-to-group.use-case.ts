@@ -85,15 +85,17 @@ export class InviteUserToGroupUseCase {
 
       await this.sendNotificationUseCase.execute({
         userId: dto.invitedUserId,
-        type: NotificationType.GROUP_MEMBER_JOINED,
+        type: NotificationType.ADDED_TO_GROUP,
         title: 'Added to group',
         body: `You were added to "${groupName}".`,
-        data: { chatId: dto.chatId },
+        data: { chatId: dto.chatId, groupName },
       });
 
       const otherParticipantIds = (await this.chatRepository.findParticipantIds(dto.chatId)).filter(
         (userId) => userId !== dto.invitedUserId && userId !== dto.inviterUserId,
       );
+
+      const memberName = `${invitedUser.firstName} ${invitedUser.lastName}`;
 
       await Promise.all(
         otherParticipantIds.map((userId) =>
@@ -101,8 +103,8 @@ export class InviteUserToGroupUseCase {
             userId,
             type: NotificationType.GROUP_MEMBER_JOINED,
             title: 'New member',
-            body: `${invitedUser.firstName} ${invitedUser.lastName} joined "${groupName}".`,
-            data: { chatId: dto.chatId, newMemberId: dto.invitedUserId },
+            body: `${memberName} joined "${groupName}".`,
+            data: { chatId: dto.chatId, newMemberId: dto.invitedUserId, memberName, groupName },
           }),
         ),
       );
@@ -121,7 +123,13 @@ export class InviteUserToGroupUseCase {
       type: NotificationType.GROUP_INVITATION,
       title: 'Group invitation',
       body: `${inviterName} invited you to join "${groupName}".`,
-      data: { chatId: dto.chatId, invitationId: invitation.id, invitedByUserId: dto.inviterUserId },
+      data: {
+        chatId: dto.chatId,
+        invitationId: invitation.id,
+        invitedByUserId: dto.inviterUserId,
+        inviterName,
+        groupName,
+      },
     });
 
     return { status: 'INVITED', invitationId: invitation.id };

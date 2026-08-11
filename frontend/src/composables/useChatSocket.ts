@@ -1,6 +1,7 @@
 import { connectSocket } from '@/services/realtime/socket-client'
 import type { Chat, ChatSummary } from '@/types/models/chat.model'
 import type { Message } from '@/types/models/message.model'
+import type { Notification } from '@/types/models/notification.model'
 import type {
   ChatLeftPayload,
   GroupOwnershipTransferredPayload,
@@ -8,6 +9,7 @@ import type {
   GroupParticipantRemovedPayload,
   GroupRoleChangedPayload,
   MessageDeletedPayload,
+  MessageReadUpdatedPayload,
 } from '@/types/socket/payloads.type'
 
 interface ChatSocketHandlers {
@@ -21,6 +23,7 @@ interface ChatSocketHandlers {
   onGroupParticipantAdded?: (payload: GroupParticipantAddedPayload) => void
   onGroupParticipantRemoved?: (payload: GroupParticipantRemovedPayload) => void
   onGroupOwnershipTransferred?: (payload: GroupOwnershipTransferredPayload) => void
+  onMessageReadUpdated?: (payload: MessageReadUpdatedPayload) => void
 }
 
 export function useChatSocket() {
@@ -53,6 +56,14 @@ export function useChatSocket() {
 
   function editMessage(messageId: string, content: string): void {
     socket.emit('message:edit', { messageId, content })
+  }
+
+  function subscribeToNotifications(handler: (notification: Notification) => void): () => void {
+    socket.on('notification:new', handler)
+
+    return () => {
+      socket.off('notification:new', handler)
+    }
   }
 
   function deleteMessage(messageId: string): void {
@@ -93,6 +104,10 @@ export function useChatSocket() {
       socket.on('group:ownership:transferred', handlers.onGroupOwnershipTransferred)
     }
 
+    if (handlers.onMessageReadUpdated) {
+      socket.on('message:read:updated', handlers.onMessageReadUpdated)
+    }
+
     return () => {
       socket.off('message:new', handlers.onMessageNew)
       socket.off('message:edited', handlers.onMessageEdited)
@@ -126,6 +141,10 @@ export function useChatSocket() {
       if (handlers.onGroupOwnershipTransferred) {
         socket.off('group:ownership:transferred', handlers.onGroupOwnershipTransferred)
       }
+
+      if (handlers.onMessageReadUpdated) {
+        socket.off('message:read:updated', handlers.onMessageReadUpdated)
+      }
     }
   }
 
@@ -136,5 +155,6 @@ export function useChatSocket() {
     editMessage,
     deleteMessage,
     subscribe,
+    subscribeToNotifications,
   }
 }

@@ -13,6 +13,7 @@ export interface MessageResponseDto {
   type: MessageType;
   systemEventType: SystemEventType | null;
   systemEventPayload: Record<string, unknown> | null;
+  isReadByAll: boolean;
   createdAt: Date;
   editedAt: Date | null;
   deletedAt: Date | null;

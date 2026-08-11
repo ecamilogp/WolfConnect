@@ -7,6 +7,10 @@ import { GetMessagesUseCase } from '../../application/use-cases/message/get-mess
 import { EditMessageUseCase } from '../../application/use-cases/message/edit-message.use-case.js';
 import { DeleteMessageUseCase } from '../../application/use-cases/message/delete-message.use-case.js';
 import { MarkMessagesAsReadUseCase } from '../../application/use-cases/message/mark-messages-as-read.use-case.js';
+import { SocketEvents } from '../../infrastructure/websocket/events/socket-events.enum.js';
+import { chatRoom } from '../../infrastructure/websocket/handlers/chat.handler.js';
+import { getIO } from '../../infrastructure/websocket/socket.server.js';
+import { MessageReadUpdatedPayload } from '../../infrastructure/websocket/types/socket-payloads.type.js';
 
 export class MessageController {
   private readonly chatRepository = new PrismaChatRepository();
@@ -103,10 +107,25 @@ export class MessageController {
 
   markMessagesAsRead = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      await this.markMessagesAsReadUseCase.execute({
-        chatId: String(req.params.chatId),
+      const chatId = String(req.params.chatId);
+
+      const fullyReadMessageIds = await this.markMessagesAsReadUseCase.execute({
+        chatId,
         userId: req.user.id,
       });
+
+      if (fullyReadMessageIds.length > 0) {
+        const payload: MessageReadUpdatedPayload = {
+          chatId,
+          messageIds: fullyReadMessageIds,
+        };
+
+        try {
+          getIO().to(chatRoom(chatId)).emit(SocketEvents.MESSAGE_READ_UPDATED, payload);
+        } catch (socketError) {
+          console.error('Failed to emit message:read:updated event', socketError);
+        }
+      }
 
       res.status(200).json({
         success: true,

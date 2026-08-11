@@ -12,6 +12,7 @@ export interface MessageListItemDto {
   type: MessageType;
   systemEventType: SystemEventType | null;
   systemEventPayload: Record<string, unknown> | null;
+  isReadByAll: boolean;
   createdAt: Date;
   editedAt: Date | null;
   replyTo: ReplyToMessageDto | null;

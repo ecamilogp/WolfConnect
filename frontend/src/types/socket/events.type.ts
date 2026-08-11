@@ -13,6 +13,7 @@ import type {
   GroupRoleChangedPayload,
   MessageDeletedPayload,
   MessageReactionUpdatedPayload,
+  MessageReadUpdatedPayload,
 } from './payloads.type'
 
 export interface ServerToClientEvents {
@@ -25,6 +26,7 @@ export interface ServerToClientEvents {
   'message:edited': (payload: Message) => void
   'message:deleted': (payload: MessageDeletedPayload) => void
   'message:reaction:updated': (payload: MessageReactionUpdatedPayload) => void
+  'message:read:updated': (payload: MessageReadUpdatedPayload) => void
   'attachment:uploaded': (payload: AttachmentUploadedPayload) => void
   'group:updated': (payload: Chat) => void
   'group:role:changed': (payload: GroupRoleChangedPayload) => void

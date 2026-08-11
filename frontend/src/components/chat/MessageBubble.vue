@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { QChatMessage } from 'quasar'
+import { QChatMessage, QIcon } from 'quasar'
 import { useI18n } from 'vue-i18n'
 
 import type { MessageListItem } from '@/types/models/message.model'
@@ -29,6 +29,14 @@ const stamp = computed(() => {
 
   return props.message.editedAt ? `${t('chat.edited')} · ${time}` : time
 })
+
+const showReadReceipt = computed(() => props.isOwn && props.message.type === 'TEXT')
+
+const readReceiptIcon = computed(() => (props.message.isReadByAll ? 'done_all' : 'done'))
+
+const readReceiptLabel = computed(() =>
+  props.message.isReadByAll ? t('chat.readByAll') : t('chat.sent'),
+)
 </script>
 
 <template>
@@ -38,6 +46,46 @@ const stamp = computed(() => {
     :bg-color="isOwn ? 'primary' : 'grey-4'"
     :text-color="isOwn ? 'white' : 'black'"
     :text="[message.content ?? '']"
-    :stamp="stamp"
-  />
+  >
+    <template #stamp>
+      <span>{{ stamp }}</span>
+      <QIcon
+        v-if="showReadReceipt"
+        :name="readReceiptIcon"
+        size="16px"
+        class="q-ml-xs message-bubble__receipt"
+        :class="{ 'message-bubble__receipt--read': message.isReadByAll }"
+        :aria-label="readReceiptLabel"
+      />
+    </template>
+  </QChatMessage>
 </template>
+
+<style scoped>
+.message-bubble__receipt {
+  opacity: 0.65;
+  vertical-align: middle;
+}
+
+.message-bubble__receipt--read {
+  color: #1dfbff;
+}
+
+:deep(.q-message-container) {
+  max-width: 100%;
+}
+
+:deep(.q-message-container > div) {
+  max-width: min(75%, 32rem);
+  min-width: 0;
+}
+
+:deep(.q-message-text) {
+  max-width: 100%;
+}
+
+:deep(.q-message-text-content) {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+</style>

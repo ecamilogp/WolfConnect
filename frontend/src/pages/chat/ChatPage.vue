@@ -14,7 +14,11 @@ import { useGroupStore } from '@/stores/group.store'
 import { useChatSocket } from '@/composables/useChatSocket'
 import type { Chat } from '@/types/models/chat.model'
 import type { Message } from '@/types/models/message.model'
-import type { ChatLeftPayload, MessageDeletedPayload } from '@/types/socket/payloads.type'
+import type {
+  ChatLeftPayload,
+  MessageDeletedPayload,
+  MessageReadUpdatedPayload,
+} from '@/types/socket/payloads.type'
 
 const route = useRoute()
 const router = useRouter()
@@ -62,6 +66,9 @@ const unsubscribe = chatSocket.subscribe({
         imageUrl: updatedChat.imageUrl,
       })
     }
+  },
+  onMessageReadUpdated: (payload: MessageReadUpdatedPayload) => {
+    messageStore.handleMessagesReadUpdated(payload.chatId, payload.messageIds)
   },
 })
 

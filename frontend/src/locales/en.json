@@ -42,6 +42,27 @@
     "newChatMenuGroup": "New group",
     "pendingInvitationsTooltip": "Pending invitations"
   },
+  "notifications": {
+    "title": "Notifications",
+    "tooltip": "Notifications",
+    "emptyTitle": "You have no notifications",
+    "emptyDescription": "Updates from your groups will show up here.",
+    "markAllRead": "Mark all as read",
+    "fallbackName": "Someone",
+    "fallbackGroupName": "the group",
+    "justNow": "Just now",
+    "minutesAgo": "{count}m ago",
+    "hoursAgo": "{count}h ago",
+    "daysAgo": "{count}d ago",
+    "types": {
+      "addedToGroup": "You were added to \"{group}\".",
+      "groupMemberJoined": "{name} joined \"{group}\".",
+      "groupInvitation": "{name} invited you to join \"{group}\".",
+      "groupInvitationAccepted": "{name} accepted your invitation to join \"{group}\".",
+      "groupInvitationRejected": "{name} declined your invitation to join \"{group}\".",
+      "generic": "You have a new notification."
+    }
+  },
   "chat": {
     "searchUsersPlaceholder": "Search by name or username",
     "noUsersFound": "No users found.",
@@ -51,6 +72,8 @@
     "noMessagesTitle": "No messages yet",
     "noMessagesDescription": "Send the first message to start the conversation.",
     "edited": "Edited",
+    "sent": "Sent",
+    "readByAll": "Read by all",
     "systemEvents": {
       "participantLeft": "{name} left the group.",
       "participantRemoved": "{name} was removed from the group.",
