@@ -1,6 +1,6 @@
 # WolfConnect Constitution
 
-Last Updated: 2026-07-17
+Last Updated: 2026-08-10
 
 ## Vision
 
@@ -23,7 +23,9 @@ The first version of WolfConnect must support:
 - Emoji support
 - File attachments
 - Leaving groups
-- Viewing only the message history generated while the user belonged to a group
+- Preserving full group message history and sender identity even after a member leaves or is removed
+- Group role management (owner, admin, member) with permission-based actions
+- System messages recording group membership events (joined, left, removed)
 
 Any architectural decision must support these capabilities.
 
