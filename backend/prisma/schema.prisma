@@ -53,6 +53,12 @@ enum MessageType {
   SYSTEM
 }
 
+enum SystemEventType {
+  PARTICIPANT_LEFT
+  PARTICIPANT_REMOVED
+  PARTICIPANT_JOINED
+}
+
 model User {
   id           String     @id @default(uuid())
   firstName    String
@@ -184,11 +190,14 @@ model Message {
 
   chatId String
 
-  senderId String
+  senderId String?
 
   content String?
 
   type MessageType @default(TEXT)
+
+  systemEventType    SystemEventType?
+  systemEventPayload Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -200,7 +209,7 @@ model Message {
 
   chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
 
-  sender User @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  sender User? @relation("MessageSender", fields: [senderId], references: [id], onDelete: SetNull)
 
   replyTo Message?  @relation("MessageReplies", fields: [replyToMessageId], references: [id], onDelete: SetNull)
   replies Message[] @relation("MessageReplies")
