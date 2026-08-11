@@ -7,8 +7,9 @@ import AppInput from '@/components/forms/AppInput.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import { useAuthStore } from '@/stores/auth.store'
 import { createRegisterSchema } from '@/utils/validators/auth.validators'
-import { ApiError } from '@/types/api/error.type'
 import { useTheme } from '@/composables/useTheme'
+import { useAppLoading } from '@/composables/useAppLoading'
+import { useAppNotify } from '@/composables/useAppNotify'
 import logoWolf from '@/assets/images/headwolfeyepruple.png'
 import logoWolfDark from '@/assets/images/headwolf.png'
 
@@ -17,6 +18,8 @@ const route = useRoute()
 const authStore = useAuthStore()
 const { t } = useI18n()
 const { isDark } = useTheme()
+const { showLoading, hideLoading } = useAppLoading()
+const { notifySuccess, notifyError } = useAppNotify()
 
 const form = reactive({
   firstName: '',
@@ -27,12 +30,10 @@ const form = reactive({
 })
 
 const errors = reactive<Record<string, string>>({})
-const submitError = ref('')
 const isSubmitting = ref(false)
 
 async function onSubmit(): Promise<void> {
   Object.keys(errors).forEach((key) => delete errors[key])
-  submitError.value = ''
 
   const invitationTokenFromLink = route.query.invitationToken
 
@@ -54,14 +55,17 @@ async function onSubmit(): Promise<void> {
   }
 
   isSubmitting.value = true
+  showLoading(t('auth.register.loadingMessage'))
 
   try {
     await authStore.register(result.data)
+    notifySuccess('auth.register.successNotify')
     router.push({ name: 'chat-empty' })
   } catch (error) {
-    submitError.value = error instanceof ApiError ? error.message : t('auth.register.genericError')
+    notifyError(error, 'auth.register.genericError')
   } finally {
     isSubmitting.value = false
+    hideLoading()
   }
 }
 </script>
@@ -108,8 +112,6 @@ async function onSubmit(): Promise<void> {
             autocomplete="new-password"
             :error="errors.password"
           />
-
-          <p v-if="submitError" class="text-sm text-negative">{{ submitError }}</p>
 
           <AppButton :label="t('auth.register.submit')" type="submit" :loading="isSubmitting" />
         </form>

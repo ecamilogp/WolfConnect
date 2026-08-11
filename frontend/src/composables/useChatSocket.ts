@@ -1,13 +1,26 @@
 import { connectSocket } from '@/services/realtime/socket-client'
-import type { ChatSummary } from '@/types/models/chat.model'
+import type { Chat, ChatSummary } from '@/types/models/chat.model'
 import type { Message } from '@/types/models/message.model'
-import type { MessageDeletedPayload } from '@/types/socket/payloads.type'
+import type {
+  ChatLeftPayload,
+  GroupOwnershipTransferredPayload,
+  GroupParticipantAddedPayload,
+  GroupParticipantRemovedPayload,
+  GroupRoleChangedPayload,
+  MessageDeletedPayload,
+} from '@/types/socket/payloads.type'
 
 interface ChatSocketHandlers {
   onMessageNew: (message: Message) => void
   onMessageEdited: (message: Message) => void
   onMessageDeleted: (payload: MessageDeletedPayload) => void
   onChatNew?: (chat: ChatSummary) => void
+  onChatLeft?: (payload: ChatLeftPayload) => void
+  onGroupUpdated?: (chat: Chat) => void
+  onGroupRoleChanged?: (payload: GroupRoleChangedPayload) => void
+  onGroupParticipantAdded?: (payload: GroupParticipantAddedPayload) => void
+  onGroupParticipantRemoved?: (payload: GroupParticipantRemovedPayload) => void
+  onGroupOwnershipTransferred?: (payload: GroupOwnershipTransferredPayload) => void
 }
 
 export function useChatSocket() {
@@ -56,6 +69,30 @@ export function useChatSocket() {
       socket.on('chat:new', handlers.onChatNew)
     }
 
+    if (handlers.onChatLeft) {
+      socket.on('chat:left', handlers.onChatLeft)
+    }
+
+    if (handlers.onGroupUpdated) {
+      socket.on('group:updated', handlers.onGroupUpdated)
+    }
+
+    if (handlers.onGroupRoleChanged) {
+      socket.on('group:role:changed', handlers.onGroupRoleChanged)
+    }
+
+    if (handlers.onGroupParticipantAdded) {
+      socket.on('group:participant:added', handlers.onGroupParticipantAdded)
+    }
+
+    if (handlers.onGroupParticipantRemoved) {
+      socket.on('group:participant:removed', handlers.onGroupParticipantRemoved)
+    }
+
+    if (handlers.onGroupOwnershipTransferred) {
+      socket.on('group:ownership:transferred', handlers.onGroupOwnershipTransferred)
+    }
+
     return () => {
       socket.off('message:new', handlers.onMessageNew)
       socket.off('message:edited', handlers.onMessageEdited)
@@ -64,6 +101,30 @@ export function useChatSocket() {
 
       if (handlers.onChatNew) {
         socket.off('chat:new', handlers.onChatNew)
+      }
+
+      if (handlers.onChatLeft) {
+        socket.off('chat:left', handlers.onChatLeft)
+      }
+
+      if (handlers.onGroupUpdated) {
+        socket.off('group:updated', handlers.onGroupUpdated)
+      }
+
+      if (handlers.onGroupRoleChanged) {
+        socket.off('group:role:changed', handlers.onGroupRoleChanged)
+      }
+
+      if (handlers.onGroupParticipantAdded) {
+        socket.off('group:participant:added', handlers.onGroupParticipantAdded)
+      }
+
+      if (handlers.onGroupParticipantRemoved) {
+        socket.off('group:participant:removed', handlers.onGroupParticipantRemoved)
+      }
+
+      if (handlers.onGroupOwnershipTransferred) {
+        socket.off('group:ownership:transferred', handlers.onGroupOwnershipTransferred)
       }
     }
   }

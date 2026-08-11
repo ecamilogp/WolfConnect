@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { QAvatar, QBtn, QIcon, QInput, QItem, QItemSection, QList, QMenu, QTooltip } from 'quasar'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { QAvatar, QBadge, QBtn, QIcon, QInput, QItem, QItemSection, QList, QMenu, QTooltip } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
@@ -8,12 +8,19 @@ import ThemeToggle from '@/components/ui/ThemeToggle.vue'
 import LanguageToggle from '@/components/ui/LanguageToggle.vue'
 import ConversationList from '@/components/chat/ConversationList.vue'
 import NewChatModal from '@/components/chat/NewChatModal.vue'
+import CreateGroupModal from '@/components/chat/CreateGroupModal.vue'
+import GroupPostCreateInviteModal from '@/components/chat/GroupPostCreateInviteModal.vue'
+import PendingInvitationsModal from '@/components/chat/PendingInvitationsModal.vue'
 import { useAuthStore } from '@/stores/auth.store'
 import { useChatStore } from '@/stores/chat.store'
+import { useGroupStore } from '@/stores/group.store'
 import { useTheme } from '@/composables/useTheme'
 import { useChatSocket } from '@/composables/useChatSocket'
-import type { ChatSummary } from '@/types/models/chat.model'
+import { useAppLoading } from '@/composables/useAppLoading'
+import { useAppNotify } from '@/composables/useAppNotify'
+import type { Chat, ChatSummary } from '@/types/models/chat.model'
 import type { Message } from '@/types/models/message.model'
+import type { ChatLeftPayload } from '@/types/socket/payloads.type'
 import brandMark from '@/assets/images/WolfconnectimageLight.png'
 import brandMarkDark from '@/assets/images/WolfconnectimageDark.png'
 
@@ -21,12 +28,19 @@ const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 const chatStore = useChatStore()
+const groupStore = useGroupStore()
 const chatSocket = useChatSocket()
 const { t } = useI18n()
 const { isDark } = useTheme()
+const { showLoading, hideLoading } = useAppLoading()
+const { notifySuccess, notifyError } = useAppNotify()
 
 const search = ref('')
 const isNewChatOpen = ref(false)
+const isCreateGroupOpen = ref(false)
+const isPendingInvitationsOpen = ref(false)
+const isPostCreateInviteOpen = ref(false)
+const createdGroup = ref<Chat | null>(null)
 
 const activeChatId = computed(() => {
   const chatId = route.params.chatId
@@ -46,6 +60,7 @@ const filteredChats = computed(() => {
 
 onMounted(() => {
   chatStore.fetchChats()
+  groupStore.fetchPendingInvitations()
 })
 
 const unsubscribeChatSocket = chatSocket.subscribe({
@@ -62,6 +77,9 @@ const unsubscribeChatSocket = chatSocket.subscribe({
   onChatNew: (chat: ChatSummary) => {
     chatStore.upsertChat(chat)
   },
+  onChatLeft: (payload: ChatLeftPayload) => {
+    chatStore.removeChat(payload.chatId)
+  },
 })
 
 onUnmounted(() => {
@@ -76,6 +94,22 @@ async function handleNewChat(userId: string): Promise<void> {
   const chat = await chatStore.createPrivateChat(userId)
   goToChat(chat.id)
 }
+
+function handleGroupCreated(chat: Chat): void {
+  createdGroup.value = chat
+  isPostCreateInviteOpen.value = true
+
+  chatStore.fetchChats().catch((error) => {
+    console.error('[sidebar:fetch-chats-failed]', error)
+  })
+}
+
+watch(isPostCreateInviteOpen, (open) => {
+  if (!open && createdGroup.value) {
+    goToChat(createdGroup.value.id)
+    createdGroup.value = null
+  }
+})
 
 const fullName = computed(() => {
   const user = authStore.user
@@ -98,8 +132,17 @@ const initials = computed(() => {
 })
 
 async function handleLogout(): Promise<void> {
-  authStore.logout()
-  await router.push({ name: 'login' })
+  showLoading(t('auth.logout.loadingMessage'))
+
+  try {
+    authStore.logout()
+    await router.push({ name: 'login' })
+    notifySuccess('auth.logout.successNotify')
+  } catch (error) {
+    notifyError(error, 'auth.logout.genericError')
+  } finally {
+    hideLoading()
+  }
 }
 </script>
 
@@ -131,10 +174,35 @@ async function handleLogout(): Promise<void> {
         </template>
       </QInput>
 
-      <QBtn round flat dense icon="add" color="grey-6" @click="isNewChatOpen = true">
+      <QBtn round flat dense icon="mail" color="grey-6" @click="isPendingInvitationsOpen = true">
+        <QBadge v-if="groupStore.pendingInvitations.length > 0" color="primary" floating rounded>
+          {{ groupStore.pendingInvitations.length }}
+        </QBadge>
+        <QTooltip anchor="bottom middle" self="top middle">
+          {{ t('sidebar.pendingInvitationsTooltip') }}
+        </QTooltip>
+      </QBtn>
+
+      <QBtn round flat dense icon="add" color="grey-6">
         <QTooltip anchor="bottom middle" self="top middle">
           {{ t('sidebar.newChatTooltip') }}
         </QTooltip>
+        <QMenu>
+          <QList dense>
+            <QItem v-close-popup clickable @click="isNewChatOpen = true">
+              <QItemSection avatar>
+                <QIcon name="chat_bubble_outline" size="18px" />
+              </QItemSection>
+              <QItemSection>{{ t('sidebar.newChatMenuChat') }}</QItemSection>
+            </QItem>
+            <QItem v-close-popup clickable @click="isCreateGroupOpen = true">
+              <QItemSection avatar>
+                <QIcon name="group_add" size="18px" />
+              </QItemSection>
+              <QItemSection>{{ t('sidebar.newChatMenuGroup') }}</QItemSection>
+            </QItem>
+          </QList>
+        </QMenu>
       </QBtn>
     </div>
 
@@ -148,6 +216,13 @@ async function handleLogout(): Promise<void> {
     </div>
 
     <NewChatModal v-model="isNewChatOpen" @select="handleNewChat" />
+    <CreateGroupModal v-model="isCreateGroupOpen" @created="handleGroupCreated" />
+    <GroupPostCreateInviteModal
+      v-model="isPostCreateInviteOpen"
+      :chat-id="createdGroup?.id ?? null"
+      :join-policy="createdGroup?.joinPolicy ?? null"
+    />
+    <PendingInvitationsModal v-model="isPendingInvitationsOpen" />
 
     <div class="app-sidebar__footer border-t border-white/10 px-6 py-4">
       <div class="flex items-center gap-3">

@@ -1,3 +1,4 @@
+import { MessageResponseDto } from '../../../domain/dto/message/message-response.dto.js';
 import { ChatRepository } from '../../../domain/repositories/chat.repository.js';
 import { BadRequestError } from '../../../shared/errors/bad-request-error.js';
 import { ConflictError } from '../../../shared/errors/conflict-error.js';
@@ -7,7 +8,10 @@ import { NotFoundError } from '../../../shared/errors/not-found-error.js';
 export class LeaveGroupUseCase {
   constructor(private readonly chatRepository: ChatRepository) {}
 
-  async execute(chatId: string, currentUserId: string): Promise<{ message: string }> {
+  async execute(
+    chatId: string,
+    currentUserId: string,
+  ): Promise<{ message: string; systemMessage: MessageResponseDto }> {
     const chat = await this.chatRepository.findById(chatId);
 
     if (!chat) {
@@ -34,10 +38,11 @@ export class LeaveGroupUseCase {
       );
     }
 
-    await this.chatRepository.leaveGroup(chatId, currentUserId);
+    const systemMessage = await this.chatRepository.leaveGroup(chatId, currentUserId);
 
     return {
       message: 'You have left the group successfully.',
+      systemMessage,
     };
   }
 }

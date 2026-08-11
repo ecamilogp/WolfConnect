@@ -1,4 +1,5 @@
 import { InviteUserToGroupDto } from '../../../domain/dto/chat/invite-user-to-group.dto.js';
+import { MessageResponseDto } from '../../../domain/dto/message/message-response.dto.js';
 import { ChatRepository } from '../../../domain/repositories/chat.repository.js';
 import { UserRepository } from '../../../domain/repositories/user.repository.js';
 import { BadRequestError } from '../../../shared/errors/bad-request-error.js';
@@ -6,6 +7,10 @@ import { NotFoundError } from '../../../shared/errors/not-found-error.js';
 import { GroupInvitationRepository } from '../../../domain/repositories/group-invitation.repository.js';
 import { NotificationType } from '../../../shared/constants/notification-types.constant.js';
 import { SendNotificationUseCase } from '../notification/send-notification.use-case.js';
+
+export type InviteUserToGroupResult =
+  | { status: 'ADDED'; invitedUserId: string; systemMessage: MessageResponseDto }
+  | { status: 'INVITED'; invitationId: string };
 
 export class InviteUserToGroupUseCase {
   constructor(
@@ -15,7 +20,7 @@ export class InviteUserToGroupUseCase {
     private readonly sendNotificationUseCase: SendNotificationUseCase,
   ) {}
 
-  async execute(dto: InviteUserToGroupDto): Promise<void> {
+  async execute(dto: InviteUserToGroupDto): Promise<InviteUserToGroupResult> {
     const group = await this.chatRepository.findById(dto.chatId);
 
     if (!group) {
@@ -55,7 +60,7 @@ export class InviteUserToGroupUseCase {
       dto.invitedUserId,
     );
 
-    if (invitedParticipant) {
+    if (invitedParticipant && !invitedParticipant.leftAt) {
       throw new BadRequestError('User is already a participant of this group.');
     }
 
@@ -73,7 +78,10 @@ export class InviteUserToGroupUseCase {
     const groupName = group.name ?? 'the group';
 
     if (group.joinPolicy === 'AUTO_ADD') {
-      await this.chatRepository.addParticipant(dto.chatId, dto.invitedUserId);
+      const systemMessage = await this.chatRepository.addParticipant(
+        dto.chatId,
+        dto.invitedUserId,
+      );
 
       await this.sendNotificationUseCase.execute({
         userId: dto.invitedUserId,
@@ -99,25 +107,23 @@ export class InviteUserToGroupUseCase {
         ),
       );
 
-      return;
+      return { status: 'ADDED', invitedUserId: dto.invitedUserId, systemMessage };
     }
 
-    if (group.joinPolicy === 'INVITATION_REQUIRED') {
-      const invitation = await this.groupInvitationRepository.create({
-        chatId: dto.chatId,
-        invitedByUserId: dto.inviterUserId,
-        invitedUserId: dto.invitedUserId,
-      });
+    const invitation = await this.groupInvitationRepository.create({
+      chatId: dto.chatId,
+      invitedByUserId: dto.inviterUserId,
+      invitedUserId: dto.invitedUserId,
+    });
 
-      await this.sendNotificationUseCase.execute({
-        userId: dto.invitedUserId,
-        type: NotificationType.GROUP_INVITATION,
-        title: 'Group invitation',
-        body: `${inviterName} invited you to join "${groupName}".`,
-        data: { chatId: dto.chatId, invitationId: invitation.id, invitedByUserId: dto.inviterUserId },
-      });
+    await this.sendNotificationUseCase.execute({
+      userId: dto.invitedUserId,
+      type: NotificationType.GROUP_INVITATION,
+      title: 'Group invitation',
+      body: `${inviterName} invited you to join "${groupName}".`,
+      data: { chatId: dto.chatId, invitationId: invitation.id, invitedByUserId: dto.inviterUserId },
+    });
 
-      return;
-    }
+    return { status: 'INVITED', invitationId: invitation.id };
   }
 }

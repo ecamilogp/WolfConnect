@@ -8,9 +8,18 @@ import type { MessageListItem } from '@/types/models/message.model'
 const props = defineProps<{
   message: MessageListItem
   isOwn: boolean
+  isGroup?: boolean
 }>()
 
 const { t } = useI18n()
+
+const senderName = computed(() => {
+  if (!props.isGroup || props.isOwn || !props.message.sender) {
+    return undefined
+  }
+
+  return `${props.message.sender.firstName} ${props.message.sender.lastName}`
+})
 
 const stamp = computed(() => {
   const time = new Date(props.message.createdAt).toLocaleTimeString([], {
@@ -25,6 +34,7 @@ const stamp = computed(() => {
 <template>
   <QChatMessage
     :sent="isOwn"
+    :name="senderName"
     :bg-color="isOwn ? 'primary' : 'grey-4'"
     :text-color="isOwn ? 'white' : 'black'"
     :text="[message.content ?? '']"

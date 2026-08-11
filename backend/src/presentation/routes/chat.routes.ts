@@ -57,6 +57,10 @@ router.patch(
   chatController.rejectGroupInvitation,
 );
 
+router.get('/groups/invitations', authenticate, chatController.getPendingInvitations);
+
+router.get('/groups/:chatId', authenticate, chatController.getGroupDetail);
+
 router.patch('/groups/:chatId/leave', authenticate, chatController.leaveGroup);
 
 router.delete('/groups/:chatId', authenticate, chatController.deleteGroup);

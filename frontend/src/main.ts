@@ -4,7 +4,7 @@ import '@/styles/base/global.css'
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import { Quasar, Dark } from 'quasar'
+import { Quasar, Dark, Dialog, Loading, Notify } from 'quasar'
 
 import App from './App.vue'
 import router from './router/index.js'
@@ -18,7 +18,7 @@ const pinia = createPinia()
 app.use(pinia)
 app.use(i18n)
 app.use(Quasar, {
-  plugins: { Dark },
+  plugins: { Dark, Dialog, Loading, Notify },
   config: { dark: getStoredDarkMode() },
 })
 

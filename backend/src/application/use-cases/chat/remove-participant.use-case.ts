@@ -1,4 +1,5 @@
 import { RemoveParticipantDto } from '../../../domain/dto/chat/remove-participant.dto.js';
+import { MessageResponseDto } from '../../../domain/dto/message/message-response.dto.js';
 import { ChatRepository } from '../../../domain/repositories/chat.repository.js';
 import { BadRequestError } from '../../../shared/errors/bad-request-error.js';
 import { ForbiddenError } from '../../../shared/errors/forbidden-error.js';
@@ -12,7 +13,9 @@ import {
 export class RemoveParticipantUseCase {
   constructor(private readonly chatRepository: ChatRepository) {}
 
-  async execute(dto: RemoveParticipantDto): Promise<{ message: string }> {
+  async execute(
+    dto: RemoveParticipantDto,
+  ): Promise<{ message: string; systemMessage: MessageResponseDto }> {
     await requireActiveGroup(this.chatRepository, dto.chatId);
 
     if (dto.requesterUserId === dto.targetUserId) {
@@ -41,8 +44,11 @@ export class RemoveParticipantUseCase {
       throw new ForbiddenError('Only the group owner can remove an admin.');
     }
 
-    await this.chatRepository.removeParticipant(dto.chatId, dto.targetUserId);
+    const systemMessage = await this.chatRepository.removeParticipant(
+      dto.chatId,
+      dto.targetUserId,
+    );
 
-    return { message: 'Participant removed successfully.' };
+    return { message: 'Participant removed successfully.', systemMessage };
   }
 }

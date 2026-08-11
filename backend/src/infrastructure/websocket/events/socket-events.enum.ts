@@ -25,6 +25,7 @@ export const SocketEvents = {
 
   GROUP_UPDATED: 'group:updated',
   GROUP_ROLE_CHANGED: 'group:role:changed',
+  GROUP_PARTICIPANT_ADDED: 'group:participant:added',
   GROUP_PARTICIPANT_REMOVED: 'group:participant:removed',
   GROUP_OWNERSHIP_TRANSFERRED: 'group:ownership:transferred',
 

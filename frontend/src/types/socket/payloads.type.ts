@@ -1,5 +1,6 @@
 import type { Attachment } from '@/types/models/attachment.model'
 import type { ChatSummary, ParticipantRole } from '@/types/models/chat.model'
+import type { GroupParticipant } from '@/types/models/group.model'
 import type { MessageReactionSummary } from '@/types/models/message.model'
 
 export interface ChatJoinedPayload {
@@ -31,6 +32,11 @@ export interface GroupRoleChangedPayload {
   chatId: string
   userId: string
   role: ParticipantRole
+}
+
+export interface GroupParticipantAddedPayload {
+  chatId: string
+  participant: GroupParticipant
 }
 
 export interface GroupParticipantRemovedPayload {
