@@ -8,8 +8,11 @@ function toListItem(message: Message): MessageListItem {
   return {
     id: message.id,
     senderId: message.senderId,
+    sender: message.sender,
     content: message.content,
     type: message.type,
+    systemEventType: message.systemEventType,
+    systemEventPayload: message.systemEventPayload,
     createdAt: message.createdAt,
     editedAt: message.editedAt,
     replyTo: message.replyTo,

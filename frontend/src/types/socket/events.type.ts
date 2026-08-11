@@ -8,6 +8,7 @@ import type {
   ChatJoinedPayload,
   ChatLeftPayload,
   GroupOwnershipTransferredPayload,
+  GroupParticipantAddedPayload,
   GroupParticipantRemovedPayload,
   GroupRoleChangedPayload,
   MessageDeletedPayload,
@@ -27,6 +28,7 @@ export interface ServerToClientEvents {
   'attachment:uploaded': (payload: AttachmentUploadedPayload) => void
   'group:updated': (payload: Chat) => void
   'group:role:changed': (payload: GroupRoleChangedPayload) => void
+  'group:participant:added': (payload: GroupParticipantAddedPayload) => void
   'group:participant:removed': (payload: GroupParticipantRemovedPayload) => void
   'group:ownership:transferred': (payload: GroupOwnershipTransferredPayload) => void
   'notification:new': (payload: Notification) => void

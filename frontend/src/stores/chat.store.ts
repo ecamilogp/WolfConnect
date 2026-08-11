@@ -41,6 +41,19 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
+  function removeChat(chatId: string): void {
+    chats.value = chats.value.filter((chat) => chat.id !== chatId)
+  }
+
+  function updateChatInfo(chatId: string, info: { name: string | null; imageUrl: string | null }): void {
+    const chat = chats.value.find((item) => item.id === chatId)
+
+    if (chat) {
+      chat.name = info.name ?? chat.name
+      chat.imageUrl = info.imageUrl
+    }
+  }
+
   function upsertChat(summary: ChatSummary): void {
     const index = chats.value.findIndex((item) => item.id === summary.id)
 
@@ -53,7 +66,7 @@ export const useChatStore = defineStore('chat', () => {
 
   function applyIncomingMessage(options: {
     chatId: string
-    senderId: string
+    senderId: string | null
     currentUserId: string
     activeChatId: string | null
   }): void {
@@ -80,6 +93,8 @@ export const useChatStore = defineStore('chat', () => {
     createPrivateChat,
     resetUnread,
     upsertChat,
+    removeChat,
+    updateChatInfo,
     applyIncomingMessage,
   }
 })

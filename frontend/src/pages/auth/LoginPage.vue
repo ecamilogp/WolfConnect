@@ -7,8 +7,8 @@ import AppInput from '@/components/forms/AppInput.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import { useAuthStore } from '@/stores/auth.store'
 import { createLoginSchema } from '@/utils/validators/auth.validators'
-import { ApiError } from '@/types/api/error.type'
 import { useTheme } from '@/composables/useTheme'
+import { useAppNotify } from '@/composables/useAppNotify'
 
 import logoWolf from '@/assets/images/headwolfeyepruple.png'
 import logoWolfDark from '@/assets/images/headwolf.png'
@@ -17,15 +17,14 @@ const router = useRouter()
 const authStore = useAuthStore()
 const { t } = useI18n()
 const { isDark } = useTheme()
+const { notifySuccess, notifyError } = useAppNotify()
 
 const form = reactive({ email: '', password: '' })
 const errors = reactive<Record<string, string>>({})
-const submitError = ref('')
 const isSubmitting = ref(false)
 
 async function onSubmit(): Promise<void> {
   Object.keys(errors).forEach((key) => delete errors[key])
-  submitError.value = ''
 
   const result = createLoginSchema(t).safeParse(form)
 
@@ -43,9 +42,10 @@ async function onSubmit(): Promise<void> {
 
   try {
     await authStore.login(result.data)
+    notifySuccess('auth.login.successNotify')
     router.push({ name: 'chat-empty' })
   } catch (error) {
-    submitError.value = error instanceof ApiError ? error.message : t('auth.login.genericError')
+    notifyError(error, 'auth.login.genericError')
   } finally {
     isSubmitting.value = false
   }
@@ -81,8 +81,6 @@ async function onSubmit(): Promise<void> {
             :error="errors.password"
             class="w-full"
           />
-
-          <p v-if="submitError" class="text-sm text-negative">{{ submitError }}</p>
 
           <AppButton
             :label="t('auth.login.submit')"
