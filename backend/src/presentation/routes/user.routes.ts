@@ -3,8 +3,10 @@ import { Router } from 'express';
 import { authenticate } from '../middlewares/authenticate.middleware.js';
 import { validate } from '../middlewares/validation.middleware.js';
 import { uploadSingleAvatar } from '../middlewares/upload-avatar.middleware.js';
+import { requireAdmin } from '../middlewares/require-admin.middleware.js';
 import { UserController } from '../controllers/user.controller.js';
 import { updateUserSchema } from '../validators/users/update-user.validator.js';
+import { updateUserRoleSchema } from '../validators/users/update-user-role.validator.js';
 import { PrismaUserRepository } from '../../infrastructure/repositories/prisma-user.repository.js';
 
 import { GetCurrentUserUseCase } from '../../application/use-cases/users/get-current-user.use-case.js';
@@ -13,6 +15,8 @@ import { ChangePasswordUseCase } from '../../application/use-cases/users/change-
 import { DeactivateUserUseCase } from '../../application/use-cases/users/deactivate-user.use-case.js';
 import { AdminDeactivateUserUseCase } from '../../application/use-cases/users/admin-deactivate-user.use-case.js';
 import { SearchUsersUseCase } from '../../application/use-cases/users/search-users.use-case.js';
+import { ListUsersUseCase } from '../../application/use-cases/users/list-users.use-case.js';
+import { UpdateUserRoleUseCase } from '../../application/use-cases/users/update-user-role.use-case.js';
 import { changePasswordSchema } from '../validators/users/change-password.validator.js';
 
 const router = Router();
@@ -24,6 +28,8 @@ const changePasswordUseCase = new ChangePasswordUseCase(userRepository);
 const deactivateUserUseCase = new DeactivateUserUseCase(userRepository);
 const adminDeactivateUserUseCase = new AdminDeactivateUserUseCase(userRepository);
 const searchUsersUseCase = new SearchUsersUseCase(userRepository);
+const listUsersUseCase = new ListUsersUseCase(userRepository);
+const updateUserRoleUseCase = new UpdateUserRoleUseCase(userRepository);
 
 const userController = new UserController(
   getCurrentUserUseCase,
@@ -32,11 +38,15 @@ const userController = new UserController(
   deactivateUserUseCase,
   adminDeactivateUserUseCase,
   searchUsersUseCase,
+  listUsersUseCase,
+  updateUserRoleUseCase,
 );
 
 router.get('/me', authenticate, userController.me);
 
 router.get('/search', authenticate, userController.search);
+
+router.get('/', authenticate, requireAdmin, userController.list);
 
 router.patch('/me', authenticate, validate(updateUserSchema), userController.update);
 
@@ -51,6 +61,19 @@ router.patch(
 
 router.patch('/me/deactivate', authenticate, userController.deactivateAccount);
 
-router.patch('/:userId/deactivate', authenticate, userController.adminDeactivateUser);
+router.patch(
+  '/:userId/deactivate',
+  authenticate,
+  requireAdmin,
+  userController.adminDeactivateUser,
+);
+
+router.patch(
+  '/:userId/role',
+  authenticate,
+  requireAdmin,
+  validate(updateUserRoleSchema),
+  userController.updateRole,
+);
 
 export default router;

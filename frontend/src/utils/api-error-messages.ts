@@ -43,6 +43,11 @@ const KNOWN_MESSAGES: Record<string, string> = {
   'Username is already in use.': 'profile.errors.usernameTaken',
   'Current password is incorrect.': 'profile.errors.currentPasswordIncorrect',
   'New password must be different from the current password.': 'profile.errors.samePassword',
+
+  'Only an administrator can manage administrator roles.': 'admin.errors.notAdmin',
+  'Only an administrator can view the user list.': 'admin.errors.notAdmin',
+  'Only an administrator can perform this action.': 'admin.errors.notAdmin',
+  'You cannot change your own administrator role.': 'admin.errors.cannotChangeSelf',
 }
 
 export function translateApiError(

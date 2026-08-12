@@ -1,6 +1,6 @@
 import { httpClient } from './http-client'
 import type { UserSearchResult } from '@/types/models/user-search-result.model'
-import type { User } from '@/types/models/user.model'
+import type { User, UserRole } from '@/types/models/user.model'
 
 export interface UpdateProfilePayload {
   firstName: string
@@ -27,6 +27,16 @@ export async function updateProfile(payload: UpdateProfilePayload): Promise<User
 
 export async function changePassword(payload: ChangePasswordPayload): Promise<void> {
   await httpClient.patch('/users/me/password', payload)
+}
+
+export async function listUsers(): Promise<User[]> {
+  const response = await httpClient.get<User[]>('/users')
+  return response.data
+}
+
+export async function updateUserRole(userId: string, role: UserRole): Promise<User> {
+  const response = await httpClient.patch<User>(`/users/${userId}/role`, { role })
+  return response.data
 }
 
 export async function uploadAvatar(file: File): Promise<User> {

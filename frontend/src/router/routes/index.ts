@@ -21,6 +21,12 @@ export const routes: RouteRecordRaw[] = [
         name: 'profile',
         component: () => import('@/pages/profile/ProfilePage.vue'),
       },
+      {
+        path: 'admin/users',
+        name: 'admin-users',
+        component: () => import('@/pages/admin/AdminUsersPage.vue'),
+        meta: { requiresAdmin: true },
+      },
     ],
   },
   {

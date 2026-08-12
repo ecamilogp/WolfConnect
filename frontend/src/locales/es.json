@@ -32,6 +32,29 @@
   "layout": {
     "logout": "Cerrar sesión"
   },
+  "admin": {
+    "menuItem": "Administración",
+    "title": "Administración de usuarios",
+    "backButton": "Volver",
+    "emptyTitle": "No hay usuarios",
+    "emptyDescription": "Todavía no hay usuarios registrados.",
+    "you": "tú",
+    "roleAdmin": "Administrador",
+    "roleUser": "Usuario",
+    "promoteAction": "Hacer administrador",
+    "demoteAction": "Quitar administrador",
+    "cannotChangeSelf": "No puedes cambiar tu propio rol.",
+    "promoteConfirm": "¿Hacer administrador a {name}?",
+    "demoteConfirm": "¿Quitarle el rol de administrador a {name}?",
+    "promoteSuccessNotify": "Usuario promovido a administrador.",
+    "demoteSuccessNotify": "Se quitó el rol de administrador.",
+    "loadError": "No se pudo cargar la lista de usuarios.",
+    "actionError": "No se pudo completar la acción. Inténtalo de nuevo.",
+    "errors": {
+      "notAdmin": "Solo un administrador puede realizar esta acción.",
+      "cannotChangeSelf": "No puedes cambiar tu propio rol de administrador."
+    }
+  },
   "profile": {
     "menuItem": "Mi perfil",
     "title": "Mi perfil",
@@ -67,7 +90,8 @@
     "newChatTooltip": "Agregar un usuario para iniciar un chat",
     "newChatMenuChat": "Nuevo chat",
     "newChatMenuGroup": "Nuevo grupo",
-    "pendingInvitationsTooltip": "Invitaciones pendientes"
+    "pendingInvitationsTooltip": "Invitaciones pendientes",
+    "resizeHandleLabel": "Arrastra para ajustar el ancho del panel"
   },
   "notifications": {
     "title": "Notificaciones",
