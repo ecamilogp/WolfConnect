@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import { useTheme } from '@/composables/useTheme'
 import type { MessageListItem } from '@/types/models/message.model'
 
 const props = defineProps<{
@@ -9,6 +10,7 @@ const props = defineProps<{
 }>()
 
 const { t } = useI18n()
+const { isDark } = useTheme()
 
 const targetName = computed(() => {
   const payload = props.message.systemEventPayload
@@ -36,7 +38,10 @@ const text = computed(() => {
 
 <template>
   <div class="flex justify-center py-1.5">
-    <span class="rounded-full bg-primary px-3 py-1 text-center text-xs text-white">
+    <span
+      class="message rounded-full bg-primary px-3 py-1 text-center text-xs"
+      :class="isDark ? 'text-black' : 'text-white'"
+    >
       {{ text }}
     </span>
   </div>

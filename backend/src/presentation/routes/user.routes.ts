@@ -2,6 +2,7 @@ import { Router } from 'express';
 
 import { authenticate } from '../middlewares/authenticate.middleware.js';
 import { validate } from '../middlewares/validation.middleware.js';
+import { uploadSingleAvatar } from '../middlewares/upload-avatar.middleware.js';
 import { UserController } from '../controllers/user.controller.js';
 import { updateUserSchema } from '../validators/users/update-user.validator.js';
 import { PrismaUserRepository } from '../../infrastructure/repositories/prisma-user.repository.js';
@@ -38,6 +39,8 @@ router.get('/me', authenticate, userController.me);
 router.get('/search', authenticate, userController.search);
 
 router.patch('/me', authenticate, validate(updateUserSchema), userController.update);
+
+router.patch('/me/avatar', authenticate, uploadSingleAvatar, userController.uploadAvatar);
 
 router.patch(
   '/me/password',

@@ -39,6 +39,10 @@ const KNOWN_MESSAGES: Record<string, string> = {
   'Username already exists': 'authErrors.usernameExists',
   'This invitation link is invalid or has already been used.': 'authErrors.invitationInvalid',
   'This invitation link has expired.': 'authErrors.invitationExpired',
+
+  'Username is already in use.': 'profile.errors.usernameTaken',
+  'Current password is incorrect.': 'profile.errors.currentPasswordIncorrect',
+  'New password must be different from the current password.': 'profile.errors.samePassword',
 }
 
 export function translateApiError(

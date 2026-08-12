@@ -1,3 +1,6 @@
+import fs from 'node:fs';
+import path from 'node:path';
+
 import { NextFunction, Request, Response } from 'express';
 
 import { GetCurrentUserUseCase } from '../../application/use-cases/users/get-current-user.use-case.js';
@@ -7,6 +10,23 @@ import { UserResponseMapper } from '../mappers/user-response.mapper.js';
 import { DeactivateUserUseCase } from '../../application/use-cases/users/deactivate-user.use-case.js';
 import { AdminDeactivateUserUseCase } from '../../application/use-cases/users/admin-deactivate-user.use-case.js';
 import { SearchUsersUseCase } from '../../application/use-cases/users/search-users.use-case.js';
+import { AVATAR_PUBLIC_PATH_PREFIX, AVATAR_UPLOADS_DIR } from '../../config/avatar.config.js';
+import { BadRequestError } from '../../shared/errors/bad-request-error.js';
+
+function deleteLocalAvatarFile(profileImage: string | null): void {
+  if (!profileImage || !profileImage.startsWith(AVATAR_PUBLIC_PATH_PREFIX)) {
+    return;
+  }
+
+  const fileName = path.basename(profileImage);
+  const filePath = path.join(AVATAR_UPLOADS_DIR, fileName);
+
+  fs.unlink(filePath, (error) => {
+    if (error) {
+      console.error('[user:avatar-cleanup-failed]', error);
+    }
+  });
+}
 
 export class UserController {
   constructor(
@@ -39,6 +59,29 @@ export class UserController {
       res.status(200).json({
         success: true,
         message: 'User updated successfully.',
+        data: UserResponseMapper.toResponse(updatedUser),
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  uploadAvatar = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      if (!req.file) {
+        throw new BadRequestError('An image file is required.');
+      }
+
+      const previousProfileImage = req.user.profileImage;
+      const profileImage = `${AVATAR_PUBLIC_PATH_PREFIX}/${req.file.filename}`;
+
+      const updatedUser = await this.updateCurrentUserUseCase.execute(req.user, { profileImage });
+
+      deleteLocalAvatarFile(previousProfileImage);
+
+      res.status(200).json({
+        success: true,
+        message: 'Avatar updated successfully.',
         data: UserResponseMapper.toResponse(updatedUser),
       });
     } catch (error) {
