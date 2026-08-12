@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { QBtn } from 'quasar'
+import { QBtn, QTooltip } from 'quasar'
+import { useI18n } from 'vue-i18n'
 
 import { useTheme } from '@/composables/useTheme'
 
 const { isDark, toggle } = useTheme()
+const { t } = useI18n()
 </script>
 
 <template>
@@ -11,7 +13,9 @@ const { isDark, toggle } = useTheme()
     round
     unelevated
     :color="isDark ? 'accent' : 'primary'"
-    :icon="isDark ? 'light_mode' : 'dark_mode'"
+    :icon="isDark ? 'dark_mode' : 'light_mode'"
     @click="toggle"
-  />
+  >
+    <QTooltip>{{ isDark ? t('sidebar.themeDarkLabel') : t('sidebar.themeLightLabel') }}</QTooltip>
+  </QBtn>
 </template>

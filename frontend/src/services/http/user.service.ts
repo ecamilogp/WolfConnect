@@ -29,6 +29,10 @@ export async function changePassword(payload: ChangePasswordPayload): Promise<vo
   await httpClient.patch('/users/me/password', payload)
 }
 
+export async function deactivateAccount(): Promise<void> {
+  await httpClient.patch('/users/me/deactivate')
+}
+
 export async function listUsers(): Promise<User[]> {
   const response = await httpClient.get<User[]>('/users')
   return response.data

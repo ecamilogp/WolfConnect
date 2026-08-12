@@ -32,6 +32,17 @@
   "layout": {
     "logout": "Log out"
   },
+  "settings": {
+    "menuItem": "Settings",
+    "title": "Settings",
+    "backButton": "Back",
+    "accountTitle": "Account",
+    "deactivateAccountButton": "Deactivate account",
+    "deactivateDescription": "You'll be signed out and won't be able to log back in on your own.",
+    "deactivateConfirm": "Are you sure you want to deactivate your account? You'll be signed out immediately and, for now, there's no way to reactivate it from the app — you'd need to contact an administrator.",
+    "deactivateLoadingMessage": "Deactivating your account...",
+    "deactivateError": "Couldn't deactivate the account. Please try again."
+  },
   "admin": {
     "menuItem": "Administration",
     "title": "User administration",
@@ -91,7 +102,9 @@
     "newChatMenuChat": "New chat",
     "newChatMenuGroup": "New group",
     "pendingInvitationsTooltip": "Pending invitations",
-    "resizeHandleLabel": "Drag to resize the panel width"
+    "resizeHandleLabel": "Drag to resize the panel width",
+    "themeDarkLabel": "Dark mode",
+    "themeLightLabel": "Light mode"
   },
   "notifications": {
     "title": "Notifications",

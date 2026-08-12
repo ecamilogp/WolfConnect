@@ -111,6 +111,10 @@ function goToAdminUsers(): void {
   router.push({ name: 'admin-users' })
 }
 
+function goToSettings(): void {
+  router.push({ name: 'settings' })
+}
+
 async function handleNewChat(userId: string): Promise<void> {
   const chat = await chatStore.createPrivateChat(userId)
   goToChat(chat.id)
@@ -178,7 +182,7 @@ async function handleLogout(): Promise<void> {
         alt="WolfConnect"
         class="h-9 w-auto object-cover"
       />
-      <div class="flex ml-6 mb-1 items-end justify-center gap-2">
+      <div class="flex ml-6 mb-1 items-end gap-2">
         <LanguageToggle />
         <ThemeToggle />
       </div>
@@ -300,6 +304,14 @@ async function handleLogout(): Promise<void> {
                 </QItemSection>
                 <QItemSection>
                   {{ t('admin.menuItem') }}
+                </QItemSection>
+              </QItem>
+              <QItem v-close-popup clickable @click="goToSettings">
+                <QItemSection avatar>
+                  <QIcon name="settings" size="18px" />
+                </QItemSection>
+                <QItemSection>
+                  {{ t('settings.menuItem') }}
                 </QItemSection>
               </QItem>
               <QItem v-close-popup clickable @click="handleLogout">

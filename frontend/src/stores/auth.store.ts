@@ -5,6 +5,7 @@ import { getCurrentUser, login as loginRequest, register as registerRequest } fr
 import type { LoginPayload, RegisterPayload } from '@/services/http/auth.service'
 import {
   changePassword as changePasswordRequest,
+  deactivateAccount as deactivateAccountRequest,
   updateProfile as updateProfileRequest,
   uploadAvatar as uploadAvatarRequest,
 } from '@/services/http/user.service'
@@ -64,6 +65,11 @@ export const useAuthStore = defineStore('auth', () => {
     await changePasswordRequest(payload)
   }
 
+  async function deactivateAccount(): Promise<void> {
+    await deactivateAccountRequest()
+    clearSession()
+  }
+
   async function restoreSession(): Promise<void> {
     const token = localStorage.getItem(STORAGE_KEY)
 
@@ -98,5 +104,6 @@ export const useAuthStore = defineStore('auth', () => {
     updateProfile,
     updateAvatar,
     changePassword,
+    deactivateAccount,
   }
 })
