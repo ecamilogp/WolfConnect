@@ -32,6 +32,17 @@
   "layout": {
     "logout": "Cerrar sesión"
   },
+  "settings": {
+    "menuItem": "Ajustes",
+    "title": "Ajustes",
+    "backButton": "Volver",
+    "accountTitle": "Cuenta",
+    "deactivateAccountButton": "Desactivar cuenta",
+    "deactivateDescription": "Cerrarás tu sesión y no podrás volver a iniciarla por tu cuenta.",
+    "deactivateConfirm": "¿Seguro que quieres desactivar tu cuenta? Cerrarás la sesión de inmediato y, por ahora, no hay una forma de reactivarla desde la app — necesitarías contactar a un administrador.",
+    "deactivateLoadingMessage": "Desactivando tu cuenta...",
+    "deactivateError": "No se pudo desactivar la cuenta. Inténtalo de nuevo."
+  },
   "admin": {
     "menuItem": "Administración",
     "title": "Administración de usuarios",
@@ -91,7 +102,9 @@
     "newChatMenuChat": "Nuevo chat",
     "newChatMenuGroup": "Nuevo grupo",
     "pendingInvitationsTooltip": "Invitaciones pendientes",
-    "resizeHandleLabel": "Arrastra para ajustar el ancho del panel"
+    "resizeHandleLabel": "Arrastra para ajustar el ancho del panel",
+    "themeDarkLabel": "Modo oscuro",
+    "themeLightLabel": "Modo claro"
   },
   "notifications": {
     "title": "Notificaciones",
