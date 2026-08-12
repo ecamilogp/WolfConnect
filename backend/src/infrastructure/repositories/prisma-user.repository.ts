@@ -1,4 +1,4 @@
-import { User, UserStatus } from '../../domain/entities/user.entity.js';
+import { User, UserRole, UserStatus } from '../../domain/entities/user.entity.js';
 import { UserRepository } from '../../domain/repositories/user.repository.js';
 import { prisma } from '../database/prisma.service.js';
 import { UserMapper } from '../mappers/user.mapper.js';
@@ -76,6 +76,19 @@ export class PrismaUserRepository implements UserRepository {
     return users.map(UserMapper.toDomain);
   }
 
+  async findAll(): Promise<User[]> {
+    const users = await prisma.user.findMany({
+      where: {
+        deletedAt: null,
+      },
+      orderBy: {
+        firstName: 'asc',
+      },
+    });
+
+    return users.map(UserMapper.toDomain);
+  }
+
   async update(id: string, data: UpdateUserDTO): Promise<User> {
     const user = await prisma.user.update({
       where: {
@@ -94,6 +107,19 @@ export class PrismaUserRepository implements UserRepository {
       },
       data: {
         password,
+      },
+    });
+
+    return UserMapper.toDomain(user);
+  }
+
+  async updateRole(id: string, role: UserRole): Promise<User> {
+    const user = await prisma.user.update({
+      where: {
+        id,
+      },
+      data: {
+        role,
       },
     });
 

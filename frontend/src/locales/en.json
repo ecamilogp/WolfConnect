@@ -32,6 +32,29 @@
   "layout": {
     "logout": "Log out"
   },
+  "admin": {
+    "menuItem": "Administration",
+    "title": "User administration",
+    "backButton": "Back",
+    "emptyTitle": "No users",
+    "emptyDescription": "No users have registered yet.",
+    "you": "you",
+    "roleAdmin": "Administrator",
+    "roleUser": "User",
+    "promoteAction": "Make administrator",
+    "demoteAction": "Remove administrator",
+    "cannotChangeSelf": "You can't change your own role.",
+    "promoteConfirm": "Make {name} an administrator?",
+    "demoteConfirm": "Remove administrator role from {name}?",
+    "promoteSuccessNotify": "User promoted to administrator.",
+    "demoteSuccessNotify": "Administrator role removed.",
+    "loadError": "Couldn't load the user list.",
+    "actionError": "Couldn't complete that action. Please try again.",
+    "errors": {
+      "notAdmin": "Only an administrator can perform this action.",
+      "cannotChangeSelf": "You can't change your own administrator role."
+    }
+  },
   "profile": {
     "menuItem": "My profile",
     "title": "My profile",
@@ -67,7 +90,8 @@
     "newChatTooltip": "Add a user to start a chat",
     "newChatMenuChat": "New chat",
     "newChatMenuGroup": "New group",
-    "pendingInvitationsTooltip": "Pending invitations"
+    "pendingInvitationsTooltip": "Pending invitations",
+    "resizeHandleLabel": "Drag to resize the panel width"
   },
   "notifications": {
     "title": "Notifications",

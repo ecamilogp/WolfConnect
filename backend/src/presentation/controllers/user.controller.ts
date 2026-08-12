@@ -10,6 +10,8 @@ import { UserResponseMapper } from '../mappers/user-response.mapper.js';
 import { DeactivateUserUseCase } from '../../application/use-cases/users/deactivate-user.use-case.js';
 import { AdminDeactivateUserUseCase } from '../../application/use-cases/users/admin-deactivate-user.use-case.js';
 import { SearchUsersUseCase } from '../../application/use-cases/users/search-users.use-case.js';
+import { ListUsersUseCase } from '../../application/use-cases/users/list-users.use-case.js';
+import { UpdateUserRoleUseCase } from '../../application/use-cases/users/update-user-role.use-case.js';
 import { AVATAR_PUBLIC_PATH_PREFIX, AVATAR_UPLOADS_DIR } from '../../config/avatar.config.js';
 import { BadRequestError } from '../../shared/errors/bad-request-error.js';
 
@@ -36,6 +38,8 @@ export class UserController {
     private readonly deactivateUserUseCase: DeactivateUserUseCase,
     private readonly adminDeactivateUserUseCase: AdminDeactivateUserUseCase,
     private readonly searchUsersUseCase: SearchUsersUseCase,
+    private readonly listUsersUseCase: ListUsersUseCase,
+    private readonly updateUserRoleUseCase: UpdateUserRoleUseCase,
   ) {}
 
   me = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -122,6 +126,37 @@ export class UserController {
       res.status(200).json({
         success: true,
         message: 'User deactivated successfully.',
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  list = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const users = await this.listUsersUseCase.execute(req.user);
+
+      res.status(200).json({
+        success: true,
+        data: users.map(UserResponseMapper.toResponse),
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  updateRole = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const updatedUser = await this.updateUserRoleUseCase.execute(
+        req.user,
+        String(req.params.userId),
+        req.body,
+      );
+
+      res.status(200).json({
+        success: true,
+        message: 'User role updated successfully.',
+        data: UserResponseMapper.toResponse(updatedUser),
       });
     } catch (error) {
       next(error);

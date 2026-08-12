@@ -20,6 +20,7 @@ import { useTheme } from '@/composables/useTheme'
 import { useChatSocket } from '@/composables/useChatSocket'
 import { useAppLoading } from '@/composables/useAppLoading'
 import { useAppNotify } from '@/composables/useAppNotify'
+import { useResizablePanel } from '@/composables/useResizablePanel'
 import type { Chat, ChatSummary } from '@/types/models/chat.model'
 import type { Message } from '@/types/models/message.model'
 import type { ChatLeftPayload } from '@/types/socket/payloads.type'
@@ -36,6 +37,16 @@ const { t } = useI18n()
 const { isDark } = useTheme()
 const { showLoading, hideLoading } = useAppLoading()
 const { notifySuccess, notifyError } = useAppNotify()
+const {
+  width: sidebarWidth,
+  isResizing,
+  startResize,
+} = useResizablePanel({
+  storageKey: 'wolfconnect:sidebar-width',
+  defaultWidth: 336,
+  minWidth: 320,
+  maxWidth: 480,
+})
 
 const search = ref('')
 const isNewChatOpen = ref(false)
@@ -96,6 +107,10 @@ function goToProfile(): void {
   router.push({ name: 'profile' })
 }
 
+function goToAdminUsers(): void {
+  router.push({ name: 'admin-users' })
+}
+
 async function handleNewChat(userId: string): Promise<void> {
   const chat = await chatStore.createPrivateChat(userId)
   goToChat(chat.id)
@@ -153,7 +168,10 @@ async function handleLogout(): Promise<void> {
 </script>
 
 <template>
-  <aside class="app-sidebar flex h-full w-80 shrink-0 flex-col">
+  <aside
+    class="app-sidebar relative flex h-full shrink-0 flex-col"
+    :style="{ width: `${sidebarWidth}px` }"
+  >
     <div class="flex items-center gap-2 px-4 py-4">
       <img
         :src="isDark ? brandMarkDark : brandMark"
@@ -240,7 +258,11 @@ async function handleLogout(): Promise<void> {
           :aria-label="t('profile.title')"
           @click="goToProfile"
         >
-          <AppAvatar :src="authStore.user?.profileImage ?? undefined" :initials="initials" size="45px" />
+          <AppAvatar
+            :src="authStore.user?.profileImage ?? undefined"
+            :initials="initials"
+            size="45px"
+          />
 
           <div class="min-w-0 flex-1 overflow-hidden">
             <p class="truncate text-sm font-semibold leading-tight translate-y-3">
@@ -267,6 +289,19 @@ async function handleLogout(): Promise<void> {
                   {{ t('profile.menuItem') }}
                 </QItemSection>
               </QItem>
+              <QItem
+                v-if="authStore.user?.role === 'ADMIN'"
+                v-close-popup
+                clickable
+                @click="goToAdminUsers"
+              >
+                <QItemSection avatar>
+                  <QIcon name="admin_panel_settings" size="18px" />
+                </QItemSection>
+                <QItemSection>
+                  {{ t('admin.menuItem') }}
+                </QItemSection>
+              </QItem>
               <QItem v-close-popup clickable @click="handleLogout">
                 <QItemSection avatar>
                   <QIcon name="logout" size="18px" />
@@ -280,6 +315,15 @@ async function handleLogout(): Promise<void> {
         </QBtn>
       </div>
     </div>
+
+    <div
+      class="app-sidebar__resize-handle"
+      :class="{ 'app-sidebar__resize-handle--active': isResizing }"
+      role="separator"
+      aria-orientation="vertical"
+      :aria-label="t('sidebar.resizeHandleLabel')"
+      @pointerdown="startResize"
+    />
   </aside>
 </template>
 
@@ -287,6 +331,23 @@ async function handleLogout(): Promise<void> {
 .app-sidebar {
   background-color: #faf8f8;
   border-right: 1px solid #cecdcd;
+}
+
+.app-sidebar__resize-handle {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  touch-action: none;
+  z-index: 10;
+}
+
+.app-sidebar__resize-handle:hover,
+.app-sidebar__resize-handle--active {
+  background-color: var(--q-primary);
+  opacity: 0.5;
 }
 
 .body--dark .app-sidebar {
