@@ -3,6 +3,12 @@ import { defineStore } from 'pinia'
 
 import { getCurrentUser, login as loginRequest, register as registerRequest } from '@/services/http/auth.service'
 import type { LoginPayload, RegisterPayload } from '@/services/http/auth.service'
+import {
+  changePassword as changePasswordRequest,
+  updateProfile as updateProfileRequest,
+  uploadAvatar as uploadAvatarRequest,
+} from '@/services/http/user.service'
+import type { ChangePasswordPayload, UpdateProfilePayload } from '@/services/http/user.service'
 import { setAccessToken } from '@/services/http/http-client'
 import { connectSocket, disconnectSocket } from '@/services/realtime/socket-client'
 import type { User } from '@/types/models/user.model'
@@ -46,6 +52,18 @@ export const useAuthStore = defineStore('auth', () => {
     clearSession()
   }
 
+  async function updateProfile(payload: UpdateProfilePayload): Promise<void> {
+    user.value = await updateProfileRequest(payload)
+  }
+
+  async function updateAvatar(file: File): Promise<void> {
+    user.value = await uploadAvatarRequest(file)
+  }
+
+  async function changePassword(payload: ChangePasswordPayload): Promise<void> {
+    await changePasswordRequest(payload)
+  }
+
   async function restoreSession(): Promise<void> {
     const token = localStorage.getItem(STORAGE_KEY)
 
@@ -77,5 +95,8 @@ export const useAuthStore = defineStore('auth', () => {
     register,
     logout,
     restoreSession,
+    updateProfile,
+    updateAvatar,
+    changePassword,
   }
 })

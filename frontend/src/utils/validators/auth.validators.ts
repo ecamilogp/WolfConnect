@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
-const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü' -]+$/
-const usernameRegex = /^[a-zA-Z0-9._]+$/
+export const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü' -]+$/
+export const usernameRegex = /^[a-zA-Z0-9._]+$/
 
 type Translate = (key: string) => string
 

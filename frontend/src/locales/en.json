@@ -32,6 +32,33 @@
   "layout": {
     "logout": "Log out"
   },
+  "profile": {
+    "menuItem": "My profile",
+    "title": "My profile",
+    "backButton": "Back",
+    "changeAvatarLabel": "Change profile photo",
+    "personalInfoTitle": "Personal information",
+    "firstNameLabel": "First name",
+    "lastNameLabel": "Last name",
+    "usernameLabel": "Username",
+    "saveButton": "Save changes",
+    "passwordTitle": "Change password",
+    "currentPasswordLabel": "Current password",
+    "newPasswordLabel": "New password",
+    "confirmPasswordLabel": "Confirm new password",
+    "changePasswordButton": "Update password",
+    "updateSuccessNotify": "Profile updated successfully.",
+    "updateError": "Couldn't update the profile. Please try again.",
+    "avatarUpdateSuccessNotify": "Profile photo updated.",
+    "avatarUpdateError": "Couldn't update the profile photo. Please try again.",
+    "passwordUpdateSuccessNotify": "Password updated successfully.",
+    "passwordUpdateError": "Couldn't update the password. Please try again.",
+    "errors": {
+      "usernameTaken": "That username is already taken.",
+      "currentPasswordIncorrect": "Your current password is incorrect.",
+      "samePassword": "The new password must be different from the current one."
+    }
+  },
   "sidebar": {
     "searchPlaceholder": "Search conversations",
     "noConversationsTitle": "No conversations yet",
@@ -194,7 +221,8 @@
       "uppercase": "Password must contain at least one uppercase letter.",
       "number": "Password must contain at least one number.",
       "specialChar": "Password must contain at least one special character.",
-      "noSpaces": "Password cannot contain spaces."
+      "noSpaces": "Password cannot contain spaces.",
+      "mismatch": "Passwords do not match."
     },
     "firstName": {
       "minLength": "First name must be at least 2 characters.",

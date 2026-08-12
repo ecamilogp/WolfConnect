@@ -21,7 +21,7 @@ withDefaults(
 
 <template>
   <QAvatar :size="size" :color="src ? undefined : color" text-color="white">
-    <QImg v-if="src" :src="src" :alt="alt" />
+    <QImg v-if="src" :src="src" :alt="alt" ratio="1" fit="cover" class="h-full w-full" />
     <span v-else>{{ initials }}</span>
   </QAvatar>
 </template>

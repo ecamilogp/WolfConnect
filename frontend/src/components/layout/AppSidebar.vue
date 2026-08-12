@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { QAvatar, QBadge, QBtn, QIcon, QInput, QItem, QItemSection, QList, QMenu, QTooltip } from 'quasar'
+import { QBadge, QBtn, QIcon, QInput, QItem, QItemSection, QList, QMenu, QTooltip } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
 import ThemeToggle from '@/components/ui/ThemeToggle.vue'
 import LanguageToggle from '@/components/ui/LanguageToggle.vue'
+import AppAvatar from '@/components/ui/AppAvatar.vue'
 import ConversationList from '@/components/chat/ConversationList.vue'
 import NewChatModal from '@/components/chat/NewChatModal.vue'
 import CreateGroupModal from '@/components/chat/CreateGroupModal.vue'
@@ -89,6 +90,10 @@ onUnmounted(() => {
 
 function goToChat(chatId: string): void {
   router.push({ name: 'chat', params: { chatId } })
+}
+
+function goToProfile(): void {
+  router.push({ name: 'profile' })
 }
 
 async function handleNewChat(userId: string): Promise<void> {
@@ -229,31 +234,43 @@ async function handleLogout(): Promise<void> {
 
     <div class="app-sidebar__footer border-t border-white/10 px-6 py-4">
       <div class="flex items-center gap-3">
-        <QAvatar
-          size="45px"
-          text-color="white"
-          class="font-semibold bg-brand-violet dark:bg-brand-amber"
+        <button
+          type="button"
+          class="flex min-w-0 flex-1 items-center gap-3 overflow-hidden text-left"
+          :aria-label="t('profile.title')"
+          @click="goToProfile"
         >
-          {{ initials }}
-        </QAvatar>
+          <AppAvatar :src="authStore.user?.profileImage ?? undefined" :initials="initials" size="45px" />
 
-        <div class="min-w-0 flex-1 overflow-hidden">
-          <p class="truncate text-sm font-semibold leading-tight translate-y-3">
-            {{ fullName }}
-            <span class="font-normal text-gray-500 dark:text-gray-400">
-              — {{ authStore.user?.username }}</span
-            >
-          </p>
+          <div class="min-w-0 flex-1 overflow-hidden">
+            <p class="truncate text-sm font-semibold leading-tight translate-y-3">
+              {{ fullName }}
+              <span class="font-normal text-gray-500 dark:text-gray-400">
+                — {{ authStore.user?.username }}</span
+              >
+            </p>
 
-          <p class="truncate text-xs leading-tight text-gray-500 dark:text-gray-400">
-            {{ authStore.user?.email }}
-          </p>
-        </div>
+            <p class="truncate text-xs leading-tight text-gray-500 dark:text-gray-400">
+              {{ authStore.user?.email }}
+            </p>
+          </div>
+        </button>
 
         <QBtn round flat dense icon="more_vert" color="grey-6">
           <QMenu>
             <QList dense>
+              <QItem v-close-popup clickable @click="goToProfile">
+                <QItemSection avatar>
+                  <QIcon name="person" size="18px" />
+                </QItemSection>
+                <QItemSection>
+                  {{ t('profile.menuItem') }}
+                </QItemSection>
+              </QItem>
               <QItem v-close-popup clickable @click="handleLogout">
+                <QItemSection avatar>
+                  <QIcon name="logout" size="18px" />
+                </QItemSection>
                 <QItemSection>
                   {{ t('layout.logout') }}
                 </QItemSection>

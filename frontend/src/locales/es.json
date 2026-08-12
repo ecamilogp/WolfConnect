@@ -32,6 +32,33 @@
   "layout": {
     "logout": "Cerrar sesión"
   },
+  "profile": {
+    "menuItem": "Mi perfil",
+    "title": "Mi perfil",
+    "backButton": "Volver",
+    "changeAvatarLabel": "Cambiar foto de perfil",
+    "personalInfoTitle": "Información personal",
+    "firstNameLabel": "Nombre",
+    "lastNameLabel": "Apellido",
+    "usernameLabel": "Nombre de usuario",
+    "saveButton": "Guardar cambios",
+    "passwordTitle": "Cambiar contraseña",
+    "currentPasswordLabel": "Contraseña actual",
+    "newPasswordLabel": "Nueva contraseña",
+    "confirmPasswordLabel": "Confirmar nueva contraseña",
+    "changePasswordButton": "Actualizar contraseña",
+    "updateSuccessNotify": "Perfil actualizado correctamente.",
+    "updateError": "No se pudo actualizar el perfil. Inténtalo de nuevo.",
+    "avatarUpdateSuccessNotify": "Foto de perfil actualizada.",
+    "avatarUpdateError": "No se pudo actualizar la foto de perfil. Inténtalo de nuevo.",
+    "passwordUpdateSuccessNotify": "Contraseña actualizada correctamente.",
+    "passwordUpdateError": "No se pudo actualizar la contraseña. Inténtalo de nuevo.",
+    "errors": {
+      "usernameTaken": "Ese nombre de usuario ya está en uso.",
+      "currentPasswordIncorrect": "La contraseña actual es incorrecta.",
+      "samePassword": "La nueva contraseña debe ser diferente a la actual."
+    }
+  },
   "sidebar": {
     "searchPlaceholder": "Buscar conversaciones",
     "noConversationsTitle": "Todavía no hay conversaciones",
@@ -194,7 +221,8 @@
       "uppercase": "La contraseña debe contener al menos una letra mayúscula.",
       "number": "La contraseña debe contener al menos un número.",
       "specialChar": "La contraseña debe contener al menos un carácter especial.",
-      "noSpaces": "La contraseña no puede contener espacios."
+      "noSpaces": "La contraseña no puede contener espacios.",
+      "mismatch": "Las contraseñas no coinciden."
     },
     "firstName": {
       "minLength": "El nombre debe tener al menos 2 caracteres.",
