@@ -1,8 +1,10 @@
 import { NextFunction, Request, Response } from 'express';
 
+import { PrismaAttachmentRepository } from '../../infrastructure/repositories/prisma-attachment.repository.js';
 import { PrismaChatRepository } from '../../infrastructure/repositories/prisma-chat.repository.js';
 import { PrismaMessageRepository } from '../../infrastructure/repositories/prisma-message.repository.js';
 import { SendMessageUseCase } from '../../application/use-cases/message/send-message.use-case.js';
+import { SendMessageWithAttachmentUseCase } from '../../application/use-cases/message/send-message-with-attachment.use-case.js';
 import { GetMessagesUseCase } from '../../application/use-cases/message/get-messages.use-case.js';
 import { EditMessageUseCase } from '../../application/use-cases/message/edit-message.use-case.js';
 import { DeleteMessageUseCase } from '../../application/use-cases/message/delete-message.use-case.js';
@@ -11,15 +13,24 @@ import { SocketEvents } from '../../infrastructure/websocket/events/socket-event
 import { chatRoom } from '../../infrastructure/websocket/handlers/chat.handler.js';
 import { getIO } from '../../infrastructure/websocket/socket.server.js';
 import { MessageReadUpdatedPayload } from '../../infrastructure/websocket/types/socket-payloads.type.js';
+import { BadRequestError } from '../../shared/errors/bad-request-error.js';
 
 export class MessageController {
   private readonly chatRepository = new PrismaChatRepository();
 
   private readonly messageRepository = new PrismaMessageRepository();
 
+  private readonly attachmentRepository = new PrismaAttachmentRepository();
+
   private readonly sendMessageUseCase = new SendMessageUseCase(
     this.chatRepository,
     this.messageRepository,
+  );
+
+  private readonly sendMessageWithAttachmentUseCase = new SendMessageWithAttachmentUseCase(
+    this.chatRepository,
+    this.messageRepository,
+    this.attachmentRepository,
   );
 
   private readonly getMessagesUseCase = new GetMessagesUseCase(
@@ -44,6 +55,46 @@ export class MessageController {
         content: req.body.content,
         replyToMessageId: req.body.replyToMessageId,
       });
+
+      res.status(201).json({
+        success: true,
+        message: 'Message sent successfully.',
+        data: message,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  sendMessageWithAttachment = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      if (!req.file) {
+        throw new BadRequestError('A file is required.');
+      }
+
+      const chatId = String(req.params.chatId);
+      const rawContent = typeof req.body.content === 'string' ? req.body.content.trim() : '';
+
+      const message = await this.sendMessageWithAttachmentUseCase.execute({
+        chatId,
+        senderId: req.user.id,
+        content: rawContent.length > 0 ? rawContent : null,
+        fileName: req.file.filename,
+        originalName: req.file.originalname,
+        mimeType: req.file.mimetype,
+        size: req.file.size,
+        path: req.file.path,
+      });
+
+      try {
+        getIO().to(chatRoom(chatId)).emit(SocketEvents.MESSAGE_NEW, message);
+      } catch (socketError) {
+        console.error('[message:attachment:socket-emit-failed]', socketError);
+      }
 
       res.status(201).json({
         success: true,

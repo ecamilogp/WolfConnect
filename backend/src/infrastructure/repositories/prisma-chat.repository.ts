@@ -323,6 +323,7 @@ export class PrismaChatRepository implements ChatRepository {
             userId: true,
           },
         },
+        attachments: true,
       },
     });
 

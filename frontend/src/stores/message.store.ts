@@ -18,6 +18,7 @@ function toListItem(message: Message): MessageListItem {
     editedAt: message.editedAt,
     replyTo: message.replyTo,
     reactions: message.reactions,
+    attachments: message.attachments,
   }
 }
 

@@ -12,6 +12,8 @@ import { useMessageStore } from '@/stores/message.store'
 import { useAuthStore } from '@/stores/auth.store'
 import { useGroupStore } from '@/stores/group.store'
 import { useChatSocket } from '@/composables/useChatSocket'
+import { useAppNotify } from '@/composables/useAppNotify'
+import { sendMessageWithAttachment } from '@/services/http/attachment.service'
 import type { Chat } from '@/types/models/chat.model'
 import type { Message } from '@/types/models/message.model'
 import type {
@@ -27,6 +29,7 @@ const messageStore = useMessageStore()
 const authStore = useAuthStore()
 const groupStore = useGroupStore()
 const chatSocket = useChatSocket()
+const { notifyError } = useAppNotify()
 
 const chatId = computed(() => String(route.params.chatId))
 
@@ -111,6 +114,14 @@ onUnmounted(() => {
 function handleSend(content: string): void {
   chatSocket.sendMessage(chatId.value, content)
 }
+
+async function handleSendAttachment(payload: { content: string; file: File }): Promise<void> {
+  try {
+    await sendMessageWithAttachment(chatId.value, payload.content, payload.file)
+  } catch (error) {
+    notifyError(error, 'chat.attachmentSendError')
+  }
+}
 </script>
 
 <template>
@@ -137,7 +148,7 @@ function handleSend(content: string): void {
       :is-group="isGroup"
     />
 
-    <MessageComposer @send="handleSend" />
+    <MessageComposer @send="handleSend" @send-attachment="handleSendAttachment" />
 
     <GroupInfoPanel
       v-model="isGroupInfoOpen"

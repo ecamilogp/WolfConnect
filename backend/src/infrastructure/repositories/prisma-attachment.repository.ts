@@ -2,6 +2,7 @@ import { AttachmentResponseDto } from '../../domain/dto/attachment/attachment-re
 import { CreateAttachmentDto } from '../../domain/dto/attachment/create-attachment.dto.js';
 import { AttachmentRepository } from '../../domain/repositories/attachment.repository.js';
 import { prisma } from '../database/prisma.service.js';
+import { AttachmentMapper } from '../mappers/attachment.mapper.js';
 
 export class PrismaAttachmentRepository implements AttachmentRepository {
   async create(data: CreateAttachmentDto): Promise<AttachmentResponseDto> {
@@ -16,15 +17,6 @@ export class PrismaAttachmentRepository implements AttachmentRepository {
       },
     });
 
-    return {
-      id: attachment.id,
-      messageId: attachment.messageId,
-      fileName: attachment.fileName,
-      originalName: attachment.originalName,
-      mimeType: attachment.mimeType,
-      size: attachment.size,
-      path: attachment.path,
-      createdAt: attachment.createdAt,
-    };
+    return AttachmentMapper.toResponseDto(attachment);
   }
 }

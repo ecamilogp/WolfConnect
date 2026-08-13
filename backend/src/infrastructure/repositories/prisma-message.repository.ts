@@ -18,6 +18,7 @@ const MESSAGE_RELATIONS_INCLUDE = {
       userId: true,
     },
   },
+  attachments: true,
 } as const;
 
 export class PrismaMessageRepository implements MessageRepository {
