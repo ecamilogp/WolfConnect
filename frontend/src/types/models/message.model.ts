@@ -1,3 +1,5 @@
+import type { Attachment } from './attachment.model'
+
 export type MessageType = 'TEXT' | 'SYSTEM'
 
 export type SystemEventType = 'PARTICIPANT_LEFT' | 'PARTICIPANT_REMOVED' | 'PARTICIPANT_JOINED'
@@ -36,6 +38,7 @@ export interface Message {
   deletedAt: string | null
   replyTo: ReplyToMessage | null
   reactions: MessageReactionSummary[]
+  attachments: Attachment[]
 }
 
 export interface MessageListItem {
@@ -51,4 +54,5 @@ export interface MessageListItem {
   editedAt: string | null
   replyTo: ReplyToMessage | null
   reactions: MessageReactionSummary[]
+  attachments: Attachment[]
 }

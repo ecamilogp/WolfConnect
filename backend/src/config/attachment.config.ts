@@ -54,3 +54,7 @@ export function resolveAttachmentFolder(mimeType: string): AttachmentFolder {
 
   return 'others';
 }
+
+export function buildAttachmentUrl(mimeType: string, fileName: string): string {
+  return `/uploads/${resolveAttachmentFolder(mimeType)}/${fileName}`;
+}

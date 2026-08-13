@@ -103,6 +103,13 @@ router.post(
   messageController.sendMessage,
 );
 
+router.post(
+  '/:chatId/messages/attachments',
+  authenticate,
+  uploadSingleAttachment,
+  messageController.sendMessageWithAttachment,
+);
+
 router.get('/:chatId/messages', authenticate, messageController.getMessages);
 
 router.patch(

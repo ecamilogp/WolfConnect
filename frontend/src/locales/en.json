@@ -158,6 +158,11 @@
     "edited": "Edited",
     "sent": "Sent",
     "readByAll": "Read by all",
+    "attachFile": "Attach file",
+    "removeAttachment": "Remove file",
+    "captionPlaceholder": "Write a message (optional)",
+    "attachmentSendError": "Couldn't send the file. Please try again.",
+    "downloadAttachment": "Download file",
     "systemEvents": {
       "participantLeft": "{name} left the group.",
       "participantRemoved": "{name} was removed from the group.",

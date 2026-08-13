@@ -6,5 +6,6 @@ export interface Attachment {
   mimeType: string
   size: number
   path: string
+  url: string
   createdAt: string
 }

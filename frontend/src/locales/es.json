@@ -158,6 +158,11 @@
     "edited": "Editado",
     "sent": "Enviado",
     "readByAll": "Leído por todos",
+    "attachFile": "Adjuntar archivo",
+    "removeAttachment": "Quitar archivo",
+    "captionPlaceholder": "Escribe un mensaje (opcional)",
+    "attachmentSendError": "No se pudo enviar el archivo. Inténtalo de nuevo.",
+    "downloadAttachment": "Descargar archivo",
     "systemEvents": {
       "participantLeft": "{name} salió del grupo.",
       "participantRemoved": "{name} fue eliminado del grupo.",

@@ -1,13 +1,21 @@
 import { Prisma } from '@prisma/client';
 
+import { AttachmentResponseDto } from '../../domain/dto/attachment/attachment-response.dto.js';
 import { MessageListItemDto } from '../../domain/dto/message/message-list-item.dto.js';
 import { MessageReactionSummaryDto } from '../../domain/dto/message/message-reaction-summary.dto.js';
 import { MessageResponseDto } from '../../domain/dto/message/message-response.dto.js';
 import { MessageSenderSummaryDto } from '../../domain/dto/message/message-sender-summary.dto.js';
 import { ReplyToMessageDto } from '../../domain/dto/message/reply-to-message.dto.js';
+import { AttachmentMapper } from './attachment.mapper.js';
 
 export type MessageWithRelations = Prisma.MessageGetPayload<{
-  include: { sender: true; replyTo: true; reactions: true; reads: { select: { userId: true } } };
+  include: {
+    sender: true;
+    replyTo: true;
+    reactions: true;
+    reads: { select: { userId: true } };
+    attachments: true;
+  };
 }>;
 
 export class MessageMapper {
@@ -48,6 +56,12 @@ export class MessageMapper {
     }));
   }
 
+  static toAttachmentsSummary(
+    attachments: MessageWithRelations['attachments'],
+  ): AttachmentResponseDto[] {
+    return attachments.map((attachment) => AttachmentMapper.toResponseDto(attachment));
+  }
+
   static toIsReadByAll(message: MessageWithRelations, activeParticipantIds: string[]): boolean {
     const requiredReaderIds = activeParticipantIds.filter((id) => id !== message.senderId);
 
@@ -79,6 +93,7 @@ export class MessageMapper {
       deletedAt: message.deletedAt,
       replyTo: this.toReplyToDto(message.replyTo),
       reactions: this.toReactionsSummary(message.reactions),
+      attachments: this.toAttachmentsSummary(message.attachments),
     };
   }
 
@@ -99,6 +114,7 @@ export class MessageMapper {
       editedAt: message.editedAt,
       replyTo: this.toReplyToDto(message.replyTo),
       reactions: this.toReactionsSummary(message.reactions),
+      attachments: this.toAttachmentsSummary(message.attachments),
     };
   }
 }
