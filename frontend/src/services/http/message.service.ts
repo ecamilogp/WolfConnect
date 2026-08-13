@@ -9,3 +9,11 @@ export async function getMessages(chatId: string): Promise<MessageListItem[]> {
 export async function markMessagesAsRead(chatId: string): Promise<void> {
   await httpClient.patch(`/chats/${chatId}/read`)
 }
+
+export async function setMessageReaction(messageId: string, emoji: string): Promise<void> {
+  await httpClient.put(`/chats/messages/${messageId}/reactions`, { emoji })
+}
+
+export async function removeMessageReaction(messageId: string): Promise<void> {
+  await httpClient.delete(`/chats/messages/${messageId}/reactions`)
+}

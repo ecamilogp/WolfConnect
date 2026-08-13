@@ -163,6 +163,11 @@
     "captionPlaceholder": "Write a message (optional)",
     "attachmentSendError": "Couldn't send the file. Please try again.",
     "downloadAttachment": "Download file",
+    "addReaction": "Add reaction",
+    "reactionError": "Couldn't save the reaction. Please try again.",
+    "emojiPicker": "Insert emoji",
+    "emojiSearchPlaceholder": "Search emoji",
+    "emojiNoResults": "No emojis found.",
     "systemEvents": {
       "participantLeft": "{name} left the group.",
       "participantRemoved": "{name} was removed from the group.",

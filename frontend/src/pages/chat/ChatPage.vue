@@ -19,6 +19,7 @@ import type { Message } from '@/types/models/message.model'
 import type {
   ChatLeftPayload,
   MessageDeletedPayload,
+  MessageReactionUpdatedPayload,
   MessageReadUpdatedPayload,
 } from '@/types/socket/payloads.type'
 
@@ -72,6 +73,9 @@ const unsubscribe = chatSocket.subscribe({
   },
   onMessageReadUpdated: (payload: MessageReadUpdatedPayload) => {
     messageStore.handleMessagesReadUpdated(payload.chatId, payload.messageIds)
+  },
+  onMessageReactionUpdated: (payload: MessageReactionUpdatedPayload) => {
+    messageStore.handleReactionUpdated(payload.chatId, payload.messageId, payload.reactions)
   },
 })
 

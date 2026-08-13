@@ -77,6 +77,7 @@ watch(
             :message="message"
             :is-own="message.senderId === currentUserId"
             :is-group="isGroup"
+            :current-user-id="currentUserId"
           />
         </template>
       </div>
