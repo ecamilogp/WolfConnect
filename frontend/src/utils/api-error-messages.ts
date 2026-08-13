@@ -48,6 +48,9 @@ const KNOWN_MESSAGES: Record<string, string> = {
   'Only an administrator can view the user list.': 'admin.errors.notAdmin',
   'Only an administrator can perform this action.': 'admin.errors.notAdmin',
   'You cannot change your own administrator role.': 'admin.errors.cannotChangeSelf',
+
+  'This email is already registered on WolfConnect.': 'platformInvitations.errors.alreadyRegistered',
+  'Inviter not found.': 'platformInvitations.errors.inviterNotFound',
 }
 
 export function translateApiError(

@@ -119,7 +119,12 @@ function handleSend(content: string): void {
       v-if="chat"
       class="flex items-center bg-[#FAF8F8] dark:bg-[#16151B] gap-3 border-b border-black/20 px-4 py-3 dark:border-white/20"
     >
-      <AppAvatar :src="chat.imageUrl ?? undefined" :initials="initials(chat.name)" size="36px" />
+      <AppAvatar
+        :src="chat.imageUrl ?? undefined"
+        :initials="initials(chat.name)"
+        size="36px"
+        previewable
+      />
       <p class="flex-1 font-semibold translate-y-2">{{ chat.name }}</p>
 
       <QBtn v-if="isGroup" round flat dense icon="info" @click="isGroupInfoOpen = true" />

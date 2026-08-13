@@ -7,5 +7,9 @@ export interface PlatformInvitationRepository {
 
   findByToken(token: string): Promise<PlatformInvitation | null>;
 
+  findLatestPendingByEmail(email: string): Promise<PlatformInvitation | null>;
+
+  renew(id: string, data: { token: string; expiresAt: Date }): Promise<PlatformInvitationResponseDto>;
+
   markAsAccepted(id: string): Promise<void>;
 }

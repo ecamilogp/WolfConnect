@@ -43,7 +43,7 @@ function onFileChange(event: Event): void {
 
 <template>
   <div class="app-avatar-upload relative inline-flex" :class="{ 'opacity-70': loading }">
-    <AppAvatar :src="src" :initials="initials" :size="size" />
+    <AppAvatar :src="src" :initials="initials" :size="size" previewable />
 
     <QBtn
       round

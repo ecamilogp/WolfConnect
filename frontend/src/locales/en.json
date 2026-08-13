@@ -32,6 +32,10 @@
   "layout": {
     "logout": "Log out"
   },
+  "imagePreview": {
+    "viewLabel": "View full-size image",
+    "close": "Close"
+  },
   "settings": {
     "menuItem": "Settings",
     "title": "Settings",
@@ -64,6 +68,21 @@
     "errors": {
       "notAdmin": "Only an administrator can perform this action.",
       "cannotChangeSelf": "You can't change your own administrator role."
+    }
+  },
+  "platformInvitations": {
+    "title": "Invite someone",
+    "subtitle": "We'll email them a link to sign up for WolfConnect.",
+    "emailLabel": "Email",
+    "invalidEmail": "Enter a valid email address.",
+    "cancel": "Cancel",
+    "submit": "Send invitation",
+    "close": "Close",
+    "sentNotify": "Invitation sent to {email}.",
+    "sendError": "Couldn't send the invitation. Please try again.",
+    "errors": {
+      "alreadyRegistered": "That email is already registered on WolfConnect.",
+      "inviterNotFound": "Couldn't identify who's sending the invitation."
     }
   },
   "profile": {
@@ -101,6 +120,7 @@
     "newChatTooltip": "Add a user to start a chat",
     "newChatMenuChat": "New chat",
     "newChatMenuGroup": "New group",
+    "newChatMenuInvite": "Invite someone",
     "pendingInvitationsTooltip": "Pending invitations",
     "resizeHandleLabel": "Drag to resize the panel width",
     "themeDarkLabel": "Dark mode",

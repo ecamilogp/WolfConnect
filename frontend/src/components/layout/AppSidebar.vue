@@ -10,6 +10,7 @@ import AppAvatar from '@/components/ui/AppAvatar.vue'
 import ConversationList from '@/components/chat/ConversationList.vue'
 import NewChatModal from '@/components/chat/NewChatModal.vue'
 import CreateGroupModal from '@/components/chat/CreateGroupModal.vue'
+import InvitePlatformModal from '@/components/chat/InvitePlatformModal.vue'
 import GroupPostCreateInviteModal from '@/components/chat/GroupPostCreateInviteModal.vue'
 import PendingInvitationsModal from '@/components/chat/PendingInvitationsModal.vue'
 import NotificationCenter from '@/components/layout/NotificationCenter.vue'
@@ -51,6 +52,7 @@ const {
 const search = ref('')
 const isNewChatOpen = ref(false)
 const isCreateGroupOpen = ref(false)
+const isInvitePlatformOpen = ref(false)
 const isPendingInvitationsOpen = ref(false)
 const isPostCreateInviteOpen = ref(false)
 const createdGroup = ref<Chat | null>(null)
@@ -231,6 +233,12 @@ async function handleLogout(): Promise<void> {
               </QItemSection>
               <QItemSection>{{ t('sidebar.newChatMenuGroup') }}</QItemSection>
             </QItem>
+            <QItem v-close-popup clickable @click="isInvitePlatformOpen = true">
+              <QItemSection avatar>
+                <QIcon name="person_add" size="18px" />
+              </QItemSection>
+              <QItemSection>{{ t('sidebar.newChatMenuInvite') }}</QItemSection>
+            </QItem>
           </QList>
         </QMenu>
       </QBtn>
@@ -247,6 +255,7 @@ async function handleLogout(): Promise<void> {
 
     <NewChatModal v-model="isNewChatOpen" @select="handleNewChat" />
     <CreateGroupModal v-model="isCreateGroupOpen" @created="handleGroupCreated" />
+    <InvitePlatformModal v-model="isInvitePlatformOpen" />
     <GroupPostCreateInviteModal
       v-model="isPostCreateInviteOpen"
       :chat-id="createdGroup?.id ?? null"
