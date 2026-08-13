@@ -9,6 +9,7 @@ import type {
   GroupParticipantRemovedPayload,
   GroupRoleChangedPayload,
   MessageDeletedPayload,
+  MessageReactionUpdatedPayload,
   MessageReadUpdatedPayload,
 } from '@/types/socket/payloads.type'
 
@@ -24,6 +25,7 @@ interface ChatSocketHandlers {
   onGroupParticipantRemoved?: (payload: GroupParticipantRemovedPayload) => void
   onGroupOwnershipTransferred?: (payload: GroupOwnershipTransferredPayload) => void
   onMessageReadUpdated?: (payload: MessageReadUpdatedPayload) => void
+  onMessageReactionUpdated?: (payload: MessageReactionUpdatedPayload) => void
 }
 
 export function useChatSocket() {
@@ -108,6 +110,10 @@ export function useChatSocket() {
       socket.on('message:read:updated', handlers.onMessageReadUpdated)
     }
 
+    if (handlers.onMessageReactionUpdated) {
+      socket.on('message:reaction:updated', handlers.onMessageReactionUpdated)
+    }
+
     return () => {
       socket.off('message:new', handlers.onMessageNew)
       socket.off('message:edited', handlers.onMessageEdited)
@@ -144,6 +150,10 @@ export function useChatSocket() {
 
       if (handlers.onMessageReadUpdated) {
         socket.off('message:read:updated', handlers.onMessageReadUpdated)
+      }
+
+      if (handlers.onMessageReactionUpdated) {
+        socket.off('message:reaction:updated', handlers.onMessageReactionUpdated)
       }
     }
   }

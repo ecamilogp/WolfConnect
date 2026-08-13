@@ -3,6 +3,8 @@ import { ref } from 'vue'
 import { QBtn, QIcon, QInput } from 'quasar'
 import { useI18n } from 'vue-i18n'
 
+import EmojiPicker from './EmojiPicker.vue'
+
 const emit = defineEmits<{
   send: [content: string]
   sendAttachment: [payload: { content: string; file: File }]
@@ -31,6 +33,10 @@ function onFileChange(event: Event): void {
 
 function clearSelectedFile(): void {
   selectedFile.value = null
+}
+
+function insertEmoji(emoji: string): void {
+  content.value += emoji
 }
 
 function handleSubmit(): void {
@@ -95,6 +101,8 @@ function handleSubmit(): void {
         :aria-label="t('chat.attachFile')"
         @click="openFilePicker"
       />
+
+      <EmojiPicker @select="insertEmoji" />
 
       <QInput
         v-model="content"

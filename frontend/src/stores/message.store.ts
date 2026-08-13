@@ -2,7 +2,7 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 
 import { getMessages, markMessagesAsRead } from '@/services/http/message.service'
-import type { Message, MessageListItem } from '@/types/models/message.model'
+import type { Message, MessageListItem, MessageReactionSummary } from '@/types/models/message.model'
 
 function toListItem(message: Message): MessageListItem {
   return {
@@ -76,6 +76,23 @@ export const useMessageStore = defineStore('message', () => {
     messages.value = messages.value.filter((item) => item.id !== messageId)
   }
 
+  function handleReactionUpdated(
+    chatId: string,
+    messageId: string,
+    reactions: MessageReactionSummary[],
+  ): void {
+    if (chatId !== activeChatId.value) {
+      return
+    }
+
+    const index = messages.value.findIndex((item) => item.id === messageId)
+    const current = messages.value[index]
+
+    if (current) {
+      messages.value[index] = { ...current, reactions }
+    }
+  }
+
   function handleMessagesReadUpdated(chatId: string, messageIds: string[]): void {
     if (chatId !== activeChatId.value) {
       return
@@ -97,6 +114,7 @@ export const useMessageStore = defineStore('message', () => {
     handleIncomingMessage,
     handleEditedMessage,
     handleDeletedMessage,
+    handleReactionUpdated,
     handleMessagesReadUpdated,
   }
 })

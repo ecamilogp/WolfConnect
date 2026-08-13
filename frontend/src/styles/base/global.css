@@ -13,19 +13,16 @@
   --q-primary: #f2b71d;
 }
 
+.text-brand-amber {
+  color: #836824;
+}
+
 html,
 body,
 #app {
   height: 100%;
 }
 
-/*
- * Quasar defines a global `.flex` utility (`.row, .column, .flex { flex-wrap: wrap }`)
- * outside of any CSS layer, so it always wins over Tailwind's layered `flex` utility.
- * That silently forces flex-wrap: wrap onto every Tailwind flex container in the app,
- * which can make overflowing children wrap into a hidden extra column/row instead of
- * scrolling. Restore the CSS default (nowrap) for elements using Tailwind's class.
- */
 .flex {
   flex-wrap: nowrap;
 }
