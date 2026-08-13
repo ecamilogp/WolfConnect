@@ -53,6 +53,42 @@ export class PrismaPlatformInvitationRepository implements PlatformInvitationRep
     return this.toEntity(invitation);
   }
 
+  async findLatestPendingByEmail(email: string): Promise<PlatformInvitation | null> {
+    const invitation = await prisma.platformInvitation.findFirst({
+      where: {
+        email,
+        status: 'PENDING',
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    if (!invitation) {
+      return null;
+    }
+
+    return this.toEntity(invitation);
+  }
+
+  async renew(
+    id: string,
+    data: { token: string; expiresAt: Date },
+  ): Promise<PlatformInvitationResponseDto> {
+    const invitation = await prisma.platformInvitation.update({
+      where: {
+        id,
+      },
+      data: {
+        token: data.token,
+        expiresAt: data.expiresAt,
+        status: 'PENDING',
+      },
+    });
+
+    return this.toResponseDto(invitation);
+  }
+
   async markAsAccepted(id: string): Promise<void> {
     await prisma.platformInvitation.update({
       where: {

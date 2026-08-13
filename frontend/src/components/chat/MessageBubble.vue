@@ -72,6 +72,7 @@ const readReceiptLabel = computed(() =>
         :initials="senderInitials"
         size="32px"
         :class="isOwn ? 'ml-2' : 'mr-2'"
+        previewable
       />
     </template>
 

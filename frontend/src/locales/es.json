@@ -32,6 +32,10 @@
   "layout": {
     "logout": "Cerrar sesión"
   },
+  "imagePreview": {
+    "viewLabel": "Ver imagen en grande",
+    "close": "Cerrar"
+  },
   "settings": {
     "menuItem": "Ajustes",
     "title": "Ajustes",
@@ -64,6 +68,21 @@
     "errors": {
       "notAdmin": "Solo un administrador puede realizar esta acción.",
       "cannotChangeSelf": "No puedes cambiar tu propio rol de administrador."
+    }
+  },
+  "platformInvitations": {
+    "title": "Invitar a alguien",
+    "subtitle": "Le enviaremos un correo con un enlace para registrarse en WolfConnect.",
+    "emailLabel": "Correo electrónico",
+    "invalidEmail": "Ingresa un correo electrónico válido.",
+    "cancel": "Cancelar",
+    "submit": "Enviar invitación",
+    "close": "Cerrar",
+    "sentNotify": "Invitación enviada a {email}.",
+    "sendError": "No se pudo enviar la invitación. Inténtalo de nuevo.",
+    "errors": {
+      "alreadyRegistered": "Ese correo ya está registrado en WolfConnect.",
+      "inviterNotFound": "No se pudo identificar quién envía la invitación."
     }
   },
   "profile": {
@@ -101,6 +120,7 @@
     "newChatTooltip": "Agregar un usuario para iniciar un chat",
     "newChatMenuChat": "Nuevo chat",
     "newChatMenuGroup": "Nuevo grupo",
+    "newChatMenuInvite": "Invitar a alguien",
     "pendingInvitationsTooltip": "Invitaciones pendientes",
     "resizeHandleLabel": "Arrastra para ajustar el ancho del panel",
     "themeDarkLabel": "Modo oscuro",

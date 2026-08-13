@@ -38,12 +38,20 @@ export class InviteToPlatformUseCase {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + PLATFORM_INVITATION_EXPIRATION_DAYS);
 
-    const invitation = await this.platformInvitationRepository.create({
-      email: normalizedEmail,
-      token,
-      invitedByUserId: dto.invitedByUserId,
-      expiresAt,
-    });
+    // If this email already has a pending (not yet accepted) invitation, refresh it in
+    // place instead of creating a duplicate row — this lets anyone resend an invitation
+    // as many times as needed until the recipient actually registers.
+    const existingInvitation =
+      await this.platformInvitationRepository.findLatestPendingByEmail(normalizedEmail);
+
+    const invitation = existingInvitation
+      ? await this.platformInvitationRepository.renew(existingInvitation.id, { token, expiresAt })
+      : await this.platformInvitationRepository.create({
+          email: normalizedEmail,
+          token,
+          invitedByUserId: dto.invitedByUserId,
+          expiresAt,
+        });
 
     const joinUrl = `${env.FRONTEND_URL}/register?invitationToken=${token}`;
 
@@ -54,6 +62,7 @@ export class InviteToPlatformUseCase {
         inviterName: `${inviter.firstName} ${inviter.lastName}`,
         token,
         joinUrl,
+        expiresInDays: PLATFORM_INVITATION_EXPIRATION_DAYS,
       }),
     });
 
