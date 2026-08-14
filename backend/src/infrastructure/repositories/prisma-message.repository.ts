@@ -3,7 +3,6 @@ import { MessageResponseDto } from '../../domain/dto/message/message-response.dt
 import { MessageRepository } from '../../domain/repositories/message.repository.js';
 import { prisma } from '../database/prisma.service.js';
 import { MessageListItemDto } from '../../domain/dto/message/message-list-item.dto.js';
-import { UpdateMessageResponseDto } from '../../domain/dto/message/update-message-response.dto.js';
 import { UpdateMessageDto } from '../../domain/dto/message/update-message.dto.js';
 import { DeleteMessageDto } from '../../domain/dto/message/delete-message.dto.js';
 import { MarkMessagesAsReadDto } from '../../domain/dto/message/mark-messages-as-read.dto.js';
@@ -11,7 +10,11 @@ import { MessageMapper } from '../mappers/message.mapper.js';
 
 const MESSAGE_RELATIONS_INCLUDE = {
   sender: true,
-  replyTo: true,
+  replyTo: {
+    include: {
+      sender: true,
+    },
+  },
   reactions: true,
   reads: {
     select: {
@@ -100,7 +103,7 @@ export class PrismaMessageRepository implements MessageRepository {
     return MessageMapper.toResponseDto(message, activeParticipantIds);
   }
 
-  async update(dto: UpdateMessageDto): Promise<UpdateMessageResponseDto> {
+  async update(dto: UpdateMessageDto): Promise<MessageResponseDto> {
     const message = await prisma.message.update({
       where: {
         id: dto.messageId,
@@ -109,17 +112,12 @@ export class PrismaMessageRepository implements MessageRepository {
         content: dto.content,
         editedAt: new Date(),
       },
+      include: MESSAGE_RELATIONS_INCLUDE,
     });
 
-    return {
-      id: message.id,
-      chatId: message.chatId,
-      senderId: message.senderId,
-      content: message.content,
-      type: message.type,
-      createdAt: message.createdAt,
-      editedAt: message.editedAt,
-    };
+    const activeParticipantIds = await this.getActiveParticipantIds(message.chatId);
+
+    return MessageMapper.toResponseDto(message, activeParticipantIds);
   }
 
   async delete(dto: DeleteMessageDto): Promise<void> {

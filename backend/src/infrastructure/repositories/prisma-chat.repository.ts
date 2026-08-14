@@ -316,7 +316,11 @@ export class PrismaChatRepository implements ChatRepository {
       },
       include: {
         sender: true,
-        replyTo: true,
+        replyTo: {
+          include: {
+            sender: true,
+          },
+        },
         reactions: true,
         reads: {
           select: {

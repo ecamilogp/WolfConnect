@@ -14,6 +14,7 @@ export interface MessageSenderSummary {
 export interface ReplyToMessage {
   id: string
   senderId: string | null
+  senderName: string | null
   content: string | null
   type: MessageType
 }

@@ -11,7 +11,7 @@ import { AttachmentMapper } from './attachment.mapper.js';
 export type MessageWithRelations = Prisma.MessageGetPayload<{
   include: {
     sender: true;
-    replyTo: true;
+    replyTo: { include: { sender: true } };
     reactions: true;
     reads: { select: { userId: true } };
     attachments: true;
@@ -42,6 +42,9 @@ export class MessageMapper {
     return {
       id: replyTo.id,
       senderId: replyTo.senderId,
+      senderName: replyTo.sender
+        ? `${replyTo.sender.firstName} ${replyTo.sender.lastName}`
+        : null,
       content: replyTo.content,
       type: replyTo.type,
     };

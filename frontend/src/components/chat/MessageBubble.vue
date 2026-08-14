@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { QChatMessage, QIcon, QMenu } from 'quasar'
+import { QChatMessage, QIcon, QItem, QItemSection, QList, QMenu, useQuasar } from 'quasar'
 import { useI18n } from 'vue-i18n'
 
 import AppAvatar from '@/components/ui/AppAvatar.vue'
@@ -8,6 +8,7 @@ import EmojiPicker from './EmojiPicker.vue'
 import { useTheme } from '@/composables/useTheme'
 import { useImagePreview } from '@/composables/useImagePreview'
 import { useAppNotify } from '@/composables/useAppNotify'
+import { useChatSocket } from '@/composables/useChatSocket'
 import { removeMessageReaction, setMessageReaction } from '@/services/http/message.service'
 import type { MessageListItem } from '@/types/models/message.model'
 
@@ -20,10 +21,17 @@ const props = defineProps<{
   currentUserId: string
 }>()
 
+const emit = defineEmits<{
+  reply: []
+  edit: []
+}>()
+
 const { t } = useI18n()
+const $q = useQuasar()
 const { isDark } = useTheme()
 const { openImagePreview } = useImagePreview()
 const { notifyError } = useAppNotify()
+const chatSocket = useChatSocket()
 
 const bubbleColor = computed(() => {
   if (!props.isOwn) {
@@ -71,17 +79,44 @@ async function handleReactionClick(emoji: string): Promise<void> {
   }
 }
 
-const bubbleText = computed(() => (props.message.content ? [props.message.content] : []))
-
 const isReactionMenuOpen = ref(false)
+const isMoreMenuOpen = ref(false)
 
 // Received bubbles hug the left edge of the row, leaving open space to their
-// right — so the trigger floats just past the bubble's own right edge. Sent
-// bubbles hug the right edge, so the trigger floats past the bubble's left
-// edge instead, keeping it inside the visible chat area on both sides.
+// right — so the triggers float just past the bubble's own right edge. Sent
+// bubbles hug the right edge, so the triggers float past the bubble's left
+// edge instead, keeping them inside the visible chat area on both sides. The
+// "more options" trigger sits one slot further out than the reaction one.
 const reactionTriggerStyle = computed(() =>
   props.isOwn ? { left: '-38px' } : { right: '-38px' },
 )
+
+const moreOptionsTriggerStyle = computed(() =>
+  props.isOwn ? { left: '-76px' } : { right: '-76px' },
+)
+
+function confirmDelete(): void {
+  $q.dialog({
+    title: t('chat.deleteMessageTitle'),
+    message: t('chat.deleteMessageConfirm'),
+    cancel: true,
+    persistent: true,
+  }).onOk(() => {
+    chatSocket.deleteMessage(props.message.id)
+  })
+}
+
+const replyToPreviewText = computed(() => {
+  const replyTo = props.message.replyTo
+
+  if (!replyTo) {
+    return ''
+  }
+
+  return replyTo.content && replyTo.content.trim().length > 0
+    ? replyTo.content
+    : t('chat.replyPreviewFallback')
+})
 
 function isImageAttachment(mimeType: string): boolean {
   return mimeType.startsWith('image/')
@@ -161,7 +196,6 @@ const readReceiptLabel = computed(() =>
       :name="senderName"
       :bg-color="bubbleColor"
       :text-color="bubbleTextColor"
-      :text="bubbleText"
     >
       <template v-if="showAvatar" #avatar>
         <AppAvatar
@@ -173,40 +207,47 @@ const readReceiptLabel = computed(() =>
         />
       </template>
 
-      <template v-if="message.attachments.length > 0" #default>
-        <div class="flex flex-col gap-2">
-          <div v-for="attachment in message.attachments" :key="attachment.id">
-            <img
-              v-if="isImageAttachment(attachment.mimeType)"
-              :src="attachment.url"
-              :alt="attachment.originalName"
-              class="message-bubble__image cursor-pointer rounded-lg"
-              @click="openImagePreview(attachment.url, attachment.originalName)"
-            />
+      <template #default>
+        <div>
+          <div v-if="message.replyTo" class="message-bubble__reply-quote">
+            <p class="message-bubble__reply-quote-name">{{ message.replyTo.senderName }}</p>
+            <p class="message-bubble__reply-quote-content">{{ replyToPreviewText }}</p>
+          </div>
 
-            <video
-              v-else-if="isVideoAttachment(attachment.mimeType)"
-              :src="attachment.url"
-              controls
-              class="message-bubble__video rounded-lg"
-            />
+          <div v-if="message.attachments.length > 0" class="flex flex-col gap-2">
+            <div v-for="attachment in message.attachments" :key="attachment.id">
+              <img
+                v-if="isImageAttachment(attachment.mimeType)"
+                :src="attachment.url"
+                :alt="attachment.originalName"
+                class="message-bubble__image cursor-pointer rounded-lg"
+                @click="openImagePreview(attachment.url, attachment.originalName)"
+              />
 
-            <a
-              v-else
-              :href="attachment.url"
-              target="_blank"
-              rel="noopener"
-              :download="attachment.originalName"
-              :aria-label="t('chat.downloadAttachment')"
-              class="message-bubble__file flex items-center gap-2 rounded-lg px-3 py-2"
-            >
-              <QIcon :name="fileIcon(attachment.mimeType)" size="24px" />
-              <div class="min-w-0 flex-1">
-                <p class="truncate text-sm font-medium">{{ attachment.originalName }}</p>
-                <p class="text-xs opacity-70">{{ formatFileSize(attachment.size) }}</p>
-              </div>
-              <QIcon name="download" size="18px" />
-            </a>
+              <video
+                v-else-if="isVideoAttachment(attachment.mimeType)"
+                :src="attachment.url"
+                controls
+                class="message-bubble__video rounded-lg"
+              />
+
+              <a
+                v-else
+                :href="attachment.url"
+                target="_blank"
+                rel="noopener"
+                :download="attachment.originalName"
+                :aria-label="t('chat.downloadAttachment')"
+                class="message-bubble__file flex items-center gap-2 rounded-lg px-3 py-2"
+              >
+                <QIcon :name="fileIcon(attachment.mimeType)" size="24px" />
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-sm font-medium">{{ attachment.originalName }}</p>
+                  <p class="text-xs opacity-70">{{ formatFileSize(attachment.size) }}</p>
+                </div>
+                <QIcon name="download" size="18px" />
+              </a>
+            </div>
           </div>
 
           <p v-if="message.content" class="message-bubble__caption">{{ message.content }}</p>
@@ -262,6 +303,47 @@ const readReceiptLabel = computed(() =>
                 @select="handleReactionClick"
               />
             </div>
+          </QMenu>
+        </button>
+
+        <button
+          type="button"
+          class="message-bubble__more-trigger"
+          :class="{ 'message-bubble__more-trigger--active': isMoreMenuOpen }"
+          :style="moreOptionsTriggerStyle"
+          :aria-label="t('chat.messageActions')"
+        >
+          <QIcon name="more_vert" size="16px" />
+
+          <QMenu
+            anchor="top middle"
+            self="bottom middle"
+            :offset="[0, 10]"
+            @show="isMoreMenuOpen = true"
+            @hide="isMoreMenuOpen = false"
+          >
+            <QList dense class="py-1">
+              <QItem v-close-popup clickable @click="emit('reply')">
+                <QItemSection avatar class="min-w-0 pr-0">
+                  <QIcon name="reply" size="18px" />
+                </QItemSection>
+                <QItemSection>{{ t('chat.replyAction') }}</QItemSection>
+              </QItem>
+
+              <QItem v-if="isOwn" v-close-popup clickable @click="emit('edit')">
+                <QItemSection avatar class="min-w-0 pr-0">
+                  <QIcon name="edit" size="18px" />
+                </QItemSection>
+                <QItemSection>{{ t('chat.editAction') }}</QItemSection>
+              </QItem>
+
+              <QItem v-if="isOwn" v-close-popup clickable @click="confirmDelete">
+                <QItemSection avatar class="min-w-0 pr-0">
+                  <QIcon name="delete_forever" size="18px" color="negative" />
+                </QItemSection>
+                <QItemSection class="text-negative">{{ t('chat.deleteAction') }}</QItemSection>
+              </QItem>
+            </QList>
           </QMenu>
         </button>
       </template>
@@ -453,6 +535,72 @@ const readReceiptLabel = computed(() =>
 .message-bubble__react-trigger--active {
   opacity: 1;
   transform: translateY(-50%) scale(1);
+}
+
+/* Same floating pattern as .message-bubble__react-trigger, one slot further out. */
+.message-bubble__more-trigger {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 999px;
+  background-color: rgba(0, 0, 0, 0.35);
+  color: #ffffff;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(-50%) scale(0.85);
+  transition: opacity 0.15s ease, transform 0.15s ease, background-color 0.12s ease;
+}
+
+.body--dark .message-bubble__more-trigger {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.message-bubble__more-trigger:hover {
+  background-color: rgba(0, 0, 0, 0.55);
+}
+
+.body--dark .message-bubble__more-trigger:hover {
+  background-color: rgba(255, 255, 255, 0.28);
+}
+
+:deep(.q-message-text:hover) .message-bubble__more-trigger,
+.message-bubble__more-trigger--active {
+  opacity: 1;
+  transform: translateY(-50%) scale(1);
+}
+
+.message-bubble__reply-quote {
+  border-left: 3px solid currentColor;
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.12);
+  padding: 4px 8px;
+  margin-bottom: 4px;
+}
+
+.body--dark .message-bubble__reply-quote {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+.message-bubble__reply-quote-name {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.message-bubble__reply-quote-content {
+  margin: 0;
+  font-size: 13px;
+  opacity: 0.8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .message-bubble__reactions {
