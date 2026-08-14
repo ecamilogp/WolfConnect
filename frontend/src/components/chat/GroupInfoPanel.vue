@@ -15,6 +15,7 @@ import {
 import { useI18n } from 'vue-i18n'
 
 import AppAvatar from '@/components/ui/AppAvatar.vue'
+import AppAvatarUpload from '@/components/ui/AppAvatarUpload.vue'
 import GroupMemberListItem from '@/components/chat/GroupMemberListItem.vue'
 import GroupInviteSearchPanel from '@/components/chat/GroupInviteSearchPanel.vue'
 import { useAuthStore } from '@/stores/auth.store'
@@ -53,6 +54,7 @@ const editName = ref('')
 const editNameError = ref('')
 const editDescription = ref('')
 const isSavingEdit = ref(false)
+const isUploadingPhoto = ref(false)
 
 const group = computed(() => groupStore.groupDetail)
 
@@ -298,6 +300,24 @@ async function saveEditing(): Promise<void> {
   }
 }
 
+async function handlePhotoSelect(file: File): Promise<void> {
+  if (!props.chatId) {
+    return
+  }
+
+  const chatId = props.chatId
+  isUploadingPhoto.value = true
+
+  try {
+    await groupStore.updateGroupPhoto(chatId, file)
+    notifySuccess('groups.photoUpdateSuccessNotify')
+  } catch (error) {
+    notifyError(error, 'groups.actionError')
+  } finally {
+    isUploadingPhoto.value = false
+  }
+}
+
 const unsubscribe = chatSocket.subscribe({
   onMessageNew: () => {},
   onMessageEdited: () => {},
@@ -332,7 +352,17 @@ onUnmounted(() => {
 
       <template v-else>
         <QCardSection class="flex items-start gap-3 pb-2 pt-4">
+          <AppAvatarUpload
+            v-if="canManage"
+            :src="group.imageUrl ?? undefined"
+            :initials="(group.name ?? '?').charAt(0).toUpperCase()"
+            size="56px"
+            :loading="isUploadingPhoto"
+            :label="t('groups.changePhotoLabel')"
+            @select="handlePhotoSelect"
+          />
           <AppAvatar
+            v-else
             :src="group.imageUrl ?? undefined"
             :initials="(group.name ?? '?').charAt(0).toUpperCase()"
             size="56px"

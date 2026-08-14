@@ -7,6 +7,7 @@ import { MessageController } from '../controllers/message.controller.js';
 import { AttachmentController } from '../controllers/attachment.controller.js';
 import { MessageReactionController } from '../controllers/message-reaction.controller.js';
 import { uploadSingleAttachment } from '../middlewares/upload.middleware.js';
+import { uploadSingleGroupPhoto } from '../middlewares/upload-group-photo.middleware.js';
 import { createPrivateChatSchema } from '../validators/chat/create-private-chat.schema.js';
 import { createGroupChatSchema } from '../validators/chat/create-group-chat.schema.js';
 import { inviteUserToGroupSchema } from '../validators/chat/invite-user-to-group.schema.js';
@@ -70,6 +71,13 @@ router.patch(
   authenticate,
   validate(updateGroupSchema),
   chatController.updateGroup,
+);
+
+router.patch(
+  '/groups/:chatId/photo',
+  authenticate,
+  uploadSingleGroupPhoto,
+  chatController.uploadGroupPhoto,
 );
 
 router.patch(
