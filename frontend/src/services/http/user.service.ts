@@ -43,6 +43,21 @@ export async function updateUserRole(userId: string, role: UserRole): Promise<Us
   return response.data
 }
 
+export async function adminDeactivateUser(userId: string): Promise<User> {
+  const response = await httpClient.patch<User>(`/users/${userId}/deactivate`)
+  return response.data
+}
+
+export async function blockUser(userId: string): Promise<User> {
+  const response = await httpClient.patch<User>(`/users/${userId}/block`)
+  return response.data
+}
+
+export async function reactivateUser(userId: string): Promise<User> {
+  const response = await httpClient.patch<User>(`/users/${userId}/reactivate`)
+  return response.data
+}
+
 export async function uploadAvatar(file: File): Promise<User> {
   // Axios sets the multipart/form-data Content-Type (with the correct
   // boundary) automatically when the request body is a FormData instance.
