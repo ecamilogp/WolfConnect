@@ -28,4 +28,16 @@ export default [
       ],
     },
   },
+  {
+    files: ['tests/**/*.ts'],
+    rules: {
+      'no-console': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          argsIgnorePattern: '^_',
+        },
+      ],
+    },
+  },
 ];

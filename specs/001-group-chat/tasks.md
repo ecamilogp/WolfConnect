@@ -125,7 +125,7 @@ description: "Task list for the Group Chat module (retroactive record)"
 - [X] T036 [P] `api-error-messages.ts` — maps backend literal error strings to i18n keys (`groupErrors.*`, `authErrors.*`)
 - [X] T037 Remove the duplicate loading overlay on login (the submit button already shows its own spinner); keep it on logout/register
 - [X] T038 `docs/CONSTITUTION.md` — Product Scope corrected to state that full history is preserved (previously said the opposite)
-- [ ] T039 Add automated tests for role guards, leave/remove/rejoin, and system-message creation (tracked gap — not done in this feature, see `plan.md` → Complexity Tracking)
+- [X] T039 Add automated tests for role guards, leave/remove/rejoin, and system-message creation (`backend/tests/unit/`, Vitest — unit tests against hand-written fakes; see `backend/vitest.config.ts`)
 
 ---
 
@@ -138,4 +138,4 @@ description: "Task list for the Group Chat module (retroactive record)"
 ## Notes
 
 - Commit correspondence: T001–T009 ≈ `a48c458` (message-system infra), T010, T013–T014, T018–T021, T025–T030 ≈ `f7b151c` (groups backend), T011–T012, T015–T017, T022–T024, T031–T037 ≈ `36e9d8a` (groups + system-message frontend).
-- T039 is the only open item from this feature; it should be picked up before or alongside the next module rather than deferred indefinitely.
+- T039 was the only open item from this feature; it has since been closed (see Phase 8).
