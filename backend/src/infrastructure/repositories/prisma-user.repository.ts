@@ -1,4 +1,4 @@
-import { User, UserStatus } from '../../domain/entities/user.entity.js';
+import { User, UserRole, UserStatus } from '../../domain/entities/user.entity.js';
 import { UserRepository } from '../../domain/repositories/user.repository.js';
 import { prisma } from '../database/prisma.service.js';
 import { UserMapper } from '../mappers/user.mapper.js';
@@ -56,6 +56,39 @@ export class PrismaUserRepository implements UserRepository {
     return UserMapper.toDomain(user);
   }
 
+  async search(query: string, excludeUserId: string): Promise<User[]> {
+    const users = await prisma.user.findMany({
+      where: {
+        id: { not: excludeUserId },
+        status: UserStatus.ACTIVE,
+        OR: [
+          { firstName: { contains: query, mode: 'insensitive' } },
+          { lastName: { contains: query, mode: 'insensitive' } },
+          { username: { contains: query, mode: 'insensitive' } },
+        ],
+      },
+      take: 20,
+      orderBy: {
+        firstName: 'asc',
+      },
+    });
+
+    return users.map(UserMapper.toDomain);
+  }
+
+  async findAll(): Promise<User[]> {
+    const users = await prisma.user.findMany({
+      where: {
+        deletedAt: null,
+      },
+      orderBy: {
+        firstName: 'asc',
+      },
+    });
+
+    return users.map(UserMapper.toDomain);
+  }
+
   async update(id: string, data: UpdateUserDTO): Promise<User> {
     const user = await prisma.user.update({
       where: {
@@ -80,6 +113,19 @@ export class PrismaUserRepository implements UserRepository {
     return UserMapper.toDomain(user);
   }
 
+  async updateRole(id: string, role: UserRole): Promise<User> {
+    const user = await prisma.user.update({
+      where: {
+        id,
+      },
+      data: {
+        role,
+      },
+    });
+
+    return UserMapper.toDomain(user);
+  }
+
   async deactivate(id: string): Promise<User> {
     const user = await prisma.user.update({
       where: {
@@ -87,6 +133,19 @@ export class PrismaUserRepository implements UserRepository {
       },
       data: {
         status: UserStatus.INACTIVE,
+      },
+    });
+
+    return UserMapper.toDomain(user);
+  }
+
+  async updateStatus(id: string, status: UserStatus): Promise<User> {
+    const user = await prisma.user.update({
+      where: {
+        id,
+      },
+      data: {
+        status,
       },
     });
 

@@ -1,3 +1,6 @@
+import fs from 'node:fs';
+import path from 'node:path';
+
 import { NextFunction, Request, Response } from 'express';
 
 import { PrismaChatRepository } from '../../infrastructure/repositories/prisma-chat.repository.js';
@@ -14,6 +17,8 @@ import { RejectGroupInvitationUseCase } from '../../application/use-cases/chat/r
 import { LeaveGroupUseCase } from '../../application/use-cases/chat/leave-group.use-case.js';
 import { DeleteGroupUseCase } from '../../application/use-cases/chat/delete-group.use-case.js';
 import { GetChatsUseCase } from '../../application/use-cases/chat/get-chats.use-case.js';
+import { GetGroupDetailUseCase } from '../../application/use-cases/chat/get-group-detail.use-case.js';
+import { GetPendingInvitationsUseCase } from '../../application/use-cases/chat/get-pending-invitations.use-case.js';
 import { UpdateGroupUseCase } from '../../application/use-cases/chat/update-group.use-case.js';
 import { PromoteToAdminUseCase } from '../../application/use-cases/chat/promote-to-admin.use-case.js';
 import { DemoteAdminUseCase } from '../../application/use-cases/chat/demote-admin.use-case.js';
@@ -22,13 +27,35 @@ import { TransferOwnershipUseCase } from '../../application/use-cases/chat/trans
 import { SendNotificationUseCase } from '../../application/use-cases/notification/send-notification.use-case.js';
 import { SocketEventName, SocketEvents } from '../../infrastructure/websocket/events/socket-events.enum.js';
 import { chatRoom } from '../../infrastructure/websocket/handlers/chat.handler.js';
-import { getIO } from '../../infrastructure/websocket/socket.server.js';
+import { getIO, userRoom } from '../../infrastructure/websocket/socket.server.js';
 import {
+  ChatLeftPayload,
   GroupOwnershipTransferredPayload,
+  GroupParticipantAddedPayload,
   GroupParticipantRemovedPayload,
   GroupRoleChangedPayload,
   GroupUpdatedPayload,
 } from '../../infrastructure/websocket/types/socket-payloads.type.js';
+import {
+  GROUP_PHOTO_PUBLIC_PATH_PREFIX,
+  GROUP_PHOTO_UPLOADS_DIR,
+} from '../../config/group-photo.config.js';
+import { BadRequestError } from '../../shared/errors/bad-request-error.js';
+
+function deleteLocalGroupPhotoFile(imageUrl: string | null | undefined): void {
+  if (!imageUrl || !imageUrl.startsWith(GROUP_PHOTO_PUBLIC_PATH_PREFIX)) {
+    return;
+  }
+
+  const fileName = path.basename(imageUrl);
+  const filePath = path.join(GROUP_PHOTO_UPLOADS_DIR, fileName);
+
+  fs.unlink(filePath, (error) => {
+    if (error) {
+      console.error('[group:photo-cleanup-failed]', error);
+    }
+  });
+}
 
 export class ChatController {
   private readonly chatRepository = new PrismaChatRepository();
@@ -77,6 +104,12 @@ export class ChatController {
 
   private readonly getChatsUseCase = new GetChatsUseCase(this.chatRepository);
 
+  private readonly getGroupDetailUseCase = new GetGroupDetailUseCase(this.chatRepository);
+
+  private readonly getPendingInvitationsUseCase = new GetPendingInvitationsUseCase(
+    this.groupInvitationRepository,
+  );
+
   private readonly updateGroupUseCase = new UpdateGroupUseCase(this.chatRepository);
 
   private readonly promoteToAdminUseCase = new PromoteToAdminUseCase(this.chatRepository);
@@ -95,9 +128,47 @@ export class ChatController {
     }
   }
 
+  private async notifyChatMembership(chatId: string, targetUserId: string): Promise<void> {
+    const io = getIO();
+
+    await io.in(userRoom(targetUserId)).socketsJoin(chatRoom(chatId));
+
+    const summaries = await this.chatRepository.findAllByUser(targetUserId);
+    const summary = summaries.find((item) => item.id === chatId);
+
+    if (summary) {
+      io.to(userRoom(targetUserId)).emit(SocketEvents.CHAT_NEW, summary);
+    }
+  }
+
+  private evictFromChatRoom(chatId: string, targetUserId: string): void {
+    getIO()
+      .in(userRoom(targetUserId))
+      .socketsLeave(chatRoom(chatId));
+  }
+
+  private notifyChatLeft(chatId: string, targetUserId: string): void {
+    const payload: ChatLeftPayload = { chatId };
+
+    this.evictFromChatRoom(chatId, targetUserId);
+    getIO().to(userRoom(targetUserId)).emit(SocketEvents.CHAT_LEFT, payload);
+  }
+
+  private async notifyParticipantAdded(chatId: string, userId: string): Promise<void> {
+    const participant = await this.chatRepository.findParticipantSummary(chatId, userId);
+
+    if (!participant) {
+      return;
+    }
+
+    const payload: GroupParticipantAddedPayload = { chatId, participant };
+
+    this.emitGroupEvent(SocketEvents.GROUP_PARTICIPANT_ADDED, chatId, payload);
+  }
+
   createPrivateChat = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const chat = await this.createPrivateChatUseCase.execute({
+      const { chat, isNew } = await this.createPrivateChatUseCase.execute({
         currentUserId: req.user.id,
         targetUserId: req.body.targetUserId,
       });
@@ -109,6 +180,12 @@ export class ChatController {
         message: 'Private chat created successfully.',
         data: response,
       });
+
+      if (isNew) {
+        this.notifyChatMembership(chat.id, req.body.targetUserId).catch((socketError) => {
+          console.error('[chat:socket-emit-failed]', socketError);
+        });
+      }
     } catch (error) {
       next(error);
     }
@@ -138,9 +215,11 @@ export class ChatController {
 
   inviteUserToGroup = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      await this.inviteUserToGroupUseCase.execute({
+      const chatId = String(req.params.chatId);
+
+      const result = await this.inviteUserToGroupUseCase.execute({
         inviterUserId: req.user.id,
-        chatId: String(req.params.chatId),
+        chatId,
         invitedUserId: req.body.invitedUserId,
       });
 
@@ -148,6 +227,18 @@ export class ChatController {
         success: true,
         message: 'User invited successfully.',
       });
+
+      if (result.status === 'ADDED') {
+        this.notifyChatMembership(chatId, result.invitedUserId).catch((socketError) => {
+          console.error('[chat:socket-emit-failed]', socketError);
+        });
+
+        this.notifyParticipantAdded(chatId, result.invitedUserId).catch((socketError) => {
+          console.error('[chat:socket-emit-failed]', socketError);
+        });
+
+        this.emitGroupEvent(SocketEvents.MESSAGE_NEW, chatId, result.systemMessage);
+      }
     } catch (error) {
       next(error);
     }
@@ -166,8 +257,18 @@ export class ChatController {
 
       res.status(200).json({
         success: true,
-        ...result,
+        message: result.message,
       });
+
+      this.notifyChatMembership(result.chatId, req.user.id).catch((socketError) => {
+        console.error('[chat:socket-emit-failed]', socketError);
+      });
+
+      this.notifyParticipantAdded(result.chatId, req.user.id).catch((socketError) => {
+        console.error('[chat:socket-emit-failed]', socketError);
+      });
+
+      this.emitGroupEvent(SocketEvents.MESSAGE_NEW, result.chatId, result.systemMessage);
     } catch (error) {
       next(error);
     }
@@ -195,12 +296,22 @@ export class ChatController {
 
   leaveGroup = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const result = await this.leaveGroupUseCase.execute(String(req.params.chatId), req.user.id);
+      const chatId = String(req.params.chatId);
+      const targetUserId = req.user.id;
+
+      const result = await this.leaveGroupUseCase.execute(chatId, targetUserId);
 
       res.status(200).json({
         success: true,
-        ...result,
+        message: result.message,
       });
+
+      const payload: GroupParticipantRemovedPayload = { chatId, userId: targetUserId };
+
+      this.emitGroupEvent(SocketEvents.GROUP_PARTICIPANT_REMOVED, chatId, payload);
+      this.emitGroupEvent(SocketEvents.MESSAGE_NEW, chatId, result.systemMessage);
+
+      this.notifyChatLeft(chatId, targetUserId);
     } catch (error) {
       next(error);
     }
@@ -208,12 +319,19 @@ export class ChatController {
 
   deleteGroup = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const result = await this.deleteGroupUseCase.execute(String(req.params.chatId), req.user.id);
+      const chatId = String(req.params.chatId);
+      const participantIds = await this.chatRepository.findParticipantIds(chatId);
+
+      const result = await this.deleteGroupUseCase.execute(chatId, req.user.id);
 
       res.status(200).json({
         success: true,
         ...result,
       });
+
+      for (const participantId of participantIds) {
+        this.notifyChatLeft(chatId, participantId);
+      }
     } catch (error) {
       next(error);
     }
@@ -226,6 +344,35 @@ export class ChatController {
       res.status(200).json({
         success: true,
         data: chats,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getGroupDetail = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const detail = await this.getGroupDetailUseCase.execute(
+        String(req.params.chatId),
+        req.user.id,
+      );
+
+      res.status(200).json({
+        success: true,
+        data: detail,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getPendingInvitations = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const invitations = await this.getPendingInvitationsUseCase.execute(req.user.id);
+
+      res.status(200).json({
+        success: true,
+        data: invitations,
       });
     } catch (error) {
       next(error);
@@ -251,6 +398,42 @@ export class ChatController {
       res.status(200).json({
         success: true,
         message: 'Group updated successfully.',
+        data: response,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  uploadGroupPhoto = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      if (!req.file) {
+        throw new BadRequestError('An image file is required.');
+      }
+
+      const chatId = String(req.params.chatId);
+      const existingChat = await this.chatRepository.findById(chatId);
+      const previousImageUrl = existingChat?.imageUrl;
+
+      const imageUrl = `${GROUP_PHOTO_PUBLIC_PATH_PREFIX}/${req.file.filename}`;
+
+      const chat = await this.updateGroupUseCase.execute({
+        chatId,
+        requesterUserId: req.user.id,
+        imageUrl,
+      });
+
+      deleteLocalGroupPhotoFile(previousImageUrl);
+
+      const payload: GroupUpdatedPayload = chat;
+
+      this.emitGroupEvent(SocketEvents.GROUP_UPDATED, chat.id, payload);
+
+      const response = ChatResponseMapper.toResponse(chat);
+
+      res.status(200).json({
+        success: true,
+        message: 'Group photo updated successfully.',
         data: response,
       });
     } catch (error) {
@@ -320,11 +503,14 @@ export class ChatController {
       const payload: GroupParticipantRemovedPayload = { chatId, userId: targetUserId };
 
       this.emitGroupEvent(SocketEvents.GROUP_PARTICIPANT_REMOVED, chatId, payload);
+      this.emitGroupEvent(SocketEvents.MESSAGE_NEW, chatId, result.systemMessage);
 
       res.status(200).json({
         success: true,
-        ...result,
+        message: result.message,
       });
+
+      this.notifyChatLeft(chatId, targetUserId);
     } catch (error) {
       next(error);
     }

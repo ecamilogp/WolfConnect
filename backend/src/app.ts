@@ -7,11 +7,15 @@ import platformInvitationRoutes from './presentation/routes/platform-invitation.
 import notificationRoutes from './presentation/routes/notification.routes.js';
 
 import { errorHandler } from './presentation/middlewares/error-handler.middleware.js';
+import { UPLOADS_ROOT } from './config/attachment.config.js';
 
 const app = express();
 
 //Middlewares
 app.use(express.json());
+
+// Serves locally-stored uploads (avatars, attachments) as static files.
+app.use('/uploads', express.static(UPLOADS_ROOT));
 
 // Health check
 app.get('/health', (_req, res) => {

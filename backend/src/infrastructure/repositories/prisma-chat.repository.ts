@@ -1,3 +1,5 @@
+import { Prisma, SystemEventType } from '@prisma/client';
+
 import { ChatRepository } from '../../domain/repositories/chat.repository.js';
 import { Chat } from '../../domain/entities/chat.entity.js';
 import { prisma } from '../database/prisma.service.js';
@@ -7,7 +9,10 @@ import { UpdateGroupDto } from '../../domain/dto/chat/update-group.dto.js';
 import { ChatParticipant } from '../../domain/entities/chat-participant.entity.js';
 import { AcceptGroupInvitationDto } from '../../domain/dto/chat-group-invitations/accept-group-invitation.dto.js';
 import { ChatSummaryDto } from '../../domain/dto/chat/chat-summary.dto.js';
+import { GroupParticipantSummaryDto } from '../../domain/dto/chat/group-participant-summary.dto.js';
+import { MessageResponseDto } from '../../domain/dto/message/message-response.dto.js';
 import { ChatSummaryMapper } from '../mappers/chat-summary.mapper.js';
+import { MessageMapper } from '../mappers/message.mapper.js';
 
 export class PrismaChatRepository implements ChatRepository {
   async findPrivateChatBetweenUsers(
@@ -150,23 +155,119 @@ export class PrismaChatRepository implements ChatRepository {
     return participants.map((participant) => participant.userId);
   }
 
-  async addParticipant(chatId: string, userId: string): Promise<void> {
-    await prisma.chatParticipant.create({
-      data: {
+  async findParticipants(chatId: string): Promise<GroupParticipantSummaryDto[]> {
+    const participants = await prisma.chatParticipant.findMany({
+      where: {
         chatId,
-        userId,
-        role: 'MEMBER',
+        leftAt: null,
       },
+      include: {
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+            username: true,
+            profileImage: true,
+          },
+        },
+      },
+      orderBy: {
+        joinedAt: 'asc',
+      },
+    });
+
+    return participants.map((participant) => ({
+      userId: participant.userId,
+      role: participant.role,
+      joinedAt: participant.joinedAt,
+      firstName: participant.user.firstName,
+      lastName: participant.user.lastName,
+      username: participant.user.username,
+      profileImage: participant.user.profileImage,
+    }));
+  }
+
+  async findParticipantSummary(
+    chatId: string,
+    userId: string,
+  ): Promise<GroupParticipantSummaryDto | null> {
+    const participant = await prisma.chatParticipant.findUnique({
+      where: {
+        chatId_userId: {
+          chatId,
+          userId,
+        },
+      },
+      include: {
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+            username: true,
+            profileImage: true,
+          },
+        },
+      },
+    });
+
+    if (!participant || participant.leftAt) {
+      return null;
+    }
+
+    return {
+      userId: participant.userId,
+      role: participant.role,
+      joinedAt: participant.joinedAt,
+      firstName: participant.user.firstName,
+      lastName: participant.user.lastName,
+      username: participant.user.username,
+      profileImage: participant.user.profileImage,
+    };
+  }
+
+  async addParticipant(chatId: string, userId: string): Promise<MessageResponseDto> {
+    return prisma.$transaction(async (tx) => {
+      await tx.chatParticipant.upsert({
+        where: {
+          chatId_userId: {
+            chatId,
+            userId,
+          },
+        },
+        create: {
+          chatId,
+          userId,
+          role: 'MEMBER',
+        },
+        update: {
+          role: 'MEMBER',
+          joinedAt: new Date(),
+          leftAt: null,
+        },
+      });
+
+      return this.createGroupSystemMessage(tx, chatId, 'PARTICIPANT_JOINED', userId);
     });
   }
 
-  async acceptGroupInvitation(dto: AcceptGroupInvitationDto): Promise<void> {
-    await prisma.$transaction(async (tx) => {
-      await tx.chatParticipant.create({
-        data: {
+  async acceptGroupInvitation(dto: AcceptGroupInvitationDto): Promise<MessageResponseDto> {
+    return prisma.$transaction(async (tx) => {
+      await tx.chatParticipant.upsert({
+        where: {
+          chatId_userId: {
+            chatId: dto.chatId,
+            userId: dto.userId,
+          },
+        },
+        create: {
           chatId: dto.chatId,
           userId: dto.userId,
           role: 'MEMBER',
+        },
+        update: {
+          role: 'MEMBER',
+          joinedAt: new Date(),
+          leftAt: null,
         },
       });
 
@@ -179,20 +280,84 @@ export class PrismaChatRepository implements ChatRepository {
           respondedAt: new Date(),
         },
       });
+
+      return this.createGroupSystemMessage(tx, dto.chatId, 'PARTICIPANT_JOINED', dto.userId);
     });
   }
 
-  async leaveGroup(chatId: string, userId: string): Promise<void> {
-    await prisma.chatParticipant.update({
+  private async createGroupSystemMessage(
+    tx: Prisma.TransactionClient,
+    chatId: string,
+    systemEventType: SystemEventType,
+    targetUserId: string,
+  ): Promise<MessageResponseDto> {
+    const targetUser = await tx.user.findUnique({
       where: {
-        chatId_userId: {
-          chatId,
-          userId,
+        id: targetUserId,
+      },
+      select: {
+        firstName: true,
+        lastName: true,
+      },
+    });
+
+    const targetName = targetUser ? `${targetUser.firstName} ${targetUser.lastName}` : '';
+
+    const message = await tx.message.create({
+      data: {
+        chatId,
+        senderId: null,
+        type: 'SYSTEM',
+        systemEventType,
+        systemEventPayload: {
+          targetUserId,
+          targetName,
         },
       },
-      data: {
-        leftAt: new Date(),
+      include: {
+        sender: true,
+        replyTo: {
+          include: {
+            sender: true,
+          },
+        },
+        reactions: true,
+        reads: {
+          select: {
+            userId: true,
+          },
+        },
+        attachments: true,
       },
+    });
+
+    await tx.chat.update({
+      where: {
+        id: chatId,
+      },
+      data: {
+        lastMessageAt: message.createdAt,
+      },
+    });
+
+    return MessageMapper.toResponseDto(message, []);
+  }
+
+  async leaveGroup(chatId: string, userId: string): Promise<MessageResponseDto> {
+    return prisma.$transaction(async (tx) => {
+      await tx.chatParticipant.update({
+        where: {
+          chatId_userId: {
+            chatId,
+            userId,
+          },
+        },
+        data: {
+          leftAt: new Date(),
+        },
+      });
+
+      return this.createGroupSystemMessage(tx, chatId, 'PARTICIPANT_LEFT', userId);
     });
   }
 
@@ -264,7 +429,31 @@ export class PrismaChatRepository implements ChatRepository {
         lastMessageAt: 'desc',
       },
     });
-    return chats.map((chat) => ChatSummaryMapper.toDto(chat, userId));
+
+    const unreadCounts = await prisma.message.groupBy({
+      by: ['chatId'],
+      where: {
+        chatId: { in: chats.map((chat) => chat.id) },
+        senderId: { not: userId },
+        deletedAt: null,
+        reads: {
+          none: {
+            userId,
+          },
+        },
+      },
+      _count: {
+        id: true,
+      },
+    });
+
+    const unreadCountByChatId = new Map(
+      unreadCounts.map((row) => [row.chatId, row._count.id]),
+    );
+
+    return chats.map((chat) =>
+      ChatSummaryMapper.toDto(chat, userId, unreadCountByChatId.get(chat.id) ?? 0),
+    );
   }
 
   async updateGroup(dto: UpdateGroupDto): Promise<Chat> {
@@ -300,17 +489,21 @@ export class PrismaChatRepository implements ChatRepository {
     });
   }
 
-  async removeParticipant(chatId: string, userId: string): Promise<void> {
-    await prisma.chatParticipant.update({
-      where: {
-        chatId_userId: {
-          chatId,
-          userId,
+  async removeParticipant(chatId: string, userId: string): Promise<MessageResponseDto> {
+    return prisma.$transaction(async (tx) => {
+      await tx.chatParticipant.update({
+        where: {
+          chatId_userId: {
+            chatId,
+            userId,
+          },
         },
-      },
-      data: {
-        leftAt: new Date(),
-      },
+        data: {
+          leftAt: new Date(),
+        },
+      });
+
+      return this.createGroupSystemMessage(tx, chatId, 'PARTICIPANT_REMOVED', userId);
     });
   }
 

@@ -1,57 +1,42 @@
-import { Prisma } from '@prisma/client';
-
 import { CreateMessageDto } from '../../domain/dto/message/create-message.dto.js';
 import { MessageResponseDto } from '../../domain/dto/message/message-response.dto.js';
 import { MessageRepository } from '../../domain/repositories/message.repository.js';
 import { prisma } from '../database/prisma.service.js';
 import { MessageListItemDto } from '../../domain/dto/message/message-list-item.dto.js';
-import { MessageReactionSummaryDto } from '../../domain/dto/message/message-reaction-summary.dto.js';
-import { ReplyToMessageDto } from '../../domain/dto/message/reply-to-message.dto.js';
-import { UpdateMessageResponseDto } from '../../domain/dto/message/update-message-response.dto.js';
 import { UpdateMessageDto } from '../../domain/dto/message/update-message.dto.js';
 import { DeleteMessageDto } from '../../domain/dto/message/delete-message.dto.js';
 import { MarkMessagesAsReadDto } from '../../domain/dto/message/mark-messages-as-read.dto.js';
+import { MessageMapper } from '../mappers/message.mapper.js';
 
-type MessageWithRelations = Prisma.MessageGetPayload<{
-  include: { replyTo: true; reactions: true };
-}>;
+const MESSAGE_RELATIONS_INCLUDE = {
+  sender: true,
+  replyTo: {
+    include: {
+      sender: true,
+    },
+  },
+  reactions: true,
+  reads: {
+    select: {
+      userId: true,
+    },
+  },
+  attachments: true,
+} as const;
 
 export class PrismaMessageRepository implements MessageRepository {
-  private toReplyToDto(replyTo: MessageWithRelations['replyTo']): ReplyToMessageDto | null {
-    if (!replyTo) {
-      return null;
-    }
+  private async getActiveParticipantIds(chatId: string): Promise<string[]> {
+    const participants = await prisma.chatParticipant.findMany({
+      where: {
+        chatId,
+        leftAt: null,
+      },
+      select: {
+        userId: true,
+      },
+    });
 
-    return {
-      id: replyTo.id,
-      senderId: replyTo.senderId,
-      content: replyTo.content,
-      type: replyTo.type,
-    };
-  }
-
-  private toReactionsSummary(
-    reactions: MessageWithRelations['reactions'],
-  ): MessageReactionSummaryDto[] {
-    return reactions.map((reaction) => ({
-      userId: reaction.userId,
-      emoji: reaction.emoji,
-    }));
-  }
-
-  private toMessageResponseDto(message: MessageWithRelations): MessageResponseDto {
-    return {
-      id: message.id,
-      chatId: message.chatId,
-      senderId: message.senderId,
-      content: message.content,
-      type: message.type,
-      createdAt: message.createdAt,
-      editedAt: message.editedAt,
-      deletedAt: message.deletedAt,
-      replyTo: this.toReplyToDto(message.replyTo),
-      reactions: this.toReactionsSummary(message.reactions),
-    };
+    return participants.map((participant) => participant.userId);
   }
 
   async create(data: CreateMessageDto): Promise<MessageResponseDto> {
@@ -63,10 +48,7 @@ export class PrismaMessageRepository implements MessageRepository {
           content: data.content,
           replyToMessageId: data.replyToMessageId,
         },
-        include: {
-          replyTo: true,
-          reactions: true,
-        },
+        include: MESSAGE_RELATIONS_INCLUDE,
       });
 
       await tx.chat.update({
@@ -81,34 +63,49 @@ export class PrismaMessageRepository implements MessageRepository {
       return createdMessage;
     });
 
-    return this.toMessageResponseDto(message);
+    const activeParticipantIds = await this.getActiveParticipantIds(data.chatId);
+
+    return MessageMapper.toResponseDto(message, activeParticipantIds);
   }
 
   async findByChatId(chatId: string): Promise<MessageListItemDto[]> {
-    const messages = await prisma.message.findMany({
-      where: {
-        chatId,
-        deletedAt: null,
-      },
-      orderBy: {
-        createdAt: 'asc',
-      },
-      include: {
-        replyTo: true,
-        reactions: true,
-      },
-    });
+    const [messages, activeParticipantIds] = await Promise.all([
+      prisma.message.findMany({
+        where: {
+          chatId,
+          deletedAt: null,
+        },
+        orderBy: {
+          createdAt: 'asc',
+        },
+        include: MESSAGE_RELATIONS_INCLUDE,
+      }),
+      this.getActiveParticipantIds(chatId),
+    ]);
 
-    return messages.map((message) => ({
-      id: message.id,
-      senderId: message.senderId,
-      content: message.content,
-      type: message.type,
-      createdAt: message.createdAt,
-      editedAt: message.editedAt,
-      replyTo: this.toReplyToDto(message.replyTo),
-      reactions: this.toReactionsSummary(message.reactions),
-    }));
+    return messages.map((message) => MessageMapper.toListItemDto(message, activeParticipantIds));
+  }
+
+  async searchMessages(chatId: string, query: string): Promise<MessageListItemDto[]> {
+    const [messages, activeParticipantIds] = await Promise.all([
+      prisma.message.findMany({
+        where: {
+          chatId,
+          deletedAt: null,
+          content: {
+            contains: query,
+            mode: 'insensitive',
+          },
+        },
+        orderBy: {
+          createdAt: 'asc',
+        },
+        include: MESSAGE_RELATIONS_INCLUDE,
+      }),
+      this.getActiveParticipantIds(chatId),
+    ]);
+
+    return messages.map((message) => MessageMapper.toListItemDto(message, activeParticipantIds));
   }
 
   async findById(messageId: string): Promise<MessageResponseDto | null> {
@@ -116,20 +113,19 @@ export class PrismaMessageRepository implements MessageRepository {
       where: {
         id: messageId,
       },
-      include: {
-        replyTo: true,
-        reactions: true,
-      },
+      include: MESSAGE_RELATIONS_INCLUDE,
     });
 
     if (!message) {
       return null;
     }
 
-    return this.toMessageResponseDto(message);
+    const activeParticipantIds = await this.getActiveParticipantIds(message.chatId);
+
+    return MessageMapper.toResponseDto(message, activeParticipantIds);
   }
 
-  async update(dto: UpdateMessageDto): Promise<UpdateMessageResponseDto> {
+  async update(dto: UpdateMessageDto): Promise<MessageResponseDto> {
     const message = await prisma.message.update({
       where: {
         id: dto.messageId,
@@ -138,17 +134,12 @@ export class PrismaMessageRepository implements MessageRepository {
         content: dto.content,
         editedAt: new Date(),
       },
+      include: MESSAGE_RELATIONS_INCLUDE,
     });
 
-    return {
-      id: message.id,
-      chatId: message.chatId,
-      senderId: message.senderId,
-      content: message.content,
-      type: message.type,
-      createdAt: message.createdAt,
-      editedAt: message.editedAt,
-    };
+    const activeParticipantIds = await this.getActiveParticipantIds(message.chatId);
+
+    return MessageMapper.toResponseDto(message, activeParticipantIds);
   }
 
   async delete(dto: DeleteMessageDto): Promise<void> {
@@ -162,7 +153,7 @@ export class PrismaMessageRepository implements MessageRepository {
     });
   }
 
-  async markAsRead(dto: MarkMessagesAsReadDto): Promise<void> {
+  async markAsRead(dto: MarkMessagesAsReadDto): Promise<string[]> {
     const unreadMessages = await prisma.message.findMany({
       where: {
         chatId: dto.chatId,
@@ -182,7 +173,7 @@ export class PrismaMessageRepository implements MessageRepository {
     });
 
     if (unreadMessages.length === 0) {
-      return;
+      return [];
     }
 
     await prisma.messageRead.createMany({
@@ -190,6 +181,33 @@ export class PrismaMessageRepository implements MessageRepository {
         messageId: message.id,
         userId: dto.userId,
       })),
+      skipDuplicates: true,
     });
+
+    const activeParticipantIds = await this.getActiveParticipantIds(dto.chatId);
+
+    const messagesWithReads = await prisma.message.findMany({
+      where: {
+        id: { in: unreadMessages.map((message) => message.id) },
+      },
+      select: {
+        id: true,
+        senderId: true,
+        reads: {
+          select: {
+            userId: true,
+          },
+        },
+      },
+    });
+
+    return messagesWithReads
+      .filter((message) => {
+        const requiredReaderIds = activeParticipantIds.filter((id) => id !== message.senderId);
+        const readerIds = new Set(message.reads.map((read) => read.userId));
+
+        return requiredReaderIds.every((id) => readerIds.has(id));
+      })
+      .map((message) => message.id);
   }
 }

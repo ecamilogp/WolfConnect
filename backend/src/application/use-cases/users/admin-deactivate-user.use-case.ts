@@ -7,7 +7,7 @@ import { NotFoundError } from '../../../shared/errors/not-found-error.js';
 export class AdminDeactivateUserUseCase {
   constructor(private readonly userRepository: UserRepository) {}
 
-  async execute(requester: User, targetUserId: string): Promise<void> {
+  async execute(requester: User, targetUserId: string): Promise<User> {
     if (requester.role !== UserRole.ADMIN) {
       throw new ForbiddenError('Only an administrator can deactivate other users.');
     }
@@ -30,6 +30,6 @@ export class AdminDeactivateUserUseCase {
       throw new BadRequestError('Blocked accounts cannot be deactivated.');
     }
 
-    await this.userRepository.deactivate(targetUserId);
+    return this.userRepository.deactivate(targetUserId);
   }
 }

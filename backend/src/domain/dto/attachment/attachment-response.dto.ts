@@ -6,5 +6,6 @@ export interface AttachmentResponseDto {
   mimeType: string;
   size: number;
   path: string;
+  url: string;
   createdAt: Date;
 }

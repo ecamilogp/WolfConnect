@@ -47,7 +47,12 @@ export class RejectGroupInvitationUseCase {
       type: NotificationType.GROUP_INVITATION_REJECTED,
       title: 'Invitation declined',
       body: `${rejectedByName} declined your invitation to join "${groupName}".`,
-      data: { chatId: invitation.chatId, rejectedByUserId: currentUserId },
+      data: {
+        chatId: invitation.chatId,
+        rejectedByUserId: currentUserId,
+        actorName: rejectedByName,
+        groupName,
+      },
     });
 
     return {

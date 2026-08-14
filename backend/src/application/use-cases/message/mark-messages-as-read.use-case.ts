@@ -9,13 +9,13 @@ export class MarkMessagesAsReadUseCase {
     private readonly messageRepository: MessageRepository,
   ) {}
 
-  async execute(dto: MarkMessagesAsReadDto): Promise<void> {
+  async execute(dto: MarkMessagesAsReadDto): Promise<string[]> {
     await requireActiveChat(this.chatRepository, dto.chatId);
 
     await requireChatParticipant(this.chatRepository, dto.chatId, dto.userId, {
       message: 'You are not a participant in this chat.',
     });
 
-    await this.messageRepository.markAsRead(dto);
+    return this.messageRepository.markAsRead(dto);
   }
 }

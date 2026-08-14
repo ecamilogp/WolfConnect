@@ -6,11 +6,13 @@ export const SocketEvents = {
 
   PRESENCE_ONLINE: 'presence:online',
   PRESENCE_OFFLINE: 'presence:offline',
+  PRESENCE_SNAPSHOT: 'presence:snapshot',
 
   CHAT_JOIN: 'chat:join',
   CHAT_JOINED: 'chat:joined',
   CHAT_LEAVE: 'chat:leave',
   CHAT_LEFT: 'chat:left',
+  CHAT_NEW: 'chat:new',
 
   MESSAGE_SEND: 'message:send',
   MESSAGE_NEW: 'message:new',
@@ -19,11 +21,13 @@ export const SocketEvents = {
   MESSAGE_DELETE: 'message:delete',
   MESSAGE_DELETED: 'message:deleted',
   MESSAGE_REACTION_UPDATED: 'message:reaction:updated',
+  MESSAGE_READ_UPDATED: 'message:read:updated',
 
   ATTACHMENT_UPLOADED: 'attachment:uploaded',
 
   GROUP_UPDATED: 'group:updated',
   GROUP_ROLE_CHANGED: 'group:role:changed',
+  GROUP_PARTICIPANT_ADDED: 'group:participant:added',
   GROUP_PARTICIPANT_REMOVED: 'group:participant:removed',
   GROUP_OWNERSHIP_TRANSFERRED: 'group:ownership:transferred',
 

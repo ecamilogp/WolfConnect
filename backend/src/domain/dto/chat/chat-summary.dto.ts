@@ -5,4 +5,6 @@ export interface ChatSummaryDto {
   type: ChatType;
   name: string;
   imageUrl: string | null;
+  unreadCount: number;
+  otherUserId: string | null;
 }

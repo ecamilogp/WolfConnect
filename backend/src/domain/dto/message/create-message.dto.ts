@@ -1,6 +1,6 @@
 export interface CreateMessageDto {
   chatId: string;
   senderId: string;
-  content: string;
+  content: string | null;
   replyToMessageId?: string;
 }
