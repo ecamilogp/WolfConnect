@@ -22,4 +22,5 @@ export interface ChatSummary {
   name: string
   imageUrl: string | null
   unreadCount: number
+  otherUserId: string | null
 }

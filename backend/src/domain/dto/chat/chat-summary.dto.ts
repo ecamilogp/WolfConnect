@@ -6,4 +6,5 @@ export interface ChatSummaryDto {
   name: string;
   imageUrl: string | null;
   unreadCount: number;
+  otherUserId: string | null;
 }

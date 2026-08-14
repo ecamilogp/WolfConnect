@@ -11,6 +11,8 @@ import type {
   MessageDeletedPayload,
   MessageReactionUpdatedPayload,
   MessageReadUpdatedPayload,
+  PresenceChangedPayload,
+  PresenceSnapshotPayload,
 } from '@/types/socket/payloads.type'
 
 interface ChatSocketHandlers {
@@ -26,6 +28,9 @@ interface ChatSocketHandlers {
   onGroupOwnershipTransferred?: (payload: GroupOwnershipTransferredPayload) => void
   onMessageReadUpdated?: (payload: MessageReadUpdatedPayload) => void
   onMessageReactionUpdated?: (payload: MessageReactionUpdatedPayload) => void
+  onPresenceSnapshot?: (payload: PresenceSnapshotPayload) => void
+  onPresenceOnline?: (payload: PresenceChangedPayload) => void
+  onPresenceOffline?: (payload: PresenceChangedPayload) => void
 }
 
 export function useChatSocket() {
@@ -114,6 +119,18 @@ export function useChatSocket() {
       socket.on('message:reaction:updated', handlers.onMessageReactionUpdated)
     }
 
+    if (handlers.onPresenceSnapshot) {
+      socket.on('presence:snapshot', handlers.onPresenceSnapshot)
+    }
+
+    if (handlers.onPresenceOnline) {
+      socket.on('presence:online', handlers.onPresenceOnline)
+    }
+
+    if (handlers.onPresenceOffline) {
+      socket.on('presence:offline', handlers.onPresenceOffline)
+    }
+
     return () => {
       socket.off('message:new', handlers.onMessageNew)
       socket.off('message:edited', handlers.onMessageEdited)
@@ -154,6 +171,18 @@ export function useChatSocket() {
 
       if (handlers.onMessageReactionUpdated) {
         socket.off('message:reaction:updated', handlers.onMessageReactionUpdated)
+      }
+
+      if (handlers.onPresenceSnapshot) {
+        socket.off('presence:snapshot', handlers.onPresenceSnapshot)
+      }
+
+      if (handlers.onPresenceOnline) {
+        socket.off('presence:online', handlers.onPresenceOnline)
+      }
+
+      if (handlers.onPresenceOffline) {
+        socket.off('presence:offline', handlers.onPresenceOffline)
       }
     }
   }

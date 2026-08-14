@@ -1,13 +1,21 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { QBadge } from 'quasar'
 
 import AppAvatar from '@/components/ui/AppAvatar.vue'
+import { usePresenceStore } from '@/stores/presence.store'
 import type { ChatSummary } from '@/types/models/chat.model'
 
-defineProps<{
+const props = defineProps<{
   chat: ChatSummary
   active?: boolean
 }>()
+
+const presenceStore = usePresenceStore()
+
+const isOnline = computed(
+  () => props.chat.type === 'PRIVATE' && presenceStore.isOnline(props.chat.otherUserId),
+)
 
 defineEmits<{ click: [] }>()
 
@@ -29,7 +37,12 @@ function initials(name: string): string {
     @click="$emit('click')"
   >
     <div class="relative shrink-0">
-      <AppAvatar :src="chat.imageUrl ?? undefined" :initials="initials(chat.name)" size="40px" />
+      <AppAvatar
+        :src="chat.imageUrl ?? undefined"
+        :initials="initials(chat.name)"
+        size="40px"
+        :online="isOnline"
+      />
       <QBadge v-if="chat.unreadCount > 0" color="primary" rounded floating class="unread-badge">
         {{ chat.unreadCount > 99 ? '99+' : chat.unreadCount }}
       </QBadge>

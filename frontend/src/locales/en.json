@@ -147,6 +147,10 @@
       "generic": "You have a new notification."
     }
   },
+  "presence": {
+    "onlineLabel": "Online",
+    "online": "Online"
+  },
   "chat": {
     "searchUsersPlaceholder": "Search by name or username",
     "noUsersFound": "No users found.",

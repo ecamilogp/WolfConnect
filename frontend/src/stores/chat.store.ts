@@ -29,6 +29,7 @@ export const useChatStore = defineStore('chat', () => {
         ...created,
         name: '',
         unreadCount: 0,
+        otherUserId: targetUserId,
       }
     )
   }
