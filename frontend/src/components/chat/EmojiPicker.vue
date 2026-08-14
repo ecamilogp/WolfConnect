@@ -135,7 +135,7 @@ function handleSelect(emoji: string): void {
 }
 
 .emoji-picker {
-  width: 380px;
+  width: min(380px, calc(100vw - 32px));
   background-color: #ffffff;
 }
 

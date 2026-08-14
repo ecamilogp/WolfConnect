@@ -74,7 +74,7 @@ watch(
         :description="t('chat.noMessagesDescription')"
       />
 
-      <div v-else class="flex flex-col gap-2">
+      <TransitionGroup v-else name="message-fade" tag="div" class="flex flex-col gap-2">
         <template v-for="message in messages" :key="message.id">
           <SystemMessageItem v-if="message.type === 'SYSTEM'" :message="message" />
           <MessageBubble
@@ -87,7 +87,26 @@ watch(
             @edit="emit('edit', message)"
           />
         </template>
-      </div>
+      </TransitionGroup>
     </div>
   </div>
 </template>
+
+<style scoped>
+.message-fade-enter-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.message-fade-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.message-fade-leave-active {
+  transition: opacity 0.15s ease;
+}
+
+.message-fade-leave-to {
+  opacity: 0;
+}
+</style>

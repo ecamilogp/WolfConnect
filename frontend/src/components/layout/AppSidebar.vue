@@ -1,6 +1,17 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { QBadge, QBtn, QIcon, QInput, QItem, QItemSection, QList, QMenu, QTooltip } from 'quasar'
+import {
+  QBadge,
+  QBtn,
+  QIcon,
+  QInput,
+  QItem,
+  QItemSection,
+  QList,
+  QMenu,
+  QTooltip,
+  useQuasar,
+} from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
@@ -30,6 +41,8 @@ import brandMarkDark from '@/assets/images/WolfconnectimageDark.png'
 
 const router = useRouter()
 const route = useRoute()
+const $q = useQuasar()
+const isMobile = computed(() => $q.screen.lt.md)
 const authStore = useAuthStore()
 const chatStore = useChatStore()
 const groupStore = useGroupStore()
@@ -176,7 +189,7 @@ async function handleLogout(): Promise<void> {
 <template>
   <aside
     class="app-sidebar relative flex h-full shrink-0 flex-col"
-    :style="{ width: `${sidebarWidth}px` }"
+    :style="{ width: isMobile ? '100%' : `${sidebarWidth}px` }"
   >
     <div class="flex items-center gap-2 px-4 py-4">
       <img
@@ -338,6 +351,7 @@ async function handleLogout(): Promise<void> {
     </div>
 
     <div
+      v-if="!isMobile"
       class="app-sidebar__resize-handle"
       :class="{ 'app-sidebar__resize-handle--active': isResizing }"
       role="separator"

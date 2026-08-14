@@ -73,7 +73,7 @@ async function deactivateAccount(): Promise<void> {
           </h4>
 
           <div
-            class="flex items-center justify-between gap-4 rounded-xl border border-red-500/30 p-4"
+            class="flex flex-col items-start gap-4 rounded-xl border border-red-500/30 p-4 sm:flex-row sm:items-center sm:justify-between"
           >
             <div>
               <p class="text-sm font-medium">{{ t('settings.deactivateAccountButton') }}</p>

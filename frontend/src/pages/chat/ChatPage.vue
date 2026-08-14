@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onUnmounted, ref, watch } from 'vue'
-import { QBtn } from 'quasar'
+import { QBtn, useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 
 import AppAvatar from '@/components/ui/AppAvatar.vue'
@@ -25,6 +25,8 @@ import type {
 
 const route = useRoute()
 const router = useRouter()
+const $q = useQuasar()
+const isMobile = computed(() => $q.screen.lt.md)
 const chatStore = useChatStore()
 const messageStore = useMessageStore()
 const authStore = useAuthStore()
@@ -52,6 +54,10 @@ function initials(name: string): string {
 
 function leaveChatView(): void {
   chatStore.removeChat(chatId.value)
+  router.push({ name: 'chat-empty' })
+}
+
+function goBackToList(): void {
   router.push({ name: 'chat-empty' })
 }
 
@@ -152,13 +158,23 @@ function handleEditRequest(message: MessageListItem): void {
       v-if="chat"
       class="flex items-center bg-[#FAF8F8] dark:bg-[#16151B] gap-3 border-b border-black/20 px-4 py-3 dark:border-white/20"
     >
+      <QBtn
+        v-if="isMobile"
+        round
+        flat
+        dense
+        icon="arrow_back"
+        class="-ml-1"
+        @click="goBackToList"
+      />
+
       <AppAvatar
         :src="chat.imageUrl ?? undefined"
         :initials="initials(chat.name)"
         size="36px"
         previewable
       />
-      <p class="flex-1 font-semibold translate-y-2">{{ chat.name }}</p>
+      <p class="min-w-0 flex-1 truncate font-semibold translate-y-2">{{ chat.name }}</p>
 
       <QBtn v-if="isGroup" round flat dense icon="info" @click="isGroupInfoOpen = true" />
     </header>
