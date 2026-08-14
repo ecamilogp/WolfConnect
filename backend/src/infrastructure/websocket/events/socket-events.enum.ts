@@ -6,6 +6,7 @@ export const SocketEvents = {
 
   PRESENCE_ONLINE: 'presence:online',
   PRESENCE_OFFLINE: 'presence:offline',
+  PRESENCE_SNAPSHOT: 'presence:snapshot',
 
   CHAT_JOIN: 'chat:join',
   CHAT_JOINED: 'chat:joined',

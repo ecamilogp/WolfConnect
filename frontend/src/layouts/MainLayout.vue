@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onUnmounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute } from 'vue-router'
 
 import AppSidebar from '@/components/layout/AppSidebar.vue'
 import AppImagePreviewDialog from '@/components/ui/AppImagePreviewDialog.vue'
+import { usePresenceStore } from '@/stores/presence.store'
+import { useChatSocket } from '@/composables/useChatSocket'
 
 const $q = useQuasar()
 const route = useRoute()
@@ -17,6 +19,27 @@ const hasActiveChat = computed(() => typeof route.params.chatId === 'string')
 // side (same pattern as WhatsApp Web / Telegram Web on narrow screens).
 const showSidebar = computed(() => !isMobile.value || !hasActiveChat.value)
 const showMain = computed(() => !isMobile.value || hasActiveChat.value)
+
+// Presence is subscribed here (rather than in AppSidebar) because this
+// layout stays mounted for the entire authenticated session — AppSidebar
+// gets unmounted on mobile whenever a chat is open, which was silently
+// killing the online/offline listeners and made presence look "stuck"
+// until a full page reload reconnected them.
+const presenceStore = usePresenceStore()
+const chatSocket = useChatSocket()
+
+const unsubscribePresence = chatSocket.subscribe({
+  onMessageNew: () => {},
+  onMessageEdited: () => {},
+  onMessageDeleted: () => {},
+  onPresenceSnapshot: (payload) => presenceStore.setSnapshot(payload.onlineUserIds),
+  onPresenceOnline: (payload) => presenceStore.markOnline(payload.userId),
+  onPresenceOffline: (payload) => presenceStore.markOffline(payload.userId),
+})
+
+onUnmounted(() => {
+  unsubscribePresence()
+})
 </script>
 
 <template>

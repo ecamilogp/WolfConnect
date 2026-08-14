@@ -147,6 +147,10 @@
       "generic": "Tienes una nueva notificación."
     }
   },
+  "presence": {
+    "onlineLabel": "En línea",
+    "online": "En línea"
+  },
   "chat": {
     "searchUsersPlaceholder": "Buscar por nombre o usuario",
     "noUsersFound": "No se encontraron usuarios.",

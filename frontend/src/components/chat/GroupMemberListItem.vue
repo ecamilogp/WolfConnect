@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { QBtn, QChip, QIcon, QItem, QItemSection, QList, QMenu } from 'quasar'
 import { useI18n } from 'vue-i18n'
 
 import AppAvatar from '@/components/ui/AppAvatar.vue'
+import { usePresenceStore } from '@/stores/presence.store'
 import type { GroupParticipant } from '@/types/models/group.model'
 
 export interface GroupMemberAction {
@@ -18,6 +20,9 @@ const props = defineProps<{
 }>()
 
 const { t } = useI18n()
+const presenceStore = usePresenceStore()
+
+const isOnline = computed(() => presenceStore.isOnline(props.participant.userId))
 
 function initials(): string {
   return `${props.participant.firstName.charAt(0)}${props.participant.lastName.charAt(0)}`.toUpperCase()
@@ -63,7 +68,12 @@ function roleColor(): string {
 <template>
   <QItem class="py-2.5">
     <QItemSection avatar>
-      <AppAvatar :src="participant.profileImage ?? undefined" :initials="initials()" size="40px" />
+      <AppAvatar
+        :src="participant.profileImage ?? undefined"
+        :initials="initials()"
+        size="40px"
+        :online="isOnline"
+      />
     </QItemSection>
 
     <QItemSection class="flex flex-row items-center">

@@ -11,6 +11,14 @@ export interface ChatLeftPayload {
   chatId: string
 }
 
+export interface PresenceChangedPayload {
+  userId: string
+}
+
+export interface PresenceSnapshotPayload {
+  onlineUserIds: string[]
+}
+
 export interface MessageDeletedPayload {
   messageId: string
   chatId: string

@@ -31,6 +31,7 @@ export class ChatSummaryMapper {
         name: chat.name ?? '',
         imageUrl: chat.imageUrl,
         unreadCount,
+        otherUserId: null,
       };
     }
 
@@ -46,6 +47,7 @@ export class ChatSummaryMapper {
         : '',
       imageUrl: otherParticipant?.user.profileImage ?? null,
       unreadCount,
+      otherUserId: otherParticipant?.user.id ?? null,
     };
   }
 }

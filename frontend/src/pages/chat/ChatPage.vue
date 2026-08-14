@@ -2,6 +2,7 @@
 import { computed, onUnmounted, ref, watch } from 'vue'
 import { QBtn, useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 
 import AppAvatar from '@/components/ui/AppAvatar.vue'
 import MessageList from '@/components/chat/MessageList.vue'
@@ -11,6 +12,7 @@ import { useChatStore } from '@/stores/chat.store'
 import { useMessageStore } from '@/stores/message.store'
 import { useAuthStore } from '@/stores/auth.store'
 import { useGroupStore } from '@/stores/group.store'
+import { usePresenceStore } from '@/stores/presence.store'
 import { useChatSocket } from '@/composables/useChatSocket'
 import { useAppNotify } from '@/composables/useAppNotify'
 import { sendMessageWithAttachment } from '@/services/http/attachment.service'
@@ -31,13 +33,18 @@ const chatStore = useChatStore()
 const messageStore = useMessageStore()
 const authStore = useAuthStore()
 const groupStore = useGroupStore()
+const presenceStore = usePresenceStore()
 const chatSocket = useChatSocket()
 const { notifyError } = useAppNotify()
+const { t } = useI18n()
 
 const chatId = computed(() => String(route.params.chatId))
 
 const chat = computed(() => chatStore.chats.find((item) => item.id === chatId.value))
 const isGroup = computed(() => chat.value?.type === 'GROUP')
+const isOtherUserOnline = computed(
+  () => chat.value?.type === 'PRIVATE' && presenceStore.isOnline(chat.value.otherUserId),
+)
 const isGroupInfoOpen = ref(false)
 const replyingTo = ref<MessageListItem | null>(null)
 const editingMessage = ref<MessageListItem | null>(null)
@@ -173,8 +180,14 @@ function handleEditRequest(message: MessageListItem): void {
         :initials="initials(chat.name)"
         size="36px"
         previewable
+        :online="isOtherUserOnline"
       />
-      <p class="min-w-0 flex-1 truncate font-semibold translate-y-2">{{ chat.name }}</p>
+      <div class="min-w-0 flex-1">
+        <p class="truncate font-semibold translate-y-2">{{ chat.name }}</p>
+        <p v-if="isOtherUserOnline" class="text-xs text-positive leading-none">
+          {{ t('presence.online') }}
+        </p>
+      </div>
 
       <QBtn v-if="isGroup" round flat dense icon="info" @click="isGroupInfoOpen = true" />
     </header>

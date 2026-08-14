@@ -19,6 +19,7 @@ import type {
 export interface ServerToClientEvents {
   'presence:online': (payload: { userId: string }) => void
   'presence:offline': (payload: { userId: string }) => void
+  'presence:snapshot': (payload: { onlineUserIds: string[] }) => void
   'chat:joined': (payload: ChatJoinedPayload) => void
   'chat:left': (payload: ChatLeftPayload) => void
   'chat:new': (payload: ChatSummary) => void
