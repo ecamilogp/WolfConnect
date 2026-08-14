@@ -1,4 +1,4 @@
-import { User, UserRole } from '../entities/user.entity.js';
+import { User, UserRole, UserStatus } from '../entities/user.entity.js';
 import { CreateUserDTO } from '../dto/user/create-user.dto.js';
 import { UpdateUserDTO } from '../dto/user/update-user.dto.js';
 
@@ -22,4 +22,6 @@ export interface UserRepository {
   updateRole(id: string, role: UserRole): Promise<User>;
 
   deactivate(id: string): Promise<User>;
+
+  updateStatus(id: string, status: UserStatus): Promise<User>;
 }

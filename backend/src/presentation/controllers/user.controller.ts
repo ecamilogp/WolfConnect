@@ -12,6 +12,8 @@ import { AdminDeactivateUserUseCase } from '../../application/use-cases/users/ad
 import { SearchUsersUseCase } from '../../application/use-cases/users/search-users.use-case.js';
 import { ListUsersUseCase } from '../../application/use-cases/users/list-users.use-case.js';
 import { UpdateUserRoleUseCase } from '../../application/use-cases/users/update-user-role.use-case.js';
+import { AdminBlockUserUseCase } from '../../application/use-cases/users/admin-block-user.use-case.js';
+import { AdminReactivateUserUseCase } from '../../application/use-cases/users/admin-reactivate-user.use-case.js';
 import { AVATAR_PUBLIC_PATH_PREFIX, AVATAR_UPLOADS_DIR } from '../../config/avatar.config.js';
 import { BadRequestError } from '../../shared/errors/bad-request-error.js';
 
@@ -40,6 +42,8 @@ export class UserController {
     private readonly searchUsersUseCase: SearchUsersUseCase,
     private readonly listUsersUseCase: ListUsersUseCase,
     private readonly updateUserRoleUseCase: UpdateUserRoleUseCase,
+    private readonly adminBlockUserUseCase: AdminBlockUserUseCase,
+    private readonly adminReactivateUserUseCase: AdminReactivateUserUseCase,
   ) {}
 
   me = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -121,11 +125,49 @@ export class UserController {
 
   adminDeactivateUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      await this.adminDeactivateUserUseCase.execute(req.user, String(req.params.userId));
+      const updatedUser = await this.adminDeactivateUserUseCase.execute(
+        req.user,
+        String(req.params.userId),
+      );
 
       res.status(200).json({
         success: true,
         message: 'User deactivated successfully.',
+        data: UserResponseMapper.toResponse(updatedUser),
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  blockUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const updatedUser = await this.adminBlockUserUseCase.execute(
+        req.user,
+        String(req.params.userId),
+      );
+
+      res.status(200).json({
+        success: true,
+        message: 'User blocked successfully.',
+        data: UserResponseMapper.toResponse(updatedUser),
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  reactivateUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const updatedUser = await this.adminReactivateUserUseCase.execute(
+        req.user,
+        String(req.params.userId),
+      );
+
+      res.status(200).json({
+        success: true,
+        message: 'User reactivated successfully.',
+        data: UserResponseMapper.toResponse(updatedUser),
       });
     } catch (error) {
       next(error);

@@ -7,7 +7,14 @@ import { useI18n } from 'vue-i18n'
 import AppLoadingState from '@/components/ui/AppLoadingState.vue'
 import AppEmptyState from '@/components/ui/AppEmptyState.vue'
 import AdminUserListItem from '@/components/admin/AdminUserListItem.vue'
-import { listUsers, updateUserRole } from '@/services/http/user.service'
+import type { AdminUserAction } from '@/components/admin/AdminUserListItem.vue'
+import {
+  adminDeactivateUser,
+  blockUser,
+  listUsers,
+  reactivateUser,
+  updateUserRole,
+} from '@/services/http/user.service'
 import { useAuthStore } from '@/stores/auth.store'
 import { useAppNotify } from '@/composables/useAppNotify'
 import type { User, UserRole } from '@/types/models/user.model'
@@ -21,6 +28,7 @@ const { notifySuccess, notifyError } = useAppNotify()
 const users = ref<User[]>([])
 const isLoading = ref(false)
 const updatingUserId = ref<string | null>(null)
+const updatingStatusUserId = ref<string | null>(null)
 
 async function fetchUsers(): Promise<void> {
   isLoading.value = true
@@ -69,6 +77,98 @@ async function toggleRole(user: User, nextRole: UserRole): Promise<void> {
   }
 }
 
+type UserStatusAction = 'deactivate' | 'block' | 'reactivate'
+
+function actionsFor(user: User): AdminUserAction[] {
+  if (user.id === authStore.user?.id) {
+    return []
+  }
+
+  const actions: AdminUserAction[] = []
+
+  if (user.status === 'ACTIVE') {
+    actions.push({
+      label: t('admin.deactivateAction'),
+      icon: 'person_off',
+      handler: () => confirmStatusChange(user, 'deactivate'),
+    })
+  } else {
+    actions.push({
+      label: t('admin.reactivateAction'),
+      icon: 'restart_alt',
+      handler: () => confirmStatusChange(user, 'reactivate'),
+    })
+  }
+
+  if (user.status !== 'BLOCKED') {
+    actions.push({
+      label: t('admin.blockAction'),
+      icon: 'block',
+      color: 'negative',
+      handler: () => confirmStatusChange(user, 'block'),
+    })
+  }
+
+  return actions
+}
+
+function confirmStatusChange(user: User, action: UserStatusAction): void {
+  const titleKey =
+    action === 'deactivate'
+      ? 'admin.deactivateAction'
+      : action === 'block'
+        ? 'admin.blockAction'
+        : 'admin.reactivateAction'
+
+  const messageKey =
+    action === 'deactivate'
+      ? 'admin.deactivateConfirm'
+      : action === 'block'
+        ? 'admin.blockConfirm'
+        : 'admin.reactivateConfirm'
+
+  $q.dialog({
+    title: t(titleKey),
+    message: t(messageKey, { name: `${user.firstName} ${user.lastName}` }),
+    cancel: true,
+    persistent: true,
+  }).onOk(() => {
+    applyStatusChange(user, action)
+  })
+}
+
+async function applyStatusChange(user: User, action: UserStatusAction): Promise<void> {
+  updatingStatusUserId.value = user.id
+
+  try {
+    const updatedUser =
+      action === 'deactivate'
+        ? await adminDeactivateUser(user.id)
+        : action === 'block'
+          ? await blockUser(user.id)
+          : await reactivateUser(user.id)
+
+    const index = users.value.findIndex((item) => item.id === user.id)
+
+    if (index !== -1) {
+      users.value[index] = updatedUser
+    }
+
+    const successKey =
+      action === 'deactivate'
+        ? 'admin.deactivateSuccessNotify'
+        : action === 'block'
+          ? 'admin.blockSuccessNotify'
+          : 'admin.reactivateSuccessNotify'
+
+    notifySuccess(successKey)
+  } catch (error) {
+    notifyError(error, 'admin.actionError')
+  } finally {
+    updatingStatusUserId.value = null
+  }
+}
+
 function goBack(): void {
   router.back()
 }
@@ -100,7 +200,9 @@ function goBack(): void {
             :key="user.id"
             :user="user"
             :is-you="user.id === authStore.user?.id"
-            :is-updating="updatingUserId === user.id"
+            :is-updating-role="updatingUserId === user.id"
+            :is-updating-status="updatingStatusUserId === user.id"
+            :actions="actionsFor(user)"
             @toggle-role="confirmToggleRole(user)"
           />
         </div>

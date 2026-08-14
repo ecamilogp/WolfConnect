@@ -17,6 +17,8 @@ import { AdminDeactivateUserUseCase } from '../../application/use-cases/users/ad
 import { SearchUsersUseCase } from '../../application/use-cases/users/search-users.use-case.js';
 import { ListUsersUseCase } from '../../application/use-cases/users/list-users.use-case.js';
 import { UpdateUserRoleUseCase } from '../../application/use-cases/users/update-user-role.use-case.js';
+import { AdminBlockUserUseCase } from '../../application/use-cases/users/admin-block-user.use-case.js';
+import { AdminReactivateUserUseCase } from '../../application/use-cases/users/admin-reactivate-user.use-case.js';
 import { changePasswordSchema } from '../validators/users/change-password.validator.js';
 
 const router = Router();
@@ -30,6 +32,8 @@ const adminDeactivateUserUseCase = new AdminDeactivateUserUseCase(userRepository
 const searchUsersUseCase = new SearchUsersUseCase(userRepository);
 const listUsersUseCase = new ListUsersUseCase(userRepository);
 const updateUserRoleUseCase = new UpdateUserRoleUseCase(userRepository);
+const adminBlockUserUseCase = new AdminBlockUserUseCase(userRepository);
+const adminReactivateUserUseCase = new AdminReactivateUserUseCase(userRepository);
 
 const userController = new UserController(
   getCurrentUserUseCase,
@@ -40,6 +44,8 @@ const userController = new UserController(
   searchUsersUseCase,
   listUsersUseCase,
   updateUserRoleUseCase,
+  adminBlockUserUseCase,
+  adminReactivateUserUseCase,
 );
 
 router.get('/me', authenticate, userController.me);
@@ -66,6 +72,20 @@ router.patch(
   authenticate,
   requireAdmin,
   userController.adminDeactivateUser,
+);
+
+router.patch(
+  '/:userId/block',
+  authenticate,
+  requireAdmin,
+  userController.blockUser,
+);
+
+router.patch(
+  '/:userId/reactivate',
+  authenticate,
+  requireAdmin,
+  userController.reactivateUser,
 );
 
 router.patch(
