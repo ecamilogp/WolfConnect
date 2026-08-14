@@ -28,6 +28,7 @@ const props = defineProps<{
   isOwn: boolean
   isGroup?: boolean
   currentUserId: string
+  highlighted?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -241,6 +242,8 @@ const readReceiptLabel = computed(() =>
 
 <template>
   <div
+    class="message-bubble-root"
+    :class="{ 'message-bubble-root--highlighted': highlighted }"
     @pointerdown="startLongPress"
     @pointerup="cancelLongPress"
     @pointerleave="cancelLongPress"
@@ -760,5 +763,19 @@ const readReceiptLabel = computed(() =>
 .message-bubble__reaction-chip--mine {
   border-color: var(--q-primary);
   background-color: color-mix(in srgb, var(--q-primary) 15%, transparent);
+}
+
+.message-bubble-root--highlighted :deep(.q-message-text) {
+  animation: message-bubble-highlight-flash 1.6s ease;
+}
+
+@keyframes message-bubble-highlight-flash {
+  0%,
+  100% {
+    box-shadow: none;
+  }
+  20% {
+    box-shadow: 0 0 0 3px var(--q-primary);
+  }
 }
 </style>

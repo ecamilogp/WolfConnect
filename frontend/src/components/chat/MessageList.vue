@@ -17,9 +17,11 @@ const props = withDefaults(
     isLoading: boolean
     currentUserId: string
     isGroup?: boolean
+    highlightedMessageId?: string | null
   }>(),
   {
     isGroup: false,
+    highlightedMessageId: null,
   },
 )
 
@@ -56,6 +58,18 @@ watch(
     }
   },
 )
+
+function scrollToMessage(messageId: string): void {
+  nextTick(() => {
+    const element = containerRef.value?.querySelector<HTMLElement>(
+      `[data-message-id="${messageId}"]`,
+    )
+
+    element?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  })
+}
+
+defineExpose({ scrollToMessage })
 </script>
 
 <template>
@@ -76,13 +90,19 @@ watch(
 
       <TransitionGroup v-else name="message-fade" tag="div" class="flex flex-col gap-2">
         <template v-for="message in messages" :key="message.id">
-          <SystemMessageItem v-if="message.type === 'SYSTEM'" :message="message" />
+          <SystemMessageItem
+            v-if="message.type === 'SYSTEM'"
+            :message="message"
+            :data-message-id="message.id"
+          />
           <MessageBubble
             v-else
+            :data-message-id="message.id"
             :message="message"
             :is-own="message.senderId === currentUserId"
             :is-group="isGroup"
             :current-user-id="currentUserId"
+            :highlighted="message.id === highlightedMessageId"
             @reply="emit('reply', message)"
             @edit="emit('edit', message)"
           />

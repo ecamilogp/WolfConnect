@@ -120,6 +120,8 @@ router.post(
 
 router.get('/:chatId/messages', authenticate, messageController.getMessages);
 
+router.get('/:chatId/messages/search', authenticate, messageController.searchMessages);
+
 router.patch(
   '/messages/:messageId',
   authenticate,

@@ -10,6 +10,8 @@ export interface MessageRepository {
 
   findByChatId(chatId: string): Promise<MessageListItemDto[]>;
 
+  searchMessages(chatId: string, query: string): Promise<MessageListItemDto[]>;
+
   findById(messageId: string): Promise<MessageResponseDto | null>;
 
   update(dto: UpdateMessageDto): Promise<MessageResponseDto>;

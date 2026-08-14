@@ -86,6 +86,28 @@ export class PrismaMessageRepository implements MessageRepository {
     return messages.map((message) => MessageMapper.toListItemDto(message, activeParticipantIds));
   }
 
+  async searchMessages(chatId: string, query: string): Promise<MessageListItemDto[]> {
+    const [messages, activeParticipantIds] = await Promise.all([
+      prisma.message.findMany({
+        where: {
+          chatId,
+          deletedAt: null,
+          content: {
+            contains: query,
+            mode: 'insensitive',
+          },
+        },
+        orderBy: {
+          createdAt: 'asc',
+        },
+        include: MESSAGE_RELATIONS_INCLUDE,
+      }),
+      this.getActiveParticipantIds(chatId),
+    ]);
+
+    return messages.map((message) => MessageMapper.toListItemDto(message, activeParticipantIds));
+  }
+
   async findById(messageId: string): Promise<MessageResponseDto | null> {
     const message = await prisma.message.findUnique({
       where: {

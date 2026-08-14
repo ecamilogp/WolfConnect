@@ -6,6 +6,13 @@ export async function getMessages(chatId: string): Promise<MessageListItem[]> {
   return response.data
 }
 
+export async function searchMessages(chatId: string, query: string): Promise<MessageListItem[]> {
+  const response = await httpClient.get<MessageListItem[]>(`/chats/${chatId}/messages/search`, {
+    params: { q: query },
+  })
+  return response.data
+}
+
 export async function markMessagesAsRead(chatId: string): Promise<void> {
   await httpClient.patch(`/chats/${chatId}/read`)
 }
