@@ -1,22 +1,15 @@
-import { User, UserRole, UserStatus } from '../../../domain/entities/user.entity.js';
+import { User, UserStatus } from '../../../domain/entities/user.entity.js';
 import { UserRepository } from '../../../domain/repositories/user.repository.js';
 import { BadRequestError } from '../../../shared/errors/bad-request-error.js';
-import { ForbiddenError } from '../../../shared/errors/forbidden-error.js';
-import { NotFoundError } from '../../../shared/errors/not-found-error.js';
+import { requireAdminRequester, requireExistingUser } from './admin-user.guards.js';
 
 export class AdminReactivateUserUseCase {
   constructor(private readonly userRepository: UserRepository) {}
 
   async execute(requester: User, targetUserId: string): Promise<User> {
-    if (requester.role !== UserRole.ADMIN) {
-      throw new ForbiddenError('Only an administrator can reactivate other users.');
-    }
+    requireAdminRequester(requester, 'Only an administrator can reactivate other users.');
 
-    const targetUser = await this.userRepository.findById(targetUserId);
-
-    if (!targetUser) {
-      throw new NotFoundError('User not found.');
-    }
+    const targetUser = await requireExistingUser(this.userRepository, targetUserId);
 
     if (targetUser.status === UserStatus.ACTIVE) {
       throw new BadRequestError('This account is already active.');

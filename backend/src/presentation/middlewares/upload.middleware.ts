@@ -1,9 +1,4 @@
-import { randomUUID } from 'node:crypto';
-import fs from 'node:fs';
 import path from 'node:path';
-
-import type { NextFunction, Request, Response } from 'express';
-import multer, { type FileFilterCallback } from 'multer';
 
 import {
   ALLOWED_ATTACHMENT_MIME_TYPES,
@@ -11,56 +6,13 @@ import {
   UPLOADS_ROOT,
   resolveAttachmentFolder,
 } from '../../config/attachment.config.js';
-import { BadRequestError } from '../../shared/errors/bad-request-error.js';
+import { createUploadMiddleware } from './upload.factory.js';
 
-const storage = multer.diskStorage({
-  destination: (_req, file, callback) => {
-    const destination = path.join(UPLOADS_ROOT, resolveAttachmentFolder(file.mimetype));
-
-    fs.mkdirSync(destination, { recursive: true });
-
-    callback(null, destination);
-  },
-  filename: (_req, file, callback) => {
-    callback(null, `${randomUUID()}${path.extname(file.originalname)}`);
-  },
+export const uploadSingleAttachment = createUploadMiddleware({
+  fieldName: 'file',
+  allowedMimeTypes: ALLOWED_ATTACHMENT_MIME_TYPES,
+  maxSizeBytes: MAX_ATTACHMENT_SIZE_BYTES,
+  resolveDestination: (file) => path.join(UPLOADS_ROOT, resolveAttachmentFolder(file.mimetype)),
+  buildTypeErrorMessage: (mimetype) => `File type "${mimetype}" is not allowed.`,
+  buildSizeErrorMessage: (maxMb) => `File exceeds the maximum allowed size of ${maxMb}MB.`,
 });
-
-function fileFilter(_req: Request, file: Express.Multer.File, callback: FileFilterCallback): void {
-  if (!ALLOWED_ATTACHMENT_MIME_TYPES.includes(file.mimetype)) {
-    callback(new BadRequestError(`File type "${file.mimetype}" is not allowed.`));
-    return;
-  }
-
-  callback(null, true);
-}
-
-const multerUpload = multer({
-  storage,
-  fileFilter,
-  limits: {
-    fileSize: MAX_ATTACHMENT_SIZE_BYTES,
-  },
-});
-
-export function uploadSingleAttachment(req: Request, res: Response, next: NextFunction): void {
-  multerUpload.single('file')(req, res, (error: unknown) => {
-    if (error instanceof multer.MulterError) {
-      if (error.code === 'LIMIT_FILE_SIZE') {
-        const maxMb = MAX_ATTACHMENT_SIZE_BYTES / (1024 * 1024);
-        next(new BadRequestError(`File exceeds the maximum allowed size of ${maxMb}MB.`));
-        return;
-      }
-
-      next(new BadRequestError(error.message));
-      return;
-    }
-
-    if (error) {
-      next(error);
-      return;
-    }
-
-    next();
-  });
-}

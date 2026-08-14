@@ -9,6 +9,7 @@ import AppButton from '@/components/ui/AppButton.vue'
 import AppAvatarUpload from '@/components/ui/AppAvatarUpload.vue'
 import { useAuthStore } from '@/stores/auth.store'
 import { useAppNotify } from '@/composables/useAppNotify'
+import { getInitialsFromName } from '@/utils/initials'
 import {
   createChangePasswordSchema,
   createUpdateProfileSchema,
@@ -22,11 +23,7 @@ const { notifySuccess, notifyError } = useAppNotify()
 const initials = computed(() => {
   const user = authStore.user
 
-  if (!user) {
-    return ''
-  }
-
-  return `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase()
+  return user ? getInitialsFromName(user.firstName, user.lastName) : ''
 })
 
 const profileForm = reactive({

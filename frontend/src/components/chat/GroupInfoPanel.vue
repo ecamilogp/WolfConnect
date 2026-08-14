@@ -23,6 +23,7 @@ import { useGroupStore } from '@/stores/group.store'
 import { useChatSocket } from '@/composables/useChatSocket'
 import { useUserSearch } from '@/composables/useUserSearch'
 import { useAppNotify } from '@/composables/useAppNotify'
+import { useConfirmDialog } from '@/composables/useConfirmDialog'
 import type { GroupMemberAction } from '@/components/chat/GroupMemberListItem.vue'
 import type { GroupParticipant } from '@/types/models/group.model'
 import type { UserSearchResult } from '@/types/models/user-search-result.model'
@@ -36,6 +37,7 @@ const emit = defineEmits<{ left: [chatId: string]; deleted: [chatId: string] }>(
 const { t } = useI18n()
 const $q = useQuasar()
 const { notifySuccess, notifyError } = useAppNotify()
+const { confirm } = useConfirmDialog()
 const authStore = useAuthStore()
 const groupStore = useGroupStore()
 const chatSocket = useChatSocket()
@@ -144,19 +146,16 @@ function confirmRemoveParticipant(participant: GroupParticipant): void {
 
   const chatId = props.chatId
 
-  $q.dialog({
-    title: t('groups.remove'),
-    message: t('groups.removeConfirm', {
-      name: `${participant.firstName} ${participant.lastName}`,
-    }),
-    cancel: true,
-    persistent: true,
-  }).onOk(() => {
-    runAction(
-      () => groupStore.removeParticipant(chatId, participant.userId),
-      'groups.removeSuccessNotify',
-    )
-  })
+  confirm(
+    t('groups.remove'),
+    t('groups.removeConfirm', { name: `${participant.firstName} ${participant.lastName}` }),
+    () => {
+      runAction(
+        () => groupStore.removeParticipant(chatId, participant.userId),
+        'groups.removeSuccessNotify',
+      )
+    },
+  )
 }
 
 function confirmTransferOwnership(participant: GroupParticipant): void {
@@ -166,19 +165,16 @@ function confirmTransferOwnership(participant: GroupParticipant): void {
 
   const chatId = props.chatId
 
-  $q.dialog({
-    title: t('groups.transferOwnership'),
-    message: t('groups.transferOwnershipConfirm', {
-      name: `${participant.firstName} ${participant.lastName}`,
-    }),
-    cancel: true,
-    persistent: true,
-  }).onOk(() => {
-    runAction(
-      () => groupStore.transferOwnership(chatId, participant.userId),
-      'groups.transferSuccessNotify',
-    )
-  })
+  confirm(
+    t('groups.transferOwnership'),
+    t('groups.transferOwnershipConfirm', { name: `${participant.firstName} ${participant.lastName}` }),
+    () => {
+      runAction(
+        () => groupStore.transferOwnership(chatId, participant.userId),
+        'groups.transferSuccessNotify',
+      )
+    },
+  )
 }
 
 function confirmLeaveGroup(): void {
@@ -188,12 +184,7 @@ function confirmLeaveGroup(): void {
 
   const chatId = props.chatId
 
-  $q.dialog({
-    title: t('groups.leaveButton'),
-    message: t('groups.leaveConfirm'),
-    cancel: true,
-    persistent: true,
-  }).onOk(async () => {
+  confirm(t('groups.leaveButton'), t('groups.leaveConfirm'), async () => {
     try {
       await groupStore.leaveGroup(chatId)
       notifySuccess('groups.leaveSuccessNotify')
@@ -212,12 +203,7 @@ function confirmDeleteGroup(): void {
 
   const chatId = props.chatId
 
-  $q.dialog({
-    title: t('groups.deleteButton'),
-    message: t('groups.deleteConfirm'),
-    cancel: true,
-    persistent: true,
-  }).onOk(async () => {
+  confirm(t('groups.deleteButton'), t('groups.deleteConfirm'), async () => {
     try {
       await groupStore.deleteGroup(chatId)
       notifySuccess('groups.deleteSuccessNotify')

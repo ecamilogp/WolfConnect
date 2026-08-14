@@ -1,6 +1,3 @@
-import fs from 'node:fs';
-import path from 'node:path';
-
 import { NextFunction, Request, Response } from 'express';
 
 import { PrismaChatRepository } from '../../infrastructure/repositories/prisma-chat.repository.js';
@@ -41,21 +38,8 @@ import {
   GROUP_PHOTO_UPLOADS_DIR,
 } from '../../config/group-photo.config.js';
 import { BadRequestError } from '../../shared/errors/bad-request-error.js';
-
-function deleteLocalGroupPhotoFile(imageUrl: string | null | undefined): void {
-  if (!imageUrl || !imageUrl.startsWith(GROUP_PHOTO_PUBLIC_PATH_PREFIX)) {
-    return;
-  }
-
-  const fileName = path.basename(imageUrl);
-  const filePath = path.join(GROUP_PHOTO_UPLOADS_DIR, fileName);
-
-  fs.unlink(filePath, (error) => {
-    if (error) {
-      console.error('[group:photo-cleanup-failed]', error);
-    }
-  });
-}
+import { deleteLocalFileIfManaged } from '../../shared/utils/delete-local-file.util.js';
+import { safeEmit } from '../../shared/utils/safe-emit.util.js';
 
 export class ChatController {
   private readonly chatRepository = new PrismaChatRepository();
@@ -121,11 +105,7 @@ export class ChatController {
   private readonly transferOwnershipUseCase = new TransferOwnershipUseCase(this.chatRepository);
 
   private emitGroupEvent<T>(event: SocketEventName, chatId: string, payload: T): void {
-    try {
-      getIO().to(chatRoom(chatId)).emit(event, payload);
-    } catch (socketError) {
-      console.error('[group:socket-emit-failed]', socketError);
-    }
+    safeEmit(chatRoom(chatId), event, payload, 'group');
   }
 
   private async notifyChatMembership(chatId: string, targetUserId: string): Promise<void> {
@@ -423,7 +403,12 @@ export class ChatController {
         imageUrl,
       });
 
-      deleteLocalGroupPhotoFile(previousImageUrl);
+      deleteLocalFileIfManaged(
+        previousImageUrl,
+        GROUP_PHOTO_PUBLIC_PATH_PREFIX,
+        GROUP_PHOTO_UPLOADS_DIR,
+        'group:photo',
+      );
 
       const payload: GroupUpdatedPayload = chat;
 

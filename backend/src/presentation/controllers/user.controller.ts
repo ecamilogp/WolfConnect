@@ -1,6 +1,3 @@
-import fs from 'node:fs';
-import path from 'node:path';
-
 import { NextFunction, Request, Response } from 'express';
 
 import { GetCurrentUserUseCase } from '../../application/use-cases/users/get-current-user.use-case.js';
@@ -16,21 +13,7 @@ import { AdminBlockUserUseCase } from '../../application/use-cases/users/admin-b
 import { AdminReactivateUserUseCase } from '../../application/use-cases/users/admin-reactivate-user.use-case.js';
 import { AVATAR_PUBLIC_PATH_PREFIX, AVATAR_UPLOADS_DIR } from '../../config/avatar.config.js';
 import { BadRequestError } from '../../shared/errors/bad-request-error.js';
-
-function deleteLocalAvatarFile(profileImage: string | null): void {
-  if (!profileImage || !profileImage.startsWith(AVATAR_PUBLIC_PATH_PREFIX)) {
-    return;
-  }
-
-  const fileName = path.basename(profileImage);
-  const filePath = path.join(AVATAR_UPLOADS_DIR, fileName);
-
-  fs.unlink(filePath, (error) => {
-    if (error) {
-      console.error('[user:avatar-cleanup-failed]', error);
-    }
-  });
-}
+import { deleteLocalFileIfManaged } from '../../shared/utils/delete-local-file.util.js';
 
 export class UserController {
   constructor(
@@ -85,7 +68,12 @@ export class UserController {
 
       const updatedUser = await this.updateCurrentUserUseCase.execute(req.user, { profileImage });
 
-      deleteLocalAvatarFile(previousProfileImage);
+      deleteLocalFileIfManaged(
+        previousProfileImage,
+        AVATAR_PUBLIC_PATH_PREFIX,
+        AVATAR_UPLOADS_DIR,
+        'user:avatar',
+      );
 
       res.status(200).json({
         success: true,

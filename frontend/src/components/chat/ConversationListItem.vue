@@ -4,6 +4,7 @@ import { QBadge } from 'quasar'
 
 import AppAvatar from '@/components/ui/AppAvatar.vue'
 import { usePresenceStore } from '@/stores/presence.store'
+import { getInitialsFromFullName } from '@/utils/initials'
 import type { ChatSummary } from '@/types/models/chat.model'
 
 const props = defineProps<{
@@ -20,13 +21,7 @@ const isOnline = computed(
 defineEmits<{ click: [] }>()
 
 function initials(name: string): string {
-  return name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part.charAt(0))
-    .join('')
-    .toUpperCase()
+  return getInitialsFromFullName(name)
 }
 </script>
 

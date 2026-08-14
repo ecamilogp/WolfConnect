@@ -3,11 +3,11 @@ import { NextFunction, Request, Response } from 'express';
 import { UploadAttachmentUseCase } from '../../application/use-cases/attachment/upload-attachment.use-case.js';
 import { SocketEvents } from '../../infrastructure/websocket/events/socket-events.enum.js';
 import { chatRoom } from '../../infrastructure/websocket/handlers/chat.handler.js';
-import { getIO } from '../../infrastructure/websocket/socket.server.js';
 import { AttachmentUploadedPayload } from '../../infrastructure/websocket/types/socket-payloads.type.js';
 import { PrismaAttachmentRepository } from '../../infrastructure/repositories/prisma-attachment.repository.js';
 import { PrismaMessageRepository } from '../../infrastructure/repositories/prisma-message.repository.js';
 import { BadRequestError } from '../../shared/errors/bad-request-error.js';
+import { safeEmit } from '../../shared/utils/safe-emit.util.js';
 
 export class AttachmentController {
   private readonly messageRepository = new PrismaMessageRepository();
@@ -35,13 +35,9 @@ export class AttachmentController {
         path: req.file.path,
       });
 
-      try {
-        const payload: AttachmentUploadedPayload = { messageId: attachment.messageId, chatId, attachment };
+      const payload: AttachmentUploadedPayload = { messageId: attachment.messageId, chatId, attachment };
 
-        getIO().to(chatRoom(chatId)).emit(SocketEvents.ATTACHMENT_UPLOADED, payload);
-      } catch (socketError) {
-        console.error('[attachment:socket-emit-failed]', socketError);
-      }
+      safeEmit(chatRoom(chatId), SocketEvents.ATTACHMENT_UPLOADED, payload, 'attachment');
 
       res.status(201).json({
         success: true,
