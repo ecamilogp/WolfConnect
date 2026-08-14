@@ -53,8 +53,10 @@ async function onSubmit(): Promise<void> {
 </script>
 
 <template>
-  <div class="flex min-h-screen w-full">
-    <div class="flex w-1/2 items-center justify-end px-6 py-8 lg:px-10">
+  <div class="flex min-h-dvh w-full flex-col md:flex-row">
+    <div
+      class="flex w-full flex-1 items-center justify-end px-6 py-8 md:flex-none md:w-1/2 md:justify-end md:px-10"
+    >
       <div class="flex w-full max-w-xl flex-col gap-5">
         <div class="text-left">
           <h4
@@ -99,7 +101,7 @@ async function onSubmit(): Promise<void> {
       </div>
     </div>
 
-    <div class="wolf flex w-1/2 items-center justify-center px-6 py-8 lg:px-10">
+    <div class="wolf w-1/2 items-center justify-center px-6 py-8 md:px-10">
       <img
         :src="isDark ? logoWolfDark : logoWolf"
         class="w-full max-w-135 object-contain"
@@ -111,10 +113,17 @@ async function onSubmit(): Promise<void> {
 
 <style scoped>
 .wolf {
+  display: none;
   filter: drop-shadow(0 0 1.5px #693ac3);
 }
 
 .body--dark .wolf {
   filter: drop-shadow(0 0 1.5px #f2b71d);
+}
+
+@media (min-width: 768px) {
+  .wolf {
+    display: flex;
+  }
 }
 </style>

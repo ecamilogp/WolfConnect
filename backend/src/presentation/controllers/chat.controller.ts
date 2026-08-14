@@ -1,3 +1,6 @@
+import fs from 'node:fs';
+import path from 'node:path';
+
 import { NextFunction, Request, Response } from 'express';
 
 import { PrismaChatRepository } from '../../infrastructure/repositories/prisma-chat.repository.js';
@@ -33,6 +36,26 @@ import {
   GroupRoleChangedPayload,
   GroupUpdatedPayload,
 } from '../../infrastructure/websocket/types/socket-payloads.type.js';
+import {
+  GROUP_PHOTO_PUBLIC_PATH_PREFIX,
+  GROUP_PHOTO_UPLOADS_DIR,
+} from '../../config/group-photo.config.js';
+import { BadRequestError } from '../../shared/errors/bad-request-error.js';
+
+function deleteLocalGroupPhotoFile(imageUrl: string | null | undefined): void {
+  if (!imageUrl || !imageUrl.startsWith(GROUP_PHOTO_PUBLIC_PATH_PREFIX)) {
+    return;
+  }
+
+  const fileName = path.basename(imageUrl);
+  const filePath = path.join(GROUP_PHOTO_UPLOADS_DIR, fileName);
+
+  fs.unlink(filePath, (error) => {
+    if (error) {
+      console.error('[group:photo-cleanup-failed]', error);
+    }
+  });
+}
 
 export class ChatController {
   private readonly chatRepository = new PrismaChatRepository();
@@ -375,6 +398,42 @@ export class ChatController {
       res.status(200).json({
         success: true,
         message: 'Group updated successfully.',
+        data: response,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  uploadGroupPhoto = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      if (!req.file) {
+        throw new BadRequestError('An image file is required.');
+      }
+
+      const chatId = String(req.params.chatId);
+      const existingChat = await this.chatRepository.findById(chatId);
+      const previousImageUrl = existingChat?.imageUrl;
+
+      const imageUrl = `${GROUP_PHOTO_PUBLIC_PATH_PREFIX}/${req.file.filename}`;
+
+      const chat = await this.updateGroupUseCase.execute({
+        chatId,
+        requesterUserId: req.user.id,
+        imageUrl,
+      });
+
+      deleteLocalGroupPhotoFile(previousImageUrl);
+
+      const payload: GroupUpdatedPayload = chat;
+
+      this.emitGroupEvent(SocketEvents.GROUP_UPDATED, chat.id, payload);
+
+      const response = ChatResponseMapper.toResponse(chat);
+
+      res.status(200).json({
+        success: true,
+        message: 'Group photo updated successfully.',
         data: response,
       });
     } catch (error) {

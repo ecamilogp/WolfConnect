@@ -71,6 +71,17 @@ export const useGroupStore = defineStore('group', () => {
     }
   }
 
+  async function updateGroupPhoto(chatId: string, file: File): Promise<void> {
+    const chat: Chat = await groupService.uploadGroupPhoto(chatId, file)
+
+    if (groupDetail.value && groupDetail.value.id === chatId) {
+      groupDetail.value = {
+        ...groupDetail.value,
+        imageUrl: chat.imageUrl,
+      }
+    }
+  }
+
   async function inviteToGroup(chatId: string, invitedUserId: string): Promise<void> {
     await groupService.inviteToGroup(chatId, invitedUserId)
   }
@@ -179,6 +190,7 @@ export const useGroupStore = defineStore('group', () => {
     closeGroupDetail,
     refreshGroupDetail,
     updateGroup,
+    updateGroupPhoto,
     inviteToGroup,
     promoteToAdmin,
     demoteAdmin,

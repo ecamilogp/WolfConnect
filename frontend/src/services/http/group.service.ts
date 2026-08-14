@@ -25,6 +25,16 @@ export async function updateGroup(chatId: string, payload: UpdateGroupPayload): 
   return response.data
 }
 
+export async function uploadGroupPhoto(chatId: string, file: File): Promise<Chat> {
+  // Axios sets the multipart/form-data Content-Type (with the correct
+  // boundary) automatically when the request body is a FormData instance.
+  const formData = new FormData()
+  formData.append('photo', file)
+
+  const response = await httpClient.patch<Chat>(`/chats/groups/${chatId}/photo`, formData)
+  return response.data
+}
+
 export async function getGroupDetail(chatId: string): Promise<GroupDetail> {
   const response = await httpClient.get<GroupDetail>(`/chats/groups/${chatId}`)
   return response.data

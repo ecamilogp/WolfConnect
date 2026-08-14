@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { QChatMessage, QIcon, QItem, QItemSection, QList, QMenu, useQuasar } from 'quasar'
+import {
+  QChatMessage,
+  QIcon,
+  QItem,
+  QItemSection,
+  QList,
+  QMenu,
+  QSeparator,
+  useQuasar,
+} from 'quasar'
 import { useI18n } from 'vue-i18n'
 
 import AppAvatar from '@/components/ui/AppAvatar.vue'
@@ -61,6 +70,7 @@ const reactionSummary = computed(() => {
 })
 
 const reactionMenuRef = ref<InstanceType<typeof QMenu> | null>(null)
+const moreMenuRef = ref<InstanceType<typeof QMenu> | null>(null)
 
 async function handleReactionClick(emoji: string): Promise<void> {
   // Close the quick-reaction dock immediately for instant feedback instead of
@@ -79,8 +89,48 @@ async function handleReactionClick(emoji: string): Promise<void> {
   }
 }
 
+function handleReactionClickFromMoreMenu(emoji: string): void {
+  moreMenuRef.value?.hide()
+  handleReactionClick(emoji)
+}
+
 const isReactionMenuOpen = ref(false)
 const isMoreMenuOpen = ref(false)
+
+// On touch devices (phone/tablet) two separate always-visible floating
+// buttons per message feel cluttered, since there's no hover state to hide
+// them contextually. There, the reaction picker folds into the same "more
+// options" menu (one single trigger instead of two), and holding the bubble
+// down opens that same menu as an alternative to tapping the trigger.
+const isTouchDevice = $q.platform.has.touch
+
+// Whether the message actions should collapse into a single "more options"
+// trigger. This must react to viewport width (not just touch capability) so
+// that resizing into a mobile/tablet layout on a mouse-driven device (e.g.
+// testing responsive breakpoints in devtools) also collapses down to one
+// icon instead of showing both floating triggers side by side.
+const isCompactActions = computed(() => isTouchDevice || $q.screen.lt.md)
+
+let longPressTimer: ReturnType<typeof setTimeout> | null = null
+
+function cancelLongPress(): void {
+  if (longPressTimer) {
+    clearTimeout(longPressTimer)
+    longPressTimer = null
+  }
+}
+
+function startLongPress(event: PointerEvent): void {
+  if (!isTouchDevice || event.pointerType !== 'touch') {
+    return
+  }
+
+  cancelLongPress()
+  longPressTimer = setTimeout(() => {
+    moreMenuRef.value?.show()
+    longPressTimer = null
+  }, 450)
+}
 
 // Received bubbles hug the left edge of the row, leaving open space to their
 // right — so the triggers float just past the bubble's own right edge. Sent
@@ -88,11 +138,11 @@ const isMoreMenuOpen = ref(false)
 // edge instead, keeping them inside the visible chat area on both sides. The
 // "more options" trigger sits one slot further out than the reaction one.
 const reactionTriggerStyle = computed(() =>
-  props.isOwn ? { left: '-38px' } : { right: '-38px' },
+  props.isOwn ? { left: '-34px' } : { right: '-34px' },
 )
 
 const moreOptionsTriggerStyle = computed(() =>
-  props.isOwn ? { left: '-76px' } : { right: '-76px' },
+  props.isOwn ? { left: '-68px' } : { right: '-68px' },
 )
 
 function confirmDelete(): void {
@@ -190,7 +240,12 @@ const readReceiptLabel = computed(() =>
 </script>
 
 <template>
-  <div>
+  <div
+    @pointerdown="startLongPress"
+    @pointerup="cancelLongPress"
+    @pointerleave="cancelLongPress"
+    @pointercancel="cancelLongPress"
+  >
     <QChatMessage
       :sent="isOwn"
       :name="senderName"
@@ -266,6 +321,7 @@ const readReceiptLabel = computed(() =>
         />
 
         <button
+          v-if="!isCompactActions"
           type="button"
           class="message-bubble__react-trigger"
           :class="{ 'message-bubble__react-trigger--active': isReactionMenuOpen }"
@@ -310,19 +366,44 @@ const readReceiptLabel = computed(() =>
           type="button"
           class="message-bubble__more-trigger"
           :class="{ 'message-bubble__more-trigger--active': isMoreMenuOpen }"
-          :style="moreOptionsTriggerStyle"
+          :style="isCompactActions ? reactionTriggerStyle : moreOptionsTriggerStyle"
           :aria-label="t('chat.messageActions')"
         >
           <QIcon name="more_vert" size="16px" />
 
           <QMenu
+            ref="moreMenuRef"
             anchor="top middle"
             self="bottom middle"
             :offset="[0, 10]"
             @show="isMoreMenuOpen = true"
             @hide="isMoreMenuOpen = false"
           >
-            <QList dense class="py-1">
+            <QList dense class="py-1 message-bubble__actions-list">
+              <template v-if="isCompactActions">
+                <div class="reaction-dock reaction-dock--inline">
+                  <button
+                    v-for="emoji in QUICK_REACTIONS"
+                    :key="emoji"
+                    type="button"
+                    class="reaction-dock__emoji"
+                    @click="handleReactionClickFromMoreMenu(emoji)"
+                  >
+                    <span>{{ emoji }}</span>
+                  </button>
+
+                  <EmojiPicker
+                    icon="add"
+                    color="white"
+                    size="14px"
+                    trigger-class="reaction-dock__more"
+                    @select="handleReactionClickFromMoreMenu"
+                  />
+                </div>
+
+                <QSeparator spaced />
+              </template>
+
               <QItem v-close-popup clickable @click="emit('reply')">
                 <QItemSection avatar class="min-w-0 pr-0">
                   <QIcon name="reply" size="18px" />
@@ -451,10 +532,13 @@ const readReceiptLabel = computed(() =>
 }
 
 .reaction-dock {
-  display: inline-flex;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: center;
   gap: 4px;
   padding: 8px 10px;
+  max-width: calc(100vw - 24px);
   border-radius: 999px;
   background-color: #232323;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
@@ -489,6 +573,38 @@ const readReceiptLabel = computed(() =>
 
 .reaction-dock__more:hover {
   background-color: #5a5a5a !important;
+}
+
+/*
+ * On touch devices the reaction dock is folded into the "more options" menu
+ * instead of floating as its own dark pill, so it needs to blend into the
+ * QMenu/QList card instead of standing out as a dark capsule.
+ */
+.message-bubble__actions-list {
+  min-width: 220px;
+}
+
+.reaction-dock--inline {
+  background: transparent;
+  box-shadow: none;
+  max-width: none;
+  flex-wrap: nowrap;
+  padding: 4px 12px 8px;
+  overflow-x: auto;
+}
+
+.reaction-dock--inline .reaction-dock__emoji {
+  width: 34px;
+  height: 34px;
+  font-size: 22px;
+}
+
+.reaction-dock--inline .reaction-dock__emoji:hover {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+.body--dark .reaction-dock--inline .reaction-dock__emoji:hover {
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 /*
@@ -573,6 +689,20 @@ const readReceiptLabel = computed(() =>
 .message-bubble__more-trigger--active {
   opacity: 1;
   transform: translateY(-50%) scale(1);
+}
+
+/*
+ * `:hover` never fires on touch screens, so the reaction/more-options
+ * triggers would otherwise be permanently invisible on phones and tablets.
+ * `(hover: none)` reliably detects that case and keeps them visible (at a
+ * slightly lower resting opacity so they don't compete with the text).
+ */
+@media (hover: none) {
+  .message-bubble__react-trigger,
+  .message-bubble__more-trigger {
+    opacity: 0.85;
+    transform: translateY(-50%) scale(1);
+  }
 }
 
 .message-bubble__reply-quote {
