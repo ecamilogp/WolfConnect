@@ -1,26 +1,19 @@
-import { User, UserRole, UserStatus } from '../../../domain/entities/user.entity.js';
+import { User, UserStatus } from '../../../domain/entities/user.entity.js';
 import { UserRepository } from '../../../domain/repositories/user.repository.js';
 import { BadRequestError } from '../../../shared/errors/bad-request-error.js';
-import { ForbiddenError } from '../../../shared/errors/forbidden-error.js';
-import { NotFoundError } from '../../../shared/errors/not-found-error.js';
+import { requireAdminRequester, requireExistingUser } from './admin-user.guards.js';
 
 export class AdminDeactivateUserUseCase {
   constructor(private readonly userRepository: UserRepository) {}
 
   async execute(requester: User, targetUserId: string): Promise<User> {
-    if (requester.role !== UserRole.ADMIN) {
-      throw new ForbiddenError('Only an administrator can deactivate other users.');
-    }
+    requireAdminRequester(requester, 'Only an administrator can deactivate other users.');
 
     if (requester.id === targetUserId) {
       throw new BadRequestError('Use the account deactivation endpoint to deactivate yourself.');
     }
 
-    const targetUser = await this.userRepository.findById(targetUserId);
-
-    if (!targetUser) {
-      throw new NotFoundError('User not found.');
-    }
+    const targetUser = await requireExistingUser(this.userRepository, targetUserId);
 
     if (targetUser.status === UserStatus.INACTIVE) {
       throw new BadRequestError('This account is already deactivated.');

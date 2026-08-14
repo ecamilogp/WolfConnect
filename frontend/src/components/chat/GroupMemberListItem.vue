@@ -1,17 +1,16 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { QBtn, QChip, QIcon, QItem, QItemSection, QList, QMenu } from 'quasar'
+import { QChip, QItem, QItemSection } from 'quasar'
 import { useI18n } from 'vue-i18n'
 
 import AppAvatar from '@/components/ui/AppAvatar.vue'
+import AppActionMenu from '@/components/ui/AppActionMenu.vue'
+import type { AppActionMenuAction } from '@/components/ui/AppActionMenu.vue'
 import { usePresenceStore } from '@/stores/presence.store'
+import { getInitialsFromName } from '@/utils/initials'
 import type { GroupParticipant } from '@/types/models/group.model'
 
-export interface GroupMemberAction {
-  label: string
-  icon: string
-  handler: () => void
-}
+export type GroupMemberAction = AppActionMenuAction
 
 const props = defineProps<{
   participant: GroupParticipant
@@ -25,7 +24,7 @@ const presenceStore = usePresenceStore()
 const isOnline = computed(() => presenceStore.isOnline(props.participant.userId))
 
 function initials(): string {
-  return `${props.participant.firstName.charAt(0)}${props.participant.lastName.charAt(0)}`.toUpperCase()
+  return getInitialsFromName(props.participant.firstName, props.participant.lastName)
 }
 
 function roleLabel(): string {
@@ -98,32 +97,7 @@ function roleColor(): string {
           {{ roleLabel() }}
         </QChip>
 
-        <QBtn
-          v-if="actions.length > 0"
-          round
-          flat
-          dense
-          icon="more_vert"
-          size="sm"
-          :aria-label="t('groups.memberActions')"
-        >
-          <QMenu anchor="bottom right" self="top right">
-            <QList dense class="py-1">
-              <QItem
-                v-for="action in actions"
-                :key="action.label"
-                v-close-popup
-                clickable
-                @click="action.handler"
-              >
-                <QItemSection avatar class="min-w-0 pr-0">
-                  <QIcon :name="action.icon" size="18px" />
-                </QItemSection>
-                <QItemSection>{{ action.label }}</QItemSection>
-              </QItem>
-            </QList>
-          </QMenu>
-        </QBtn>
+        <AppActionMenu :actions="actions" :trigger-label="t('groups.memberActions')" />
       </div>
     </QItemSection>
   </QItem>

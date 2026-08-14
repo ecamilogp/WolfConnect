@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { QBtn, useQuasar } from 'quasar'
+import { QBtn } from 'quasar'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
@@ -17,13 +17,14 @@ import {
 } from '@/services/http/user.service'
 import { useAuthStore } from '@/stores/auth.store'
 import { useAppNotify } from '@/composables/useAppNotify'
+import { useConfirmDialog } from '@/composables/useConfirmDialog'
 import type { User, UserRole } from '@/types/models/user.model'
 
 const router = useRouter()
 const { t } = useI18n()
-const $q = useQuasar()
 const authStore = useAuthStore()
 const { notifySuccess, notifyError } = useAppNotify()
+const { confirm } = useConfirmDialog()
 
 const users = ref<User[]>([])
 const isLoading = ref(false)
@@ -48,14 +49,13 @@ function confirmToggleRole(user: User): void {
   const nextRole: UserRole = user.role === 'ADMIN' ? 'USER' : 'ADMIN'
   const messageKey = nextRole === 'ADMIN' ? 'admin.promoteConfirm' : 'admin.demoteConfirm'
 
-  $q.dialog({
-    title: nextRole === 'ADMIN' ? t('admin.promoteAction') : t('admin.demoteAction'),
-    message: t(messageKey, { name: `${user.firstName} ${user.lastName}` }),
-    cancel: true,
-    persistent: true,
-  }).onOk(() => {
-    toggleRole(user, nextRole)
-  })
+  confirm(
+    nextRole === 'ADMIN' ? t('admin.promoteAction') : t('admin.demoteAction'),
+    t(messageKey, { name: `${user.firstName} ${user.lastName}` }),
+    () => {
+      toggleRole(user, nextRole)
+    },
+  )
 }
 
 async function toggleRole(user: User, nextRole: UserRole): Promise<void> {
@@ -127,12 +127,7 @@ function confirmStatusChange(user: User, action: UserStatusAction): void {
         ? 'admin.blockConfirm'
         : 'admin.reactivateConfirm'
 
-  $q.dialog({
-    title: t(titleKey),
-    message: t(messageKey, { name: `${user.firstName} ${user.lastName}` }),
-    cancel: true,
-    persistent: true,
-  }).onOk(() => {
+  confirm(t(titleKey), t(messageKey, { name: `${user.firstName} ${user.lastName}` }), () => {
     applyStatusChange(user, action)
   })
 }

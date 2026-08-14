@@ -1,17 +1,15 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { QBtn, QChip, QIcon, QItem, QItemSection, QList, QMenu, QTooltip } from 'quasar'
+import { QBtn, QChip, QItem, QItemSection, QTooltip } from 'quasar'
 import { useI18n } from 'vue-i18n'
 
 import AppAvatar from '@/components/ui/AppAvatar.vue'
+import AppActionMenu from '@/components/ui/AppActionMenu.vue'
+import type { AppActionMenuAction } from '@/components/ui/AppActionMenu.vue'
+import { getInitialsFromName } from '@/utils/initials'
 import type { User } from '@/types/models/user.model'
 
-export interface AdminUserAction {
-  label: string
-  icon: string
-  color?: string
-  handler: () => void
-}
+export type AdminUserAction = AppActionMenuAction
 
 const props = defineProps<{
   user: User
@@ -25,9 +23,7 @@ const emit = defineEmits<{ toggleRole: [] }>()
 
 const { t } = useI18n()
 
-const initials = computed(() =>
-  `${props.user.firstName.charAt(0)}${props.user.lastName.charAt(0)}`.toUpperCase(),
-)
+const initials = computed(() => getInitialsFromName(props.user.firstName, props.user.lastName))
 
 const isAdmin = computed(() => props.user.role === 'ADMIN')
 
@@ -112,35 +108,11 @@ const statusColor = computed(() => {
           <QTooltip v-else>{{ toggleLabel }}</QTooltip>
         </QBtn>
 
-        <QBtn
-          v-if="actions.length > 0"
-          round
-          flat
-          dense
-          size="sm"
-          icon="more_vert"
+        <AppActionMenu
+          :actions="actions"
           :loading="isUpdatingStatus"
-          :aria-label="t('admin.moreActions')"
-        >
-          <QMenu anchor="bottom right" self="top right">
-            <QList dense class="py-1">
-              <QItem
-                v-for="action in actions"
-                :key="action.label"
-                v-close-popup
-                clickable
-                @click="action.handler"
-              >
-                <QItemSection avatar class="min-w-0 pr-0">
-                  <QIcon :name="action.icon" size="18px" :color="action.color" />
-                </QItemSection>
-                <QItemSection :class="action.color ? `text-${action.color}` : ''">
-                  {{ action.label }}
-                </QItemSection>
-              </QItem>
-            </QList>
-          </QMenu>
-        </QBtn>
+          :trigger-label="t('admin.moreActions')"
+        />
       </div>
     </QItemSection>
   </QItem>

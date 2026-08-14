@@ -4,11 +4,11 @@ import { SetMessageReactionUseCase } from '../../application/use-cases/message-r
 import { RemoveMessageReactionUseCase } from '../../application/use-cases/message-reaction/remove-message-reaction.use-case.js';
 import { SocketEvents } from '../../infrastructure/websocket/events/socket-events.enum.js';
 import { chatRoom } from '../../infrastructure/websocket/handlers/chat.handler.js';
-import { getIO } from '../../infrastructure/websocket/socket.server.js';
 import { MessageReactionUpdatedPayload } from '../../infrastructure/websocket/types/socket-payloads.type.js';
 import { PrismaChatRepository } from '../../infrastructure/repositories/prisma-chat.repository.js';
 import { PrismaMessageRepository } from '../../infrastructure/repositories/prisma-message.repository.js';
 import { PrismaMessageReactionRepository } from '../../infrastructure/repositories/prisma-message-reaction.repository.js';
+import { safeEmit } from '../../shared/utils/safe-emit.util.js';
 
 export class MessageReactionController {
   private readonly messageRepository = new PrismaMessageRepository();
@@ -30,11 +30,7 @@ export class MessageReactionController {
   );
 
   private emitReactionUpdate(payload: MessageReactionUpdatedPayload): void {
-    try {
-      getIO().to(chatRoom(payload.chatId)).emit(SocketEvents.MESSAGE_REACTION_UPDATED, payload);
-    } catch (socketError) {
-      console.error('[message-reaction:socket-emit-failed]', socketError);
-    }
+    safeEmit(chatRoom(payload.chatId), SocketEvents.MESSAGE_REACTION_UPDATED, payload, 'message-reaction');
   }
 
   setReaction = async (req: Request, res: Response, next: NextFunction): Promise<void> => {

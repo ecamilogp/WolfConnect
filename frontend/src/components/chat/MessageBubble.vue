@@ -18,7 +18,9 @@ import { useTheme } from '@/composables/useTheme'
 import { useImagePreview } from '@/composables/useImagePreview'
 import { useAppNotify } from '@/composables/useAppNotify'
 import { useChatSocket } from '@/composables/useChatSocket'
+import { useConfirmDialog } from '@/composables/useConfirmDialog'
 import { removeMessageReaction, setMessageReaction } from '@/services/http/message.service'
+import { getInitialsFromName } from '@/utils/initials'
 import type { MessageListItem } from '@/types/models/message.model'
 
 const QUICK_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🙏', '😆']
@@ -41,6 +43,7 @@ const $q = useQuasar()
 const { isDark } = useTheme()
 const { openImagePreview } = useImagePreview()
 const { notifyError } = useAppNotify()
+const { confirm } = useConfirmDialog()
 const chatSocket = useChatSocket()
 
 const bubbleColor = computed(() => {
@@ -147,12 +150,7 @@ const moreOptionsTriggerStyle = computed(() =>
 )
 
 function confirmDelete(): void {
-  $q.dialog({
-    title: t('chat.deleteMessageTitle'),
-    message: t('chat.deleteMessageConfirm'),
-    cancel: true,
-    persistent: true,
-  }).onOk(() => {
+  confirm(t('chat.deleteMessageTitle'), t('chat.deleteMessageConfirm'), () => {
     chatSocket.deleteMessage(props.message.id)
   })
 }
@@ -215,11 +213,7 @@ const showAvatar = computed(
 const senderInitials = computed(() => {
   const sender = props.message.sender
 
-  if (!sender) {
-    return undefined
-  }
-
-  return `${sender.firstName.charAt(0)}${sender.lastName.charAt(0)}`.toUpperCase()
+  return sender ? getInitialsFromName(sender.firstName, sender.lastName) : undefined
 })
 
 const stamp = computed(() => {

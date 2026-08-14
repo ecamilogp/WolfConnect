@@ -12,9 +12,9 @@ import { DeleteMessageUseCase } from '../../application/use-cases/message/delete
 import { MarkMessagesAsReadUseCase } from '../../application/use-cases/message/mark-messages-as-read.use-case.js';
 import { SocketEvents } from '../../infrastructure/websocket/events/socket-events.enum.js';
 import { chatRoom } from '../../infrastructure/websocket/handlers/chat.handler.js';
-import { getIO } from '../../infrastructure/websocket/socket.server.js';
 import { MessageReadUpdatedPayload } from '../../infrastructure/websocket/types/socket-payloads.type.js';
 import { BadRequestError } from '../../shared/errors/bad-request-error.js';
+import { safeEmit } from '../../shared/utils/safe-emit.util.js';
 
 export class MessageController {
   private readonly chatRepository = new PrismaChatRepository();
@@ -96,11 +96,7 @@ export class MessageController {
         path: req.file.path,
       });
 
-      try {
-        getIO().to(chatRoom(chatId)).emit(SocketEvents.MESSAGE_NEW, message);
-      } catch (socketError) {
-        console.error('[message:attachment:socket-emit-failed]', socketError);
-      }
+      safeEmit(chatRoom(chatId), SocketEvents.MESSAGE_NEW, message, 'message:attachment');
 
       res.status(201).json({
         success: true,
@@ -196,11 +192,7 @@ export class MessageController {
           messageIds: fullyReadMessageIds,
         };
 
-        try {
-          getIO().to(chatRoom(chatId)).emit(SocketEvents.MESSAGE_READ_UPDATED, payload);
-        } catch (socketError) {
-          console.error('Failed to emit message:read:updated event', socketError);
-        }
+        safeEmit(chatRoom(chatId), SocketEvents.MESSAGE_READ_UPDATED, payload, 'message:read');
       }
 
       res.status(200).json({

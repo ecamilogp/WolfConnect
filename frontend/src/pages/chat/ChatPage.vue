@@ -17,6 +17,7 @@ import { useChatSocket } from '@/composables/useChatSocket'
 import { useAppNotify } from '@/composables/useAppNotify'
 import { sendMessageWithAttachment } from '@/services/http/attachment.service'
 import { searchMessages } from '@/services/http/message.service'
+import { getInitialsFromFullName } from '@/utils/initials'
 import type { Chat } from '@/types/models/chat.model'
 import type { Message, MessageListItem } from '@/types/models/message.model'
 import type {
@@ -61,13 +62,7 @@ let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null
 const highlightedMessageId = computed(() => searchResults.value[activeResultIndex.value]?.id ?? null)
 
 function initials(name: string): string {
-  return name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part.charAt(0))
-    .join('')
-    .toUpperCase()
+  return getInitialsFromFullName(name)
 }
 
 function leaveChatView(): void {

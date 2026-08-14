@@ -28,6 +28,7 @@ import NotificationCenter from '@/components/layout/NotificationCenter.vue'
 import { useAuthStore } from '@/stores/auth.store'
 import { useChatStore } from '@/stores/chat.store'
 import { useGroupStore } from '@/stores/group.store'
+import { getInitialsFromName } from '@/utils/initials'
 import { useTheme } from '@/composables/useTheme'
 import { useChatSocket } from '@/composables/useChatSocket'
 import { useAppLoading } from '@/composables/useAppLoading'
@@ -164,11 +165,7 @@ const fullName = computed(() => {
 const initials = computed(() => {
   const user = authStore.user
 
-  if (!user) {
-    return ''
-  }
-
-  return `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase()
+  return user ? getInitialsFromName(user.firstName, user.lastName) : ''
 })
 
 async function handleLogout(): Promise<void> {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { QBtn, useQuasar } from 'quasar'
+import { QBtn } from 'quasar'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
@@ -8,13 +8,14 @@ import AppButton from '@/components/ui/AppButton.vue'
 import { useAuthStore } from '@/stores/auth.store'
 import { useAppNotify } from '@/composables/useAppNotify'
 import { useAppLoading } from '@/composables/useAppLoading'
+import { useConfirmDialog } from '@/composables/useConfirmDialog'
 
 const router = useRouter()
 const { t } = useI18n()
-const $q = useQuasar()
 const authStore = useAuthStore()
 const { notifyError } = useAppNotify()
 const { showLoading, hideLoading } = useAppLoading()
+const { confirm } = useConfirmDialog()
 
 const isDeactivating = ref(false)
 
@@ -23,12 +24,7 @@ function goBack(): void {
 }
 
 function confirmDeactivate(): void {
-  $q.dialog({
-    title: t('settings.deactivateAccountButton'),
-    message: t('settings.deactivateConfirm'),
-    cancel: true,
-    persistent: true,
-  }).onOk(() => {
+  confirm(t('settings.deactivateAccountButton'), t('settings.deactivateConfirm'), () => {
     deactivateAccount()
   })
 }
