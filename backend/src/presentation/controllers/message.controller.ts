@@ -6,6 +6,7 @@ import { PrismaMessageRepository } from '../../infrastructure/repositories/prism
 import { SendMessageUseCase } from '../../application/use-cases/message/send-message.use-case.js';
 import { SendMessageWithAttachmentUseCase } from '../../application/use-cases/message/send-message-with-attachment.use-case.js';
 import { GetMessagesUseCase } from '../../application/use-cases/message/get-messages.use-case.js';
+import { SearchMessagesUseCase } from '../../application/use-cases/message/search-messages.use-case.js';
 import { EditMessageUseCase } from '../../application/use-cases/message/edit-message.use-case.js';
 import { DeleteMessageUseCase } from '../../application/use-cases/message/delete-message.use-case.js';
 import { MarkMessagesAsReadUseCase } from '../../application/use-cases/message/mark-messages-as-read.use-case.js';
@@ -34,6 +35,11 @@ export class MessageController {
   );
 
   private readonly getMessagesUseCase = new GetMessagesUseCase(
+    this.chatRepository,
+    this.messageRepository,
+  );
+
+  private readonly searchMessagesUseCase = new SearchMessagesUseCase(
     this.chatRepository,
     this.messageRepository,
   );
@@ -111,6 +117,25 @@ export class MessageController {
       const messages = await this.getMessagesUseCase.execute(
         String(req.params.chatId),
         req.user.id,
+      );
+
+      res.status(200).json({
+        success: true,
+        data: messages,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  searchMessages = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const query = typeof req.query.q === 'string' ? req.query.q : '';
+
+      const messages = await this.searchMessagesUseCase.execute(
+        String(req.params.chatId),
+        req.user.id,
+        query,
       );
 
       res.status(200).json({

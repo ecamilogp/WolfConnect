@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onUnmounted, ref, watch } from 'vue'
-import { QBtn, useQuasar } from 'quasar'
+import { QBtn, QIcon, QInput, useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
@@ -16,6 +16,7 @@ import { usePresenceStore } from '@/stores/presence.store'
 import { useChatSocket } from '@/composables/useChatSocket'
 import { useAppNotify } from '@/composables/useAppNotify'
 import { sendMessageWithAttachment } from '@/services/http/attachment.service'
+import { searchMessages } from '@/services/http/message.service'
 import type { Chat } from '@/types/models/chat.model'
 import type { Message, MessageListItem } from '@/types/models/message.model'
 import type {
@@ -48,6 +49,16 @@ const isOtherUserOnline = computed(
 const isGroupInfoOpen = ref(false)
 const replyingTo = ref<MessageListItem | null>(null)
 const editingMessage = ref<MessageListItem | null>(null)
+
+const messageListRef = ref<InstanceType<typeof MessageList> | null>(null)
+const isSearchOpen = ref(false)
+const searchQuery = ref('')
+const searchResults = ref<MessageListItem[]>([])
+const activeResultIndex = ref(0)
+const isSearching = ref(false)
+let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null
+
+const highlightedMessageId = computed(() => searchResults.value[activeResultIndex.value]?.id ?? null)
 
 function initials(name: string): string {
   return name
@@ -130,6 +141,78 @@ onUnmounted(() => {
   groupStore.closeGroupDetail()
 })
 
+function scrollToActiveResult(): void {
+  const message = searchResults.value[activeResultIndex.value]
+
+  if (message) {
+    messageListRef.value?.scrollToMessage(message.id)
+  }
+}
+
+async function runSearch(query: string): Promise<void> {
+  isSearching.value = true
+
+  try {
+    searchResults.value = await searchMessages(chatId.value, query)
+    activeResultIndex.value = searchResults.value.length > 0 ? searchResults.value.length - 1 : 0
+    scrollToActiveResult()
+  } catch (error) {
+    notifyError(error, 'chat.searchError')
+  } finally {
+    isSearching.value = false
+  }
+}
+
+watch(searchQuery, (query) => {
+  if (searchDebounceTimer) {
+    clearTimeout(searchDebounceTimer)
+  }
+
+  const trimmed = query.trim()
+
+  if (trimmed.length === 0) {
+    searchResults.value = []
+    activeResultIndex.value = 0
+    return
+  }
+
+  searchDebounceTimer = setTimeout(() => {
+    runSearch(trimmed)
+  }, 300)
+})
+
+function openSearch(): void {
+  isSearchOpen.value = true
+}
+
+function closeSearch(): void {
+  isSearchOpen.value = false
+  searchQuery.value = ''
+  searchResults.value = []
+  activeResultIndex.value = 0
+}
+
+function goToPreviousResult(): void {
+  if (searchResults.value.length === 0) {
+    return
+  }
+
+  activeResultIndex.value =
+    (activeResultIndex.value - 1 + searchResults.value.length) % searchResults.value.length
+  scrollToActiveResult()
+}
+
+function goToNextResult(): void {
+  if (searchResults.value.length === 0) {
+    return
+  }
+
+  activeResultIndex.value = (activeResultIndex.value + 1) % searchResults.value.length
+  scrollToActiveResult()
+}
+
+watch(chatId, closeSearch)
+
 function handleSend(payload: { content: string; replyToMessageId?: string }): void {
   chatSocket.sendMessage(chatId.value, payload.content, payload.replyToMessageId)
   replyingTo.value = null
@@ -165,38 +248,103 @@ function handleEditRequest(message: MessageListItem): void {
       v-if="chat"
       class="flex items-center bg-[#FAF8F8] dark:bg-[#16151B] gap-3 border-b border-black/20 px-4 py-3 dark:border-white/20"
     >
-      <QBtn
-        v-if="isMobile"
-        round
-        flat
-        dense
-        icon="arrow_back"
-        class="-ml-1"
-        @click="goBackToList"
-      />
+      <template v-if="!isSearchOpen">
+        <QBtn
+          v-if="isMobile"
+          round
+          flat
+          dense
+          icon="arrow_back"
+          class="-ml-1"
+          @click="goBackToList"
+        />
 
-      <AppAvatar
-        :src="chat.imageUrl ?? undefined"
-        :initials="initials(chat.name)"
-        size="36px"
-        previewable
-        :online="isOtherUserOnline"
-      />
-      <div class="min-w-0 flex-1">
-        <p class="truncate font-semibold translate-y-2">{{ chat.name }}</p>
-        <p v-if="isOtherUserOnline" class="text-xs text-positive leading-none">
-          {{ t('presence.online') }}
+        <AppAvatar
+          :src="chat.imageUrl ?? undefined"
+          :initials="initials(chat.name)"
+          size="36px"
+          previewable
+          :online="isOtherUserOnline"
+        />
+        <div class="min-w-0 flex-1">
+          <p class="truncate font-semibold translate-y-2">{{ chat.name }}</p>
+          <p v-if="isOtherUserOnline" class="text-xs text-positive leading-none">
+            {{ t('presence.online') }}
+          </p>
+        </div>
+
+        <QBtn
+          round
+          flat
+          dense
+          icon="search"
+          :aria-label="t('chat.searchTooltip')"
+          @click="openSearch"
+        />
+        <QBtn v-if="isGroup" round flat dense icon="info" @click="isGroupInfoOpen = true" />
+      </template>
+
+      <template v-else>
+        <QInput
+          v-model="searchQuery"
+          dense
+          outlined
+          rounded
+          autofocus
+          class="flex-1"
+          :placeholder="t('chat.searchPlaceholder')"
+          @keydown.enter="goToPreviousResult"
+        >
+          <template #prepend>
+            <QIcon name="search" size="18px" />
+          </template>
+        </QInput>
+
+        <p class="min-w-16 whitespace-nowrap text-center text-xs opacity-70">
+          <template v-if="searchQuery.trim().length === 0"></template>
+          <template v-else-if="isSearching">{{ t('chat.searching') }}</template>
+          <template v-else-if="searchResults.length > 0">
+            {{ activeResultIndex + 1 }} / {{ searchResults.length }}
+          </template>
+          <template v-else>{{ t('chat.searchNoResults') }}</template>
         </p>
-      </div>
 
-      <QBtn v-if="isGroup" round flat dense icon="info" @click="isGroupInfoOpen = true" />
+        <QBtn
+          round
+          flat
+          dense
+          icon="keyboard_arrow_up"
+          :disable="searchResults.length === 0"
+          :aria-label="t('chat.searchPrevious')"
+          @click="goToPreviousResult"
+        />
+        <QBtn
+          round
+          flat
+          dense
+          icon="keyboard_arrow_down"
+          :disable="searchResults.length === 0"
+          :aria-label="t('chat.searchNext')"
+          @click="goToNextResult"
+        />
+        <QBtn
+          round
+          flat
+          dense
+          icon="close"
+          :aria-label="t('chat.searchClose')"
+          @click="closeSearch"
+        />
+      </template>
     </header>
 
     <MessageList
+      ref="messageListRef"
       :messages="messageStore.messages"
       :is-loading="messageStore.isLoading"
       :current-user-id="authStore.user?.id ?? ''"
       :is-group="isGroup"
+      :highlighted-message-id="highlightedMessageId"
       @reply="handleReplyRequest"
       @edit="handleEditRequest"
     />
