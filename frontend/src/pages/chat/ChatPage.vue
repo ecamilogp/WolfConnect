@@ -15,7 +15,7 @@ import { useChatSocket } from '@/composables/useChatSocket'
 import { useAppNotify } from '@/composables/useAppNotify'
 import { sendMessageWithAttachment } from '@/services/http/attachment.service'
 import type { Chat } from '@/types/models/chat.model'
-import type { Message } from '@/types/models/message.model'
+import type { Message, MessageListItem } from '@/types/models/message.model'
 import type {
   ChatLeftPayload,
   MessageDeletedPayload,
@@ -37,6 +37,8 @@ const chatId = computed(() => String(route.params.chatId))
 const chat = computed(() => chatStore.chats.find((item) => item.id === chatId.value))
 const isGroup = computed(() => chat.value?.type === 'GROUP')
 const isGroupInfoOpen = ref(false)
+const replyingTo = ref<MessageListItem | null>(null)
+const editingMessage = ref<MessageListItem | null>(null)
 
 function initials(name: string): string {
   return name
@@ -115,8 +117,9 @@ onUnmounted(() => {
   groupStore.closeGroupDetail()
 })
 
-function handleSend(content: string): void {
-  chatSocket.sendMessage(chatId.value, content)
+function handleSend(payload: { content: string; replyToMessageId?: string }): void {
+  chatSocket.sendMessage(chatId.value, payload.content, payload.replyToMessageId)
+  replyingTo.value = null
 }
 
 async function handleSendAttachment(payload: { content: string; file: File }): Promise<void> {
@@ -125,6 +128,21 @@ async function handleSendAttachment(payload: { content: string; file: File }): P
   } catch (error) {
     notifyError(error, 'chat.attachmentSendError')
   }
+}
+
+function handleEditMessage(payload: { messageId: string; content: string }): void {
+  chatSocket.editMessage(payload.messageId, payload.content)
+  editingMessage.value = null
+}
+
+function handleReplyRequest(message: MessageListItem): void {
+  editingMessage.value = null
+  replyingTo.value = message
+}
+
+function handleEditRequest(message: MessageListItem): void {
+  replyingTo.value = null
+  editingMessage.value = message
 }
 </script>
 
@@ -150,9 +168,19 @@ async function handleSendAttachment(payload: { content: string; file: File }): P
       :is-loading="messageStore.isLoading"
       :current-user-id="authStore.user?.id ?? ''"
       :is-group="isGroup"
+      @reply="handleReplyRequest"
+      @edit="handleEditRequest"
     />
 
-    <MessageComposer @send="handleSend" @send-attachment="handleSendAttachment" />
+    <MessageComposer
+      :reply-target="replyingTo"
+      :edit-target="editingMessage"
+      @send="handleSend"
+      @send-attachment="handleSendAttachment"
+      @edit-message="handleEditMessage"
+      @cancel-reply="replyingTo = null"
+      @cancel-edit="editingMessage = null"
+    />
 
     <GroupInfoPanel
       v-model="isGroupInfoOpen"

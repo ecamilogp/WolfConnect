@@ -1,13 +1,22 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { QBtn, QIcon, QInput } from 'quasar'
 import { useI18n } from 'vue-i18n'
 
 import EmojiPicker from './EmojiPicker.vue'
+import type { MessageListItem } from '@/types/models/message.model'
+
+const props = defineProps<{
+  replyTarget?: MessageListItem | null
+  editTarget?: MessageListItem | null
+}>()
 
 const emit = defineEmits<{
-  send: [content: string]
+  send: [payload: { content: string; replyToMessageId?: string }]
   sendAttachment: [payload: { content: string; file: File }]
+  editMessage: [payload: { messageId: string; content: string }]
+  cancelReply: []
+  cancelEdit: []
 }>()
 
 const { t } = useI18n()
@@ -15,6 +24,30 @@ const { t } = useI18n()
 const content = ref('')
 const selectedFile = ref<File | null>(null)
 const fileInputRef = ref<HTMLInputElement | null>(null)
+
+watch(
+  () => props.editTarget,
+  (target) => {
+    if (target) {
+      content.value = target.content ?? ''
+      selectedFile.value = null
+    } else {
+      content.value = ''
+    }
+  },
+)
+
+const replyPreviewText = computed(() => {
+  const target = props.replyTarget
+
+  if (!target) {
+    return ''
+  }
+
+  return target.content && target.content.trim().length > 0
+    ? target.content
+    : t('chat.replyPreviewFallback')
+})
 
 function openFilePicker(): void {
   fileInputRef.value?.click()
@@ -42,6 +75,16 @@ function insertEmoji(emoji: string): void {
 function handleSubmit(): void {
   const trimmed = content.value.trim()
 
+  if (props.editTarget) {
+    if (trimmed.length === 0) {
+      return
+    }
+
+    emit('editMessage', { messageId: props.editTarget.id, content: trimmed })
+    content.value = ''
+    return
+  }
+
   if (selectedFile.value) {
     const file = selectedFile.value
 
@@ -56,7 +99,7 @@ function handleSubmit(): void {
     return
   }
 
-  emit('send', trimmed)
+  emit('send', { content: trimmed, replyToMessageId: props.replyTarget?.id })
   content.value = ''
 }
 </script>
@@ -66,6 +109,45 @@ function handleSubmit(): void {
     class="flex flex-col gap-2 border-t border-black/20 px-4 py-3 dark:border-white/20"
     @submit.prevent="handleSubmit"
   >
+    <div
+      v-if="editTarget"
+      class="flex items-center gap-2 self-stretch rounded-lg bg-black/5 px-3 py-1.5 text-sm dark:bg-white/10"
+    >
+      <QIcon name="edit" size="16px" color="primary" />
+      <span class="flex-1 truncate">{{ t('chat.editingMessage') }}</span>
+      <QBtn
+        round
+        flat
+        dense
+        size="sm"
+        icon="close"
+        :aria-label="t('chat.cancelEdit')"
+        @click="emit('cancelEdit')"
+      />
+    </div>
+
+    <div
+      v-else-if="replyTarget"
+      class="flex items-center gap-2 self-stretch rounded-lg border-l-4 border-primary bg-black/5 px-3 py-1.5 text-sm dark:bg-white/10"
+    >
+      <QIcon name="reply" size="16px" color="primary" />
+      <div class="min-w-0 flex-1">
+        <p class="text-xs font-semibold text-primary">
+          {{ replyTarget.sender ? `${replyTarget.sender.firstName} ${replyTarget.sender.lastName}` : '' }}
+        </p>
+        <p class="truncate">{{ replyPreviewText }}</p>
+      </div>
+      <QBtn
+        round
+        flat
+        dense
+        size="sm"
+        icon="close"
+        :aria-label="t('chat.cancelReply')"
+        @click="emit('cancelReply')"
+      />
+    </div>
+
     <div
       v-if="selectedFile"
       class="flex items-center gap-2 self-start rounded-lg bg-black/5 px-3 py-1.5 text-sm dark:bg-white/10"
@@ -98,6 +180,7 @@ function handleSubmit(): void {
         dense
         icon="attach_file"
         color="grey-6"
+        :disable="!!editTarget"
         :aria-label="t('chat.attachFile')"
         @click="openFilePicker"
       />
@@ -115,7 +198,7 @@ function handleSubmit(): void {
         @keydown.enter.exact.prevent="handleSubmit"
       />
 
-      <QBtn round unelevated color="primary" icon="send" type="submit" />
+      <QBtn round unelevated color="primary" :icon="editTarget ? 'check' : 'send'" type="submit" />
     </div>
   </form>
 </template>

@@ -23,6 +23,11 @@ const props = withDefaults(
   },
 )
 
+const emit = defineEmits<{
+  reply: [message: MessageListItem]
+  edit: [message: MessageListItem]
+}>()
+
 const { t } = useI18n()
 const { isDark } = useTheme()
 
@@ -78,6 +83,8 @@ watch(
             :is-own="message.senderId === currentUserId"
             :is-group="isGroup"
             :current-user-id="currentUserId"
+            @reply="emit('reply', message)"
+            @edit="emit('edit', message)"
           />
         </template>
       </div>
